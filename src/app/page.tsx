@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { 
   Search, ChevronDown, Heart, ArrowRight, Calendar, Gauge, Zap, ExternalLink, 
-  Clock, Star, ShieldCheck, CreditCard, ClipboardCheck 
+  ShieldCheck, CreditCard, ClipboardCheck 
 } from "lucide-react";
 
 export default function Home() {
@@ -10,12 +10,6 @@ export default function Home() {
     { id: 2, title: '2023 Shelby Super Snake', price: '$145,900', year: '2023', miles: '240', trans: '10-Speed', image: '/images/ford-mustang-shelby-gt500-super-snake1-e1526674717750.webp' },
     { id: 3, title: '2022 Shelby GT350R', price: '$89,000', year: '2022', miles: '3,400', trans: '6-Speed', image: '/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg' },
     { id: 4, title: '1967 Shelby Mustang GT500 "Eleanor"', price: '$325,000', year: '1967', miles: '12,400', trans: '4-Speed', image: '/images/rare-rides-the-1967-shelby-gt500-super-snake-2020-12-14_03-04-23_399335.webp' },
-  ];
-
-  const latestArrivals = [
-    { id: 1, title: '2024 F-150 Super Snake', price: '$135,000', image: '/images/2026_supersnaker_gallery_06-938430.jpg' },
-    { id: 2, title: '2021 Shelby GT500 Signature', price: '$121,000', image: '/images/2013_Shelby_GT500_Cobra_frt_34.webp' },
-    { id: 3, title: '2024 Shelby Cobra 427 S/C', price: '$185,000', image: '/images/1967-ford-shelby-gt500-super-snake.avif' },
   ];
 
   const newsItems = [
@@ -27,7 +21,7 @@ export default function Home() {
   return (
     <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[60vh] min-h-[500px] bg-[#0F172A] overflow-hidden">
+      <section className="relative h-[70vh] min-h-[560px] bg-[#0F172A] overflow-hidden">
         <img src="/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg" className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
         <div className="absolute inset-0 bg-black/40" />
         
@@ -44,7 +38,7 @@ export default function Home() {
             The world&apos;s premier marketplace for authentic Shelby engineering.
           </p>
 
-          <div className="glass-search max-w-3xl w-full rounded-2xl p-3 flex flex-col md:flex-row items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20">
+          <div className="glass-search max-w-3xl w-full mx-auto rounded-2xl p-3 flex flex-col md:flex-row items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20">
             <div className="flex-1 flex items-center gap-3 px-4 w-full bg-white/90 rounded-xl py-3">
               <Search className="w-5 h-5 text-[#565d6d]" />
               <input type="text" placeholder="Search by Model, Year, or ZIP..." className="bg-transparent border-none outline-none w-full text-sm font-medium placeholder:text-[#565d6d]/50 min-w-0" />
@@ -126,39 +120,91 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Latest Arrivals */}
-      <section className="bg-[#f3f4f6]/20 py-24 border-y border-[#dee1e6]">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-4">
-            <div className="inline-flex px-3 py-1 border border-[#002D72] rounded-full mb-8">
-              <span className="text-[10px] font-bold text-[#002D72] uppercase tracking-wider">Latest Arrivals</span>
+      {/* Why Sell With Shelby Exchange */}
+      <section className="bg-white py-24 border-y border-[#dee1e6]">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-12">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
+              <span className="text-xs font-bold text-[#E31837] uppercase tracking-wider">For Sellers</span>
             </div>
-            <h2 className="text-4xl md:text-[36px] font-extrabold leading-tight tracking-tighter mb-6">New Performance Icons Listed Daily.</h2>
-            <p className="text-[#565d6d] text-lg mb-10">Our network of certified Shelby dealers and private collectors add dozens of authenticated performance vehicles every week.</p>
-            <div className="space-y-6 mb-10">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#002D72]/10 rounded-full flex items-center justify-center shrink-0"><Clock className="w-5 h-5 text-[#002D72]" /></div>
-                <div><h4 className="font-outfit font-bold text-sm">Real-time Updates</h4><p className="text-xs text-[#565d6d]">Be the first to see new Shelby stock.</p></div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#E31837]/10 rounded-full flex items-center justify-center shrink-0"><Star className="w-5 h-5 text-[#E31837]" /></div>
-                <div><h4 className="font-outfit font-bold text-sm">Priority Notifications</h4><p className="text-xs text-[#565d6d]">Set alerts for specific model and year ranges.</p></div>
-              </div>
-            </div>
-            <Link href="/listings" className="block w-full py-4 bg-[#002D72] text-white font-bold rounded-md hover:bg-[#001D4A] transition-colors text-center">View All Recent Listings</Link>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">Why Sell With Shelby Exchange?</h2>
+            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Join thousands of satisfied sellers who trust our platform to connect with serious Shelby buyers worldwide.</p>
           </div>
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {latestArrivals.map((item) => (
-              <div key={item.id} className="relative h-[345px] rounded-2xl overflow-hidden group">
-                <img src={item.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={item.title} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6">
-                  <span className="text-[10px] font-black text-[#E31837] uppercase tracking-widest mb-2 block">Available Now</span>
-                  <h4 className="text-white font-outfit font-bold text-lg mb-1 leading-tight">{item.title}</h4>
-                  <span className="text-white/90 text-sm font-medium">{item.price}</span>
+
+          {/* 3 Column Layout - 40/20/40 */}
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_2fr] gap-8 lg:gap-12">
+            {/* Left Column - Images */}
+            <div className="space-y-6">
+              {[
+                { img: '/images/Shelby-GT500-for-Sale-2022-Ford-Mustang-Shelby-GT500-Front.jpg', alt: 'GT500 Sale' },
+                { img: '/images/2026_supersnaker_gallery_06-938430.jpg', alt: 'Super Snake' },
+                { img: '/images/1967-ford-shelby-gt500-super-snake.avif', alt: 'Classic Shelby' },
+                { img: '/images/ford-mustang-shelby-gt500-super-snake1-e1526674717750.webp', alt: 'Modern Shelby' },
+              ].map((item, idx) => (
+                <div key={idx} className="relative h-40 rounded-2xl overflow-hidden group">
+                  <img src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={item.alt} />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Center Column - Animated Timeline */}
+            <div className="hidden lg:flex flex-col items-center justify-center relative py-8">
+              <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#E31837]/20 -translate-x-1/2" />
+              {[0, 1, 2, 3].map((idx) => (
+                <div key={idx} className="relative flex-1 flex items-center justify-center w-full">
+                  <div className="relative z-10">
+                    <div className="w-4 h-4 bg-[#E31837] rounded-full shadow-lg shadow-[#E31837]/30 animate-pulse" />
+                    <div className="absolute inset-0 w-4 h-4 bg-[#E31837] rounded-full animate-ping opacity-75" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right Column - Reasons */}
+            <div className="flex flex-col justify-center space-y-8">
+              {[
+                { 
+                  num: '01', 
+                  title: 'Verified Listings', 
+                  desc: 'Every listing undergoes our rigorous verification process. Buyers trust our platform because they know each vehicle has been authenticated, ensuring you connect with serious, qualified buyers who are ready to purchase.'
+                },
+                { 
+                  num: '02', 
+                  title: 'Shelby Customers Look for Us', 
+                  desc: 'Our marketplace is the first destination for Shelby enthusiasts worldwide. When collectors and enthusiasts search for their next performance vehicle, they come to Shelby Exchange first—putting your listing in front of the right audience.'
+                },
+                { 
+                  num: '03', 
+                  title: 'No Transaction Fees', 
+                  desc: 'Keep more of your money. Unlike other marketplaces that charge hefty commissions on every sale, we offer zero transaction fees. You only pay a simple listing fee or choose our subscription model for unlimited listings.'
+                },
+                { 
+                  num: '04', 
+                  title: 'Dealer Discounted Rates', 
+                  desc: 'Professional dealers benefit from our exclusive subscription plans with significant savings. Our Enthusiast and Apex packages offer unlimited listings, priority placement, and dedicated support at rates designed to maximize your ROI.'
+                },
+              ].map((reason, idx) => (
+                <div key={idx} className="group">
+                  <div className="flex items-start gap-4">
+                    <span className="text-[#E31837] font-black text-sm tracking-wider">{reason.num}</span>
+                    <div>
+                      <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
+                      <p className="text-[#565d6d] text-sm leading-relaxed">{reason.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="mt-16 text-center">
+            <Link href="/sell" className="inline-flex items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
+              Start Selling Today
+              <ArrowRight className="w-5 h-5" />
+            </Link>
           </div>
         </div>
       </section>
