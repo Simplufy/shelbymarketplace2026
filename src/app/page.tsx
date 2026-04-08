@@ -36,8 +36,8 @@ export default function Home() {
             <span className="text-xs font-bold text-white uppercase tracking-wider">Exclusively Shelby</span>
           </div>
           
-          <h1 className="text-white font-black text-4xl sm:text-6xl md:text-8xl lg:text-[96px] leading-tight tracking-tighter mb-6 drop-shadow-2xl break-words">
-            SHELBY<br />PERFORMANCE.<br />CURATED.
+          <h1 className="text-white font-black text-3xl sm:text-5xl md:text-7xl lg:text-[77px] leading-tight tracking-tighter mb-6 drop-shadow-2xl break-words italic">
+            The Fastest Way to Buy or Sell a Ford Shelby
           </h1>
           
           <p className="text-[#D1D5DB] font-outfit text-xl max-w-lg mb-8">
