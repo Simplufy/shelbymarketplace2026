@@ -1,13 +1,18 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { UploadCloud, Plus, Trash2 } from "lucide-react";
+import { UploadCloud, Plus, Trash2, X, Loader2 } from "lucide-react";
+import { useStorage } from "@/hooks/useStorage";
 
 export default function Step2Details({ initialData, onNext, onBack }: any) {
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({ defaultValues: initialData });
+  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialData });
   const [serviceRecords, setServiceRecords] = useState([
     { date: "", type: "", description: "", mileage: "" }
   ]);
+  const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadListingImage } = useStorage();
 
   const addServiceRecord = () => {
     setServiceRecords([...serviceRecords, { date: "", type: "", description: "", mileage: "" }]);
@@ -23,8 +28,40 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
     setServiceRecords(updated);
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    
+    // Upload each file
+    for (let i = 0; i < Math.min(files.length, 20 - uploadedImages.length); i++) {
+      const file = files[i];
+      
+      // Create a temporary ID for the upload
+      const tempId = `temp-${Date.now()}`;
+      
+      const result = await uploadListingImage(file, tempId, i === 0);
+      
+      if (result) {
+        setUploadedImages(prev => [...prev, result]);
+      }
+    }
+    
+    setIsUploading(false);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(uploadedImages.filter((_, i) => i !== index));
+  };
+
   const onSubmit = (data: any) => {
-    onNext({ ...data, serviceHistory: serviceRecords });
+    onNext({ ...data, serviceHistory: serviceRecords, images: uploadedImages });
   };
 
   return (
@@ -32,7 +69,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Asking Price ($)</label>
-          <input type="number" {...register("price", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-lg text-[var(--color-shelby-red)] text-sm" placeholder="105000" />
+          <input type="number" {...register("price", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-[var(--color-shelby-red)] text-sm" placeholder="105000" />
         </div>
         <div>
           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Mileage</label>
@@ -130,13 +167,69 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
         </button>
       </div>
 
+      {/* Image Upload Section */}
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Photos (Up to 20)</label>
-        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all cursor-pointer group">
-          <UploadCloud className="w-12 h-12 mb-3 text-[var(--color-shelby-blue)] opacity-70 group-hover:opacity-100 transition-opacity group-hover:scale-110" />
-          <p className="font-bold text-gray-800 text-sm mb-1 text-center break-words">Click to upload or drag & drop</p>
-          <p className="text-xs font-medium text-gray-500 text-center">High-res JPEG, PNG (max 10MB each)</p>
-        </div>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
+          Photos ({uploadedImages.length}/20)
+        </label>
+        
+        {/* Upload Area */}
+        {uploadedImages.length < 20 && (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all cursor-pointer group"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-12 h-12 mb-3 text-[var(--color-shelby-blue)] animate-spin" />
+                  <p className="font-bold text-gray-800 text-sm mb-1">Uploading...</p>
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-12 h-12 mb-3 text-[var(--color-shelby-blue)] opacity-70 group-hover:opacity-100 transition-opacity group-hover:scale-110" />
+                  <p className="font-bold text-gray-800 text-sm mb-1 text-center break-words">Click to upload or drag & drop</p>
+                  <p className="text-xs font-medium text-gray-500 text-center">High-res JPEG, PNG (max 10MB each)</p>
+                </>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Preview Grid */}
+        {uploadedImages.length > 0 && (
+          <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+            {uploadedImages.map((image, index) => (
+              <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
+                <img 
+                  src={image.url} 
+                  alt={`Upload ${index + 1}`} 
+                  className="w-full h-full object-cover"
+                />
+                {index === 0 && (
+                  <div className="absolute top-1 left-1 px-2 py-0.5 bg-[var(--color-shelby-blue)] text-white text-[10px] font-bold rounded">
+                    Primary
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="bg-gray-50/50 p-4 rounded-xl flex items-start gap-3 border border-gray-200 hover:border-[var(--color-shelby-blue)] hover:bg-blue-50/20 transition-colors">
