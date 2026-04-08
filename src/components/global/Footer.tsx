@@ -7,10 +7,11 @@ export default function Footer() {
       <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-20">
         <div className="lg:col-span-4">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-9 h-9 bg-[#002D72] rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              S
-            </div>
-            <span className="font-heading text-2xl font-bold text-[#002D72] tracking-tighter">Ford Shelby Exchange</span>
+            <img 
+              src="/images/logo1.png" 
+              alt="Shelby Exchange" 
+              className="h-12 w-auto object-contain"
+            />
           </div>
           <p className="text-[#565d6d] text-sm leading-relaxed mb-8 max-w-sm">
             The world&apos;s premier digital marketplace for authentic Ford Shelby performance vehicles. Curated listings, verified sellers, and unmatched performance.

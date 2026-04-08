@@ -45,13 +45,12 @@ export default function Header() {
       <header className="sticky top-0 z-50 bg-white border-b border-[#dee1e6] shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 shrink-0">
-            <div className="w-9 h-9 bg-[#002D72] rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              S
-            </div>
-            <Link href="/">
-              <span className="font-heading text-2xl font-bold text-[#002D72] hidden lg:block tracking-tighter">
-                Ford Shelby Exchange
-              </span>
+            <Link href="/" className="flex items-center gap-2">
+              <img 
+                src="/images/logo1.png" 
+                alt="Shelby Exchange" 
+                className="h-10 w-auto object-contain"
+              />
             </Link>
           </div>
 
