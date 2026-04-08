@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { 
-  Search, ChevronDown, Heart, ArrowRight, Calendar, Gauge, Zap, ExternalLink, 
-  ShieldCheck, CreditCard, ClipboardCheck 
+  Search, Heart, ArrowRight, Calendar, Gauge, Zap, ExternalLink
 } from "lucide-react";
 
 export default function Home() {
@@ -256,24 +255,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trust Badges */}
-      <section className="bg-[#f3f4f6]/30 py-16 border-y border-[#dee1e6]">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="flex items-center gap-6">
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0"><ShieldCheck className="w-6 h-6 text-[#002D72]" /></div>
-            <div><h4 className="font-outfit font-bold text-sm tracking-tight">Verified Sellers</h4><p className="text-xs text-[#565d6d]">Every dealer and private seller is vetted.</p></div>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0"><CreditCard className="w-6 h-6 text-[#002D72]" /></div>
-            <div><h4 className="font-outfit font-bold text-sm tracking-tight">Secure Payments</h4><p className="text-xs text-[#565d6d]">Escrow services for high-value transactions.</p></div>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0"><ClipboardCheck className="w-6 h-6 text-[#E31837]" /></div>
-            <div><h4 className="font-outfit font-bold text-sm tracking-tight">Inspections Included</h4><p className="text-xs text-[#565d6d]">Comprehensive 150-point Shelby reports.</p></div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="relative bg-[#001530] py-32 overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
@@ -282,8 +263,8 @@ export default function Home() {
               <div className="w-12 h-12 bg-[#E31837] rounded-full flex items-center justify-center"><span className="text-white font-bold text-xl">S</span></div>
               <span className="text-sm font-black text-white/60 uppercase tracking-[4px]">Ready to Ride?</span>
             </div>
-            <h2 className="text-white font-outfit font-black text-4xl sm:text-6xl md:text-[72px] leading-[0.95] uppercase tracking-tighter mb-10 break-words">
-              Your Dream <span className="text-[#E31837] italic font-inter">Shelby</span> is One Search Away.
+            <h2 className="text-white font-outfit font-black text-3xl sm:text-5xl md:text-6xl leading-[0.95] uppercase tracking-tighter mb-10 break-words">
+              FIND THE SPEC NOBODY ELSE CAN.
             </h2>
             <p className="text-[#9CA3AF] font-outfit text-xl max-w-lg mb-12 leading-relaxed">
               Whether you&apos;re looking for a track-ready GT350R or a pristine 1960s classic, the Ford Shelby Exchange is your definitive destination.
