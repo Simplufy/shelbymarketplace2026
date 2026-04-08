@@ -1,0 +1,71 @@
+"use client";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { decodeVin } from "@/lib/nhtsa/api";
+import { Loader2 } from "lucide-react";
+
+export default function Step1VIN({ initialData, onNext }: any) {
+  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({ defaultValues: initialData });
+
+  const currentVin = watch("vin");
+
+  const handleLookup = async () => {
+    if (!currentVin || currentVin.length < 17) return alert("Enter valid 17-char VIN");
+    setLoading(true);
+    const data = await decodeVin(currentVin);
+    if (data.year) setValue("year", data.year);
+    if (data.make) setValue("make", data.make);
+    if (data.model) setValue("model", data.model);
+    if (data.trim) setValue("trim", data.trim);
+    setLoading(false);
+  };
+
+  const onSubmit = (data: any) => onNext(data);
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <div>
+        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-3 break-words">Vehicle Identification Number (VIN)</label>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <input 
+            type="text" 
+            {...register("vin", { required: true, minLength: 17, maxLength: 17 })}
+            placeholder="17-Character VIN"
+            className="flex-1 px-4 sm:px-6 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-mono uppercase text-base sm:text-lg transition-shadow bg-white shadow-inner min-w-0"
+            maxLength={17}
+          />
+          <button type="button" onClick={handleLookup} disabled={loading} className="px-8 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors flex items-center justify-center min-w-[140px] shadow-md">
+            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Decode VIN"}
+          </button>
+        </div>
+        {errors.vin && <p className="text-red-500 text-sm mt-2 font-medium">Valid 17-character VIN is required.</p>}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+        <div>
+          <label className="block text-sm font-bold text-gray-600 mb-2 uppercase tracking-wide text-xs">Year</label>
+          <input type="number" {...register("year", { required: true })} className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none transition-shadow text-lg" />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-600 mb-2 uppercase tracking-wide text-xs">Make</label>
+          <input type="text" {...register("make", { required: true })} className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none transition-shadow text-lg font-bold text-gray-900" />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-600 mb-2 uppercase tracking-wide text-xs">Model</label>
+          <input type="text" {...register("model", { required: true })} className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none transition-shadow text-lg font-bold text-[var(--color-shelby-blue)]" />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-600 mb-2 uppercase tracking-wide text-xs">Trim (Optional)</label>
+          <input type="text" {...register("trim")} className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none transition-shadow text-lg" placeholder="e.g. GT350R" />
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-8 border-t border-gray-100">
+        <button type="submit" className="px-10 py-5 bg-[var(--color-shelby-blue)] text-white font-bold text-lg rounded-xl hover:bg-[#001D40] transition-colors shadow-lg shadow-blue-900/20 active:scale-95 flex items-center gap-2">
+          Continue to Photos & Specs &rarr;
+        </button>
+      </div>
+    </form>
+  );
+}
