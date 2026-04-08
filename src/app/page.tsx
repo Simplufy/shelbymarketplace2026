@@ -27,11 +27,11 @@ export default function Home() {
   return (
     <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[615px] bg-[#0F172A] overflow-hidden">
-        <img src="/images/001-2024-shelby-super-snake.webp" className="absolute inset-0 w-full h-full object-cover object-center opacity-60" alt="Hero" />
+      <section className="relative min-h-[calc(100vh-140px)] bg-[#0F172A] overflow-hidden flex flex-col">
+        <img src="/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg" className="absolute inset-0 w-full h-full object-cover object-center opacity-60" alt="Hero" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#002D72]/90 via-[#002D72]/50 to-transparent" />
         
-        <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 h-full flex flex-col justify-center">
+        <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 flex-1 flex flex-col justify-center pt-24 pb-12">
           <div className="inline-flex items-center px-4 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-8 self-start">
             <span className="text-xs font-bold text-white uppercase tracking-wider">Exclusively Shelby</span>
           </div>
@@ -40,17 +40,12 @@ export default function Home() {
             SHELBY<br />PERFORMANCE.<br />CURATED.
           </h1>
           
-          <p className="text-[#D1D5DB] font-outfit text-xl max-w-lg mb-12">
+          <p className="text-[#D1D5DB] font-outfit text-xl max-w-lg mb-8">
             The world&apos;s premier marketplace for authentic Shelby engineering.
           </p>
 
-          <div className="glass-search max-w-4xl w-full rounded-2xl p-3 flex flex-col md:flex-row items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20">
-            <div className="flex items-center gap-3 px-4 py-2 bg-white/90 rounded-xl w-full md:w-auto shrink-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#171a1f]">Scope</span>
-              <span className="text-sm font-bold">For Sale</span>
-              <ChevronDown className="w-4 h-4 text-[#565d6d]" />
-            </div>
-            <div className="flex-1 flex items-center gap-3 px-4 w-full bg-white/90 rounded-xl py-2">
+          <div className="glass-search max-w-3xl w-full mx-auto rounded-2xl p-3 flex flex-col md:flex-row items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 mb-8">
+            <div className="flex-1 flex items-center gap-3 px-4 w-full bg-white/90 rounded-xl py-3">
               <Search className="w-5 h-5 text-[#565d6d]" />
               <input type="text" placeholder="Search by Model, Year, or ZIP..." className="bg-transparent border-none outline-none w-full text-sm font-medium placeholder:text-[#565d6d]/50 min-w-0" />
             </div>
