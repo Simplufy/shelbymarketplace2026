@@ -28,23 +28,23 @@ export default function Home() {
     <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-[calc(100vh-140px)] bg-[#0F172A] overflow-hidden flex flex-col">
-        <img src="/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg" className="absolute inset-0 w-full h-full object-cover object-center opacity-60" alt="Hero" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#002D72]/90 via-[#002D72]/50 to-transparent" />
+        <img src="/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg" className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
+        <div className="absolute inset-0 bg-black/40" />
         
-        <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 flex-1 flex flex-col justify-center pt-24 pb-12">
-          <div className="inline-flex items-center px-4 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-8 self-start">
+        <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 flex-1 flex flex-col justify-center pt-20 pb-6">
+          <div className="inline-flex items-center px-4 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-6 self-start">
             <span className="text-xs font-bold text-white uppercase tracking-wider">Exclusively Shelby</span>
           </div>
           
-          <h1 className="text-white font-black text-3xl sm:text-5xl md:text-7xl lg:text-[77px] leading-tight tracking-tighter mb-6 drop-shadow-2xl break-words italic">
+          <h1 className="text-white font-black text-3xl sm:text-5xl md:text-7xl lg:text-[77px] leading-tight tracking-tighter mb-3 drop-shadow-2xl break-words italic uppercase">
             The Fastest Way to Buy or Sell a Ford Shelby
           </h1>
           
-          <p className="text-[#D1D5DB] font-outfit text-xl max-w-lg mb-8">
+          <p className="text-[#D1D5DB] font-outfit text-xl max-w-lg mb-6">
             The world&apos;s premier marketplace for authentic Shelby engineering.
           </p>
 
-          <div className="glass-search max-w-3xl w-full mx-auto rounded-2xl p-3 flex flex-col md:flex-row items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 mb-8">
+          <div className="glass-search max-w-3xl w-full mx-auto rounded-2xl p-3 flex flex-col md:flex-row items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20">
             <div className="flex-1 flex items-center gap-3 px-4 w-full bg-white/90 rounded-xl py-3">
               <Search className="w-5 h-5 text-[#565d6d]" />
               <input type="text" placeholder="Search by Model, Year, or ZIP..." className="bg-transparent border-none outline-none w-full text-sm font-medium placeholder:text-[#565d6d]/50 min-w-0" />
