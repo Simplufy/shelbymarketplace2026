@@ -276,8 +276,6 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="relative bg-[#001530] py-32 overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(ellipse_at_center,_#002D7233_0%,_transparent_70%)] opacity-50" />
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[#E31837]/20 to-transparent" />
         <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
           <div>
             <div className="flex items-center gap-4 mb-12">
