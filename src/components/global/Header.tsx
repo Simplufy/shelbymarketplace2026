@@ -47,9 +47,9 @@ export default function Header() {
           <div className="flex items-center gap-2 shrink-0">
             <Link href="/" className="flex items-center gap-2">
               <img 
-                src="/images/logo1.png" 
+                src="/images/logo.png" 
                 alt="Shelby Exchange" 
-                className="h-10 w-auto object-contain"
+                className="h-14 w-auto object-contain"
               />
             </Link>
           </div>

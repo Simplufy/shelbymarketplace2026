@@ -8,9 +8,9 @@ export default function Footer() {
         <div className="lg:col-span-4">
           <div className="flex items-center gap-3 mb-8">
             <img 
-              src="/images/logo1.png" 
+              src="/images/logo.png" 
               alt="Shelby Exchange" 
-              className="h-12 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
           </div>
           <p className="text-[#565d6d] text-sm leading-relaxed mb-8 max-w-sm">
