@@ -31,7 +31,7 @@ export default function SellPage() {
         </div>
 
         {/* Stepper */}
-        <div className="flex flex-row items-center justify-between mb-16 max-w-3xl mx-auto">
+        <div className="flex flex-row items-center justify-between mb-24 max-w-3xl mx-auto">
           {steps.map((label, idx) => {
             const num = idx + 1;
             const isActive = step === num;
@@ -44,7 +44,7 @@ export default function SellPage() {
                 }`}>
                   {isPast ? <Check className="w-6 h-6" /> : num}
                 </div>
-                <span className={`text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-wider mt-4 text-center absolute -bottom-8 w-24 sm:w-32 ${
+                <span className={`text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-wider mt-6 text-center w-24 sm:w-32 ${
                   isActive ? "text-[#002D72]" : 
                   isPast ? "text-[#E31837]" : "text-[#565d6d]"
                 }`}>
@@ -62,7 +62,7 @@ export default function SellPage() {
         </div>
 
         {/* Form Container */}
-        <div className="bg-white rounded-2xl shadow-lg border border-[#dee1e6]/50 p-6 md:p-12 mt-20">
+        <div className="bg-white rounded-2xl shadow-lg border border-[#dee1e6]/50 p-6 md:p-10">
           {step === 1 && <Step1VIN initialData={formData} onNext={nextStep} />}
           {step === 2 && <Step2Details initialData={formData} onNext={nextStep} onBack={() => setStep(1)} />}
           {step === 3 && <Step3Packages initialData={formData} onNext={nextStep} onBack={() => setStep(2)} />}

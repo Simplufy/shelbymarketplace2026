@@ -1,55 +1,156 @@
 "use client";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, Plus, Trash2 } from "lucide-react";
 
 export default function Step2Details({ initialData, onNext, onBack }: any) {
-  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialData });
-  const onSubmit = (data: any) => onNext(data);
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({ defaultValues: initialData });
+  const [serviceRecords, setServiceRecords] = useState([
+    { date: "", type: "", description: "", mileage: "" }
+  ]);
+
+  const addServiceRecord = () => {
+    setServiceRecords([...serviceRecords, { date: "", type: "", description: "", mileage: "" }]);
+  };
+
+  const removeServiceRecord = (index: number) => {
+    setServiceRecords(serviceRecords.filter((_, i) => i !== index));
+  };
+
+  const updateServiceRecord = (index: number, field: string, value: string) => {
+    const updated = [...serviceRecords];
+    updated[index][field as keyof typeof updated[0]] = value;
+    setServiceRecords(updated);
+  };
+
+  const onSubmit = (data: any) => {
+    onNext({ ...data, serviceHistory: serviceRecords });
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">Asking Price ($)</label>
-          <input type="number" {...register("price", { required: true })} className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-2xl text-[var(--color-shelby-red)]" placeholder="105000" />
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Asking Price ($)</label>
+          <input type="number" {...register("price", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-lg text-[var(--color-shelby-red)] text-sm" placeholder="105000" />
         </div>
         <div>
-          <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">Mileage</label>
-          <input type="number" {...register("mileage", { required: true })} className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-xl" placeholder="2500" />
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Mileage</label>
+          <input type="number" {...register("mileage", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-sm" placeholder="2500" />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">Location</label>
-        <input type="text" {...register("location", { required: true })} className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-lg" placeholder="e.g. Las Vegas, NV" />
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Location</label>
+        <input type="text" {...register("location", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm" placeholder="e.g. Las Vegas, NV" />
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">Vehicle Description</label>
-        <textarea {...register("description", { required: true })} rows={6} className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none resize-none text-lg" placeholder="Describe your Shelby's condition, modifications, history..." />
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Vehicle Description</label>
+        <textarea {...register("description", { required: true })} rows={4} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none resize-none text-sm" placeholder="Describe your Shelby's condition, modifications, history..." />
+      </div>
+
+      {/* Vehicle History Section */}
+      <div className="pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Vehicle History & Service Records</h3>
+          <span className="text-xs text-gray-500">Buyers love detailed history</span>
+        </div>
+        
+        <div className="space-y-3">
+          {serviceRecords.map((record, index) => (
+            <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Date</label>
+                  <input 
+                    type="date" 
+                    value={record.date}
+                    onChange={(e) => updateServiceRecord(index, "date", e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Type</label>
+                  <select 
+                    value={record.type}
+                    onChange={(e) => updateServiceRecord(index, "type", e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-xs"
+                  >
+                    <option value="">Select...</option>
+                    <option value="Service">Service</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Inspection">Inspection</option>
+                    <option value="Repair">Repair</option>
+                    <option value="Modification">Modification</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Mileage</label>
+                  <input 
+                    type="number" 
+                    value={record.mileage}
+                    onChange={(e) => updateServiceRecord(index, "mileage", e.target.value)}
+                    placeholder="e.g. 5000"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-xs"
+                  />
+                </div>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Description</label>
+                    <input 
+                      type="text" 
+                      value={record.description}
+                      onChange={(e) => updateServiceRecord(index, "description", e.target.value)}
+                      placeholder="e.g. Oil change, tire rotation"
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-xs"
+                    />
+                  </div>
+                  {serviceRecords.length > 1 && (
+                    <button 
+                      type="button"
+                      onClick={() => removeServiceRecord(index)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <button 
+          type="button"
+          onClick={addServiceRecord}
+          className="mt-3 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--color-shelby-blue)] border border-[var(--color-shelby-blue)] rounded-lg hover:bg-blue-50 transition-colors"
+        >
+          <Plus className="w-4 h-4" /> Add Another Service Record
+        </button>
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">Photos (Up to 20)</label>
-        <div className="border-2 border-dashed border-gray-300 rounded-3xl p-6 sm:p-12 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all cursor-pointer group">
-          <UploadCloud className="w-16 h-16 mb-4 text-[var(--color-shelby-blue)] opacity-70 group-hover:opacity-100 transition-opacity group-hover:scale-110" />
-          <p className="font-bold text-gray-800 text-base sm:text-lg mb-1 text-center break-words">Click to upload or drag & drop</p>
-          <p className="text-sm font-medium text-gray-500 text-center">High-res JPEG, PNG (max 10MB each)</p>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Photos (Up to 20)</label>
+        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all cursor-pointer group">
+          <UploadCloud className="w-12 h-12 mb-3 text-[var(--color-shelby-blue)] opacity-70 group-hover:opacity-100 transition-opacity group-hover:scale-110" />
+          <p className="font-bold text-gray-800 text-sm mb-1 text-center break-words">Click to upload or drag & drop</p>
+          <p className="text-xs font-medium text-gray-500 text-center">High-res JPEG, PNG (max 10MB each)</p>
         </div>
       </div>
 
-      <div className="bg-gray-50/50 p-6 rounded-2xl flex items-start gap-4 border border-gray-200 mt-8 hover:border-[var(--color-shelby-blue)] hover:bg-blue-50/20 transition-colors">
-        <input type="checkbox" {...register("legal_confirm", { required: true })} className="mt-1 w-6 h-6 accent-[var(--color-shelby-blue)] cursor-pointer shrink-0" />
-        <label className="text-sm md:text-base text-gray-800 font-bold leading-relaxed pt-0.5">
+      <div className="bg-gray-50/50 p-4 rounded-xl flex items-start gap-3 border border-gray-200 hover:border-[var(--color-shelby-blue)] hover:bg-blue-50/20 transition-colors">
+        <input type="checkbox" {...register("legal_confirm", { required: true })} className="mt-0.5 w-5 h-5 accent-[var(--color-shelby-blue)] cursor-pointer shrink-0" />
+        <label className="text-sm text-gray-800 font-medium leading-relaxed">
           I confirm the listing price includes all fees and I hold the legal title to this vehicle.
         </label>
       </div>
 
-      <div className="flex justify-between pt-10 border-t border-gray-100">
-        <button type="button" onClick={onBack} className="px-8 py-4 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors text-lg">
+      <div className="flex justify-between pt-6 border-t border-gray-100">
+        <button type="button" onClick={onBack} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-100 rounded-lg transition-colors text-sm">
           &larr; Back
         </button>
-        <button type="submit" className="px-10 py-5 bg-[var(--color-shelby-blue)] text-white font-bold rounded-xl hover:bg-[#001D40] transition-colors shadow-lg shadow-blue-900/20 active:scale-95 text-lg">
+        <button type="submit" className="px-8 py-3 bg-[var(--color-shelby-blue)] text-white font-bold rounded-lg hover:bg-[#001D40] transition-colors shadow-lg shadow-blue-900/20 active:scale-95 text-sm">
           Choose Package &rarr;
         </button>
       </div>
