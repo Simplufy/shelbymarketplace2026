@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronRight, Share2, Calendar, Gauge, Zap, Palette, ShieldCheck, Copy, Check, Star, MapPin, ExternalLink, Phone, MessageSquare, ArrowRight, Calculator } from "lucide-react";
+import { ChevronRight, Share2, Calendar, Gauge, Zap, Palette, ShieldCheck, Copy, Check, Star, MapPin, ExternalLink, Phone, MessageSquare, ArrowRight, Calculator, Wrench, FileText, CalendarCheck } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 
 const MOCK = {
@@ -30,6 +30,14 @@ const MOCK = {
     { label: "Horsepower", value: "760 hp @ 7,300 rpm" },
     { label: "Torque", value: "625 lb-ft @ 5,000 rpm" },
   ],
+  serviceHistory: [
+    { date: "Mar 15, 2024", type: "Service", description: "15,000 mile service - Oil change, filter replacement, full inspection", mileage: "14,985" },
+    { date: "Dec 8, 2023", type: "Maintenance", description: "Tire rotation and brake inspection", mileage: "12,450" },
+    { date: "Sep 22, 2023", type: "Service", description: "10,000 mile service - Synthetic oil change, cabin filter", mileage: "9,875" },
+    { date: "Jun 14, 2023", type: "Inspection", description: "Pre-delivery inspection - Certified by Shelby Performance LV", mileage: "7,200" },
+    { date: "Apr 3, 2023", type: "Service", description: "5,000 mile service - Oil change, multi-point inspection", mileage: "4,950" },
+    { date: "Jan 20, 2023", type: "Delivery", description: "Vehicle delivered to first owner - Brand new", mileage: "12" },
+  ],
   seller: { name: "Shelby Performance LV", rating: 4.9, reviews: 214, phone: "(702) 555-0199", location: "Las Vegas Motor Speedway, NV", avatar: "/images/cq5dam.web.1280.1280.avif" },
   related: [
     { id: 2, image: "/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg", name: "2020 Shelby GT350R", price: "$98,500", miles: "4,500 mi" },
@@ -45,6 +53,16 @@ export default function VehicleDetailPage() {
   const car = MOCK;
 
   const copyVin = () => { navigator.clipboard.writeText(car.vin); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+
+  const getServiceIcon = (type: string) => {
+    switch(type) {
+      case "Service": return <Wrench className="w-4 h-4" />;
+      case "Maintenance": return <CalendarCheck className="w-4 h-4" />;
+      case "Inspection": return <ShieldCheck className="w-4 h-4" />;
+      case "Delivery": return <FileText className="w-4 h-4" />;
+      default: return <Wrench className="w-4 h-4" />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -110,22 +128,53 @@ export default function VehicleDetailPage() {
               ))}
             </div>
 
-            {/* CARFAX */}
-            <div className="bg-[#fafafb] p-6 rounded-lg shadow-soft flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center shrink-0"><ShieldCheck className="w-8 h-8 text-green-500" /></div>
-                <div>
-                  <h3 className="text-lg font-outfit font-bold mb-1">CARFAX® Vehicle History</h3>
-                  <p className="text-sm text-[#565d6d] mb-2">Verified {car.history.title} Title. {car.history.accidents} accidents reported. {car.history.owners}-Owner vehicle.</p>
-                  <button className="text-sm font-bold text-[#002D72] hover:underline">View Full Report</button>
+            {/* Vehicle History Timeline */}
+            <div className="bg-[#fafafb] p-6 rounded-lg shadow-soft">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#002D72]/10 rounded-full flex items-center justify-center">
+                    <CalendarCheck className="w-5 h-5 text-[#002D72]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-outfit font-bold">Vehicle History & Service Records</h3>
+                    <p className="text-xs text-[#565d6d]">Complete maintenance history • FREE with every listing</p>
+                  </div>
+                </div>
+                <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                  Clean Title
                 </div>
               </div>
-              <div className="w-full md:w-auto">
-                <div className="text-[10px] font-bold tracking-widest text-[#565d6d] uppercase mb-2">VIN NUMBER</div>
-                <div className="flex items-center justify-between gap-4 px-4 py-2.5 bg-white border border-[#f3f4f6] rounded-md">
-                  <span className="text-sm font-bold font-mono">{car.vin}</span>
-                  <button onClick={copyVin} className="text-[#565d6d] hover:text-[#002D72]">
-                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+
+              {/* Timeline */}
+              <div className="relative">
+                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-[#dee1e6]" />
+                <div className="space-y-4">
+                  {car.serviceHistory.map((record, idx) => (
+                    <div key={idx} className="relative flex gap-4 pl-2">
+                      <div className="relative z-10 w-5 h-5 rounded-full bg-white border-2 border-[#002D72] flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="w-2 h-2 rounded-full bg-[#002D72]" />
+                      </div>
+                      <div className="flex-1 pb-4">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="text-xs font-bold text-[#565d6d]">{record.date}</span>
+                          <span className="px-2 py-0.5 bg-[#002D72]/10 text-[#002D72] text-[10px] font-bold rounded">
+                            {record.type}
+                          </span>
+                          <span className="text-[10px] text-[#565d6d]">{record.mileage} mi</span>
+                        </div>
+                        <p className="text-sm text-[#171a1f]">{record.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-[#dee1e6]">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[#565d6d]">VIN: {car.vin}</span>
+                  <button onClick={copyVin} className="flex items-center gap-1 text-xs font-bold text-[#002D72] hover:underline">
+                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    {copied ? "Copied!" : "Copy VIN"}
                   </button>
                 </div>
               </div>
@@ -168,6 +217,7 @@ export default function VehicleDetailPage() {
           {/* Right Sidebar */}
           <div className="lg:col-span-4">
             <div className="sticky top-24 space-y-6">
+              {/* Contact Card */}
               <div className="bg-white rounded-lg shadow-soft border-t-4 border-[#002D72] p-6 overflow-hidden">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-14 h-14 rounded-full overflow-hidden bg-[#002D72]/10"><img src={car.seller.avatar} alt="Dealer" className="w-full h-full object-cover" /></div>
@@ -181,7 +231,7 @@ export default function VehicleDetailPage() {
                   </div>
                 </div>
                 <div className="space-y-3 mb-8">
-                  <button className="w-full h-12 bg-[#002D72] text-white font-bold rounded-md flex items-center justify-center gap-3 hover:bg-[#001D4A] transition-colors"><MessageSquare className="w-5 h-5" /> Contact Seller</button>
+                  <button className="w-full h-12 bg-[#002D72] text-white font-bold rounded-md flex items-center justify-center gap-3 hover:bg-[#001D4A] transition-colors"><MessageSquare className="w-5 h-5" /> Email Seller</button>
                   <button className="w-full h-12 bg-white border border-[#dee1e6] font-semibold rounded-md flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"><Phone className="w-5 h-5" /> {car.seller.phone}</button>
                 </div>
                 <div className="pt-6 border-t border-[#f3f4f6] space-y-4">
@@ -193,47 +243,31 @@ export default function VehicleDetailPage() {
                   <div className="flex items-center gap-2 text-xs text-[#565d6d] cursor-pointer hover:text-[#002D72]"><ExternalLink className="w-3 h-3" /> Visit Dealer Website</div>
                 </div>
               </div>
+
+              {/* You May Also Like */}
+              <div className="bg-white rounded-lg shadow-soft border border-[#f3f4f6] p-6">
+                <h3 className="text-lg font-outfit font-bold mb-4">You May Also Like</h3>
+                <div className="space-y-4">
+                  {car.related.slice(0, 3).map((r) => (
+                    <Link key={r.id} href={`/listings/${r.id}`} className="flex gap-4 group cursor-pointer">
+                      <div className="w-20 h-16 rounded-lg overflow-hidden shrink-0">
+                        <img src={r.image} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold truncate group-hover:text-[#002D72] transition-colors">{r.name}</h4>
+                        <div className="text-sm font-bold text-[#E31837] mt-1">{r.price}</div>
+                        <div className="text-xs text-[#565d6d]">{r.miles}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                <Link href="/listings" className="block mt-4 text-center text-sm font-medium text-[#002D72] hover:underline">
+                  View All Inventory
+                </Link>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Related Inventory */}
-        <section className="mt-24">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-            <div>
-              <h2 className="text-3xl font-outfit font-extrabold mb-2">You May Also Like</h2>
-              <p className="text-[#565d6d]">Other high-performance Shelby vehicles in our exchange.</p>
-            </div>
-            <Link href="/listings" className="px-6 py-2 border-2 border-[#dee1e6] rounded-md text-sm font-bold hover:bg-gray-50 transition-colors">View All Inventory</Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {car.related.map((r) => (
-              <Link key={r.id} href={`/listings/${r.id}`} className="bg-white rounded-lg shadow-soft border border-[#f3f4f6] overflow-hidden group cursor-pointer">
-                <div className="aspect-[4/3] overflow-hidden"><img src={r.image} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
-                <div className="p-4">
-                  <h4 className="text-base font-outfit font-bold mb-1 truncate">{r.name}</h4>
-                  <div className="text-lg font-bold text-[#E31837] mb-3">{r.price}</div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#565d6d]">{r.miles}</span>
-                    <span className="flex items-center gap-1 text-sm font-medium text-[#002D72]">View Details <ArrowRight className="w-3 h-3" /></span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* CTA Banner */}
-        <section className="mt-24 bg-[#002D72]/5 border-2 border-[#002D72]/10 rounded-xl p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-8">
-          <div className="text-center lg:text-left">
-            <h2 className="text-2xl md:text-3xl font-outfit font-bold text-[#002D72] mb-2">Ready to start your Shelby journey?</h2>
-            <p className="text-[#565d6d]">Get pre-approved for financing or trade-in your current vehicle today.</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <button className="px-8 py-3 bg-[#002D72] text-white font-medium rounded-md hover:bg-[#001D4A] transition-colors">Get Pre-Approved</button>
-            <button className="px-8 py-3 bg-white border-2 border-[#dee1e6] font-medium rounded-md hover:bg-gray-50 transition-colors">Value Your Trade</button>
-          </div>
-        </section>
       </main>
     </div>
   );
