@@ -43,16 +43,31 @@ export default function AdminDashboard() {
   useEffect(() => {
     checkTables();
     loadListings();
+    
+    // Safety timeout - force loading to stop after 15 seconds
+    const safetyTimeout = setTimeout(() => {
+      setCheckingTables(false);
+      setLoading(false);
+    }, 15000);
+    
+    return () => clearTimeout(safetyTimeout);
   }, []);
 
   const loadListings = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+      
+      const queryPromise = supabase
         .from("active_listings")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(20);
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error) throw error;
 
@@ -74,8 +89,11 @@ export default function AdminDashboard() {
           featured: listingsWithDetails.filter(l => l.is_featured).length
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading listings:", error);
+      // Set empty state on error to prevent infinite loading
+      setListings([]);
+      setStats({ total: 0, pending: 0, active: 0, featured: 0 });
     }
     setLoading(false);
   };
@@ -108,17 +126,33 @@ export default function AdminDashboard() {
     const tables = ['site_content', 'site_settings'];
     const results: Record<string, boolean> = {};
     
-    for (const table of tables) {
-      try {
-        const { error } = await supabase
-          .from(table)
-          .select('id')
-          .limit(1);
-        
-        results[table] = !error || !error.message.includes('does not exist');
-      } catch {
-        results[table] = false;
+    // Initialize all as false first
+    tables.forEach(table => results[table] = false);
+    
+    try {
+      for (const table of tables) {
+        try {
+          // Create a fresh timeout for each query
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 3000)
+          );
+          
+          const queryPromise = supabase
+            .from(table)
+            .select('id', { head: true })
+            .limit(1);
+          
+          const { error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+          
+          // If no error or error is not "does not exist", table exists
+          results[table] = !error || !error.message?.includes('does not exist');
+        } catch (err: any) {
+          console.log(`Table ${table} check failed:`, err.message);
+          results[table] = false;
+        }
       }
+    } catch (error) {
+      console.error('Error checking tables:', error);
     }
     
     setTableStatus(results);

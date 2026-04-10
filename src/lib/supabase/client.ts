@@ -42,9 +42,19 @@ const mockClient = {
 export function createClient(): SupabaseClient {
   if (typeof window !== 'undefined') {
     if (!browserClient) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('Supabase environment variables are missing!')
+        console.error('Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+        // Return mock client if env vars are missing
+        return mockClient
+      }
+      
       browserClient = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        supabaseUrl,
+        supabaseKey
       )
     }
     return browserClient
