@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { 
-  AlertTriangle, CheckCircle, Eye, Image as ImageIcon, TrendingUp, Users, DollarSign, 
+  CheckCircle, Eye, Image as ImageIcon, TrendingUp, Users, DollarSign, 
   Package, ArrowUpRight, MoreHorizontal, Search, Filter, ChevronDown, Edit, Trash2,
-  Layout, Type, Palette, Database, Loader2, XCircle, Car, MapPin, Calendar
+  Layout, Type, Palette, Loader2, Car, MapPin, Calendar
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -27,8 +27,6 @@ const quickActions = [
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [tableStatus, setTableStatus] = useState<Record<string, boolean>>({});
-  const [checkingTables, setCheckingTables] = useState(true);
   const [listings, setListings] = useState<ListingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -41,16 +39,7 @@ export default function AdminDashboard() {
   const supabase = createClient();
 
   useEffect(() => {
-    checkTables();
     loadListings();
-    
-    // Safety timeout - force loading to stop after 15 seconds
-    const safetyTimeout = setTimeout(() => {
-      setCheckingTables(false);
-      setLoading(false);
-    }, 15000);
-    
-    return () => clearTimeout(safetyTimeout);
   }, []);
 
   const loadListings = async () => {
@@ -119,44 +108,6 @@ export default function AdminDashboard() {
       }
     }
     return 'Just now';
-  };
-
-  const checkTables = async () => {
-    setCheckingTables(true);
-    const tables = ['site_content', 'site_settings'];
-    const results: Record<string, boolean> = {};
-    
-    // Initialize all as false first
-    tables.forEach(table => results[table] = false);
-    
-    try {
-      for (const table of tables) {
-        try {
-          // Create a fresh timeout for each query
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 3000)
-          );
-          
-          const queryPromise = supabase
-            .from(table)
-            .select('id', { head: true })
-            .limit(1);
-          
-          const { error } = await Promise.race([queryPromise, timeoutPromise]) as any;
-          
-          // If no error or error is not "does not exist", table exists
-          results[table] = !error || !error.message?.includes('does not exist');
-        } catch (err: any) {
-          console.log(`Table ${table} check failed:`, err.message);
-          results[table] = false;
-        }
-      }
-    } catch (error) {
-      console.error('Error checking tables:', error);
-    }
-    
-    setTableStatus(results);
-    setCheckingTables(false);
   };
 
   const handleApprove = async (id: string) => {
@@ -292,64 +243,6 @@ export default function AdminDashboard() {
               <p className="text-xs text-gray-500">{action.desc}</p>
             </Link>
           ))}
-        </div>
-      </div>
-
-      {/* System Status */}
-      <div className="mb-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">System Status</h2>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          {checkingTables ? (
-            <div className="flex items-center gap-3">
-              <Loader2 className="w-5 h-5 animate-spin text-[#002D72]" />
-              <span className="text-gray-600">Checking database tables...</span>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Database className="w-5 h-5 text-gray-400" />
-                <span className="font-medium text-gray-700">Required Tables:</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {Object.entries(tableStatus).map(([table, exists]) => (
-                  <div 
-                    key={table} 
-                    className={`flex items-center gap-3 p-3 rounded-lg ${
-                      exists ? 'bg-green-50' : 'bg-red-50'
-                    }`}
-                  >
-                    {exists ? (
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <XCircle className="w-5 h-5 text-red-600" />
-                    )}
-                    <div>
-                      <span className={`font-medium ${exists ? 'text-green-700' : 'text-red-700'}`}>
-                        {table}
-                      </span>
-                      <span className="text-xs text-gray-500 block">
-                        {exists ? 'Table exists' : 'Table missing - run SQL setup'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {(!tableStatus.site_content || !tableStatus.site_settings) && (
-                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    <strong>Action Required:</strong> Some required tables are missing. 
-                    Please run the SQL setup script in your Supabase dashboard.
-                  </p>
-                  <button 
-                    onClick={checkTables}
-                    className="mt-2 px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 transition-colors"
-                  >
-                    Refresh Check
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
