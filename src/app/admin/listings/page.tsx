@@ -250,9 +250,18 @@ export default function AdminListings() {
           <h1 className="text-3xl font-outfit font-black text-gray-900 mb-2">Listings</h1>
           <p className="text-gray-500">Review, approve, and manage vehicle listings.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors">
-          <span className="text-sm">Export</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/listings/new"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#002D72] text-white font-medium rounded-xl hover:bg-[#001D4A] transition-colors"
+          >
+            <Car className="w-4 h-4" />
+            <span className="text-sm">Create Listing</span>
+          </Link>
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors">
+            <span className="text-sm">Export</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats - Removed purple, using blue */}
@@ -435,6 +444,14 @@ export default function AdminListings() {
                       title="View Details"
                     >
                       <Eye className="w-4 h-4" />
+                    </Link>
+                    {/* Edit Listing */}
+                    <Link
+                      href={`/admin/listings/${listing.id}/edit`}
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Edit Listing"
+                    >
+                      <Edit2 className="w-4 h-4" />
                     </Link>
                     {listing.status === "PENDING" && (
                       <>
