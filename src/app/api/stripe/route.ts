@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { createClient } from '@/lib/supabase/server';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-03-25.dahlia',
@@ -8,6 +9,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(req: NextRequest) {
   try {
     const { package_tier, vehicle_info } = await req.json();
+    
+    // Get current user
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
 
     // Define prices for each package
     const prices: Record<string, number> = {
@@ -44,6 +53,7 @@ export async function POST(req: NextRequest) {
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/sell?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/sell?canceled=true`,
+      client_reference_id: user.id,
       metadata: {
         package_tier,
         vehicle_info: JSON.stringify(vehicle_info),

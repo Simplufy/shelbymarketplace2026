@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "@/components/global/Header";
 import Footer from "@/components/global/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CompareProvider } from "@/contexts/CompareContext";
+import { CompareBar } from "@/components/CompareBar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -17,8 +19,53 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Shelby Exchange | High-End Automotive Marketplace",
-  description: "The premier marketplace for Ford Shelby vehicles. Peer-to-peer advertising classifieds.",
+  title: "Shelby Exchange | Premium Ford Shelby Marketplace",
+  description: "Buy and sell authentic Ford Shelby vehicles on the world's premier marketplace. GT500, GT350, Super Snake, and more. Verified sellers, curated listings.",
+  keywords: ["Ford Shelby", "Shelby GT500", "Shelby GT350", "Super Snake", "muscle cars", "performance vehicles", "buy Shelby", "sell Shelby"],
+  authors: [{ name: "Shelby Exchange" }],
+  creator: "Shelby Exchange",
+  publisher: "Shelby Exchange",
+  metadataBase: new URL("https://shelbyexchange.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://shelbyexchange.com",
+    siteName: "Shelby Exchange",
+    title: "Shelby Exchange | Premium Ford Shelby Marketplace",
+    description: "Buy and sell authentic Ford Shelby vehicles on the world's premier marketplace.",
+    images: [
+      {
+        url: "/images/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Shelby Exchange - Premium Ford Shelby Marketplace",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shelby Exchange | Premium Ford Shelby Marketplace",
+    description: "Buy and sell authentic Ford Shelby vehicles on the world's premier marketplace.",
+    images: ["/images/og-image.jpg"],
+    creator: "@shelbyexchange",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "your-google-verification-code", // Replace with actual code
+  },
 };
 
 export default function RootLayout({
@@ -33,11 +80,14 @@ export default function RootLayout({
     >
       <body className="font-sans min-h-full flex flex-col pt-0 bg-white text-[#171a1f]">
         <AuthProvider>
-          <Header />
-          <main className="flex-1 flex flex-col">
-            {children}
-          </main>
-          <Footer />
+          <CompareProvider>
+            <Header />
+            <main className="flex-1 flex flex-col">
+              {children}
+            </main>
+            <Footer />
+            <CompareBar />
+          </CompareProvider>
         </AuthProvider>
       </body>
     </html>

@@ -82,6 +82,27 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
         <input type="text" {...register("location", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm" placeholder="e.g. Las Vegas, NV" />
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Transmission *</label>
+          <select {...register("transmission", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm">
+            <option value="">Select transmission...</option>
+            <option value="Manual">Manual</option>
+            <option value="Automatic">Automatic</option>
+            <option value="DCT">Dual-Clutch (DCT)</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Drivetrain *</label>
+          <select {...register("drivetrain", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm">
+            <option value="">Select drivetrain...</option>
+            <option value="RWD">Rear-Wheel Drive (RWD)</option>
+            <option value="AWD">All-Wheel Drive (AWD)</option>
+            <option value="FWD">Front-Wheel Drive (FWD)</option>
+          </select>
+        </div>
+      </div>
+
       <div>
         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Vehicle Description</label>
         <textarea {...register("description", { required: true })} rows={4} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none resize-none text-sm" placeholder="Describe your Shelby's condition, modifications, history..." />

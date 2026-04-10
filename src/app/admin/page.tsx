@@ -1,95 +1,483 @@
 "use client";
-import { useState } from "react";
-import { AlertTriangle, CheckCircle, Eye, Image as ImageIcon } from "lucide-react";
+
+import { useState, useEffect } from "react";
+import { 
+  AlertTriangle, CheckCircle, Eye, Image as ImageIcon, TrendingUp, Users, DollarSign, 
+  Package, ArrowUpRight, MoreHorizontal, Search, Filter, ChevronDown, Edit, Trash2,
+  Layout, Type, Palette, Database, Loader2, XCircle, Car, MapPin, Calendar
+} from "lucide-react";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import type { Listing } from "@/lib/supabase/database.types";
+
+interface ListingWithDetails extends Listing {
+  seller_name: string;
+  seller_type: "private" | "dealer";
+  primary_image_url: string | null;
+  dealership_name: string | null;
+  date_display: string;
+}
+
+const quickActions = [
+  { label: "Edit Homepage", href: "/admin/content", icon: Layout, desc: "Hero, featured listings, content" },
+  { label: "Manage Media", href: "/admin/media", icon: ImageIcon, desc: "Upload and organize images" },
+  { label: "Create Article", href: "/admin/news", icon: Type, desc: "News, reviews, guides" },
+  { label: "Site Settings", href: "/admin/settings", icon: Palette, desc: "Colors, branding, SEO" },
+];
 
 export default function AdminDashboard() {
-  const [listings, setListings] = useState([
-    { id: "101", title: "2022 Ford Shelby Super Snake", vin: "1FA6P8SJ4N*****", price: 135000, package_tier: "HOMEPAGE_PLUS_ADS", status: "PENDING", date: "Today" },
-    { id: "102", title: "1967 Ford Shelby GT500 Eleanor", vin: "6T02S1*****", price: 250000, package_tier: "HOMEPAGE", status: "PENDING", date: "Yesterday" },
-    { id: "103", title: "2020 Ford Shelby GT350R", vin: "1FA6P8JZXL*****", price: 89000, package_tier: "STANDARD", status: "PENDING", date: "Oct 12" }
-  ]);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [tableStatus, setTableStatus] = useState<Record<string, boolean>>({});
+  const [checkingTables, setCheckingTables] = useState(true);
+  const [listings, setListings] = useState<ListingWithDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    active: 0,
+    featured: 0
+  });
+  
+  const supabase = createClient();
 
-  const approveListing = (id: string) => {
-    setListings(listings.filter(l => l.id !== id));
+  useEffect(() => {
+    checkTables();
+    loadListings();
+  }, []);
+
+  const loadListings = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("active_listings")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      if (data) {
+        const listingsWithDetails: ListingWithDetails[] = data.map(listing => ({
+          ...listing,
+          seller_name: listing.dealership_name || "Private Seller",
+          seller_type: listing.dealership_name ? "dealer" : "private",
+          primary_image_url: listing.primary_image_url,
+          date_display: getTimeAgo(listing.created_at)
+        }));
+        setListings(listingsWithDetails);
+        
+        // Calculate stats
+        setStats({
+          total: listingsWithDetails.length,
+          pending: listingsWithDetails.filter(l => l.status === "PENDING").length,
+          active: listingsWithDetails.filter(l => l.status === "ACTIVE").length,
+          featured: listingsWithDetails.filter(l => l.is_featured).length
+        });
+      }
+    } catch (error) {
+      console.error("Error loading listings:", error);
+    }
+    setLoading(false);
   };
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      <header className="mb-10 flex items-center justify-between">
-        <div>
-          <h1 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-gray-900 uppercase tracking-tight break-words">Review Pending Listings</h1>
-          <p className="text-gray-500 mt-2 font-medium">Verify VINs, check photos for watermarks, and action premium ad campaigns.</p>
-        </div>
-        <div className="bg-white px-6 py-4 rounded-xl border border-gray-200 shadow-sm font-bold text-[var(--color-shelby-blue)] text-lg">
-          {listings.length} Pending Review
-        </div>
-      </header>
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    const intervals = {
+      year: 31536000,
+      month: 2592000,
+      week: 604800,
+      day: 86400,
+      hour: 3600,
+      minute: 60
+    };
+    
+    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+      const interval = Math.floor(seconds / secondsInUnit);
+      if (interval >= 1) {
+        return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
+      }
+    }
+    return 'Just now';
+  };
 
-      <div className="bg-white border md:rounded-3xl shadow-sm border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase tracking-widest">
-                <th className="p-6 font-bold w-2/5">Vehicle Details</th>
-                <th className="p-6 font-bold w-1/5">Package Tier</th>
-                <th className="p-6 font-bold text-center w-1/5">Action Required</th>
-                <th className="p-6 font-bold text-right w-1/5">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {listings.map((l) => (
-                <tr key={l.id} className="hover:bg-blue-50/30 transition-colors group">
-                  <td className="p-6 min-w-0">
-                    <div className="font-bold text-gray-900 text-base sm:text-lg mb-1 break-words">{l.title}</div>
-                    <div className="text-sm font-mono text-gray-500 flex flex-wrap gap-2 sm:gap-4">
-                      <span className="bg-gray-100 px-2 py-1 rounded break-all">VIN: {l.vin}</span>
-                      <span className="font-sans font-bold text-[var(--color-shelby-blue)] py-1">${l.price.toLocaleString()}</span>
-                    </div>
-                  </td>
-                  <td className="p-6">
-                    <span className={`inline-flex px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider shadow-sm ${
-                      l.package_tier === 'HOMEPAGE_PLUS_ADS' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
-                      l.package_tier === 'HOMEPAGE' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
-                      'bg-gray-100 text-gray-800 border border-gray-300'
-                    }`}>
-                      {l.package_tier.replace(/_/g, " ")}
-                    </span>
-                  </td>
-                  <td className="p-6 text-center">
-                    {l.package_tier === "HOMEPAGE_PLUS_ADS" ? (
-                      <div className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-4 py-2.5 rounded-lg border border-red-200 font-bold text-xs uppercase tracking-widest shadow-sm">
-                        <AlertTriangle className="w-4 h-4 shrink-0" /> Launch Google Ad
-                      </div>
-                    ) : (
-                      <span className="text-gray-400 text-sm font-medium italic">Standard Verification</span>
-                    )}
-                  </td>
-                  <td className="p-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2.5 text-gray-400 hover:text-[var(--color-shelby-blue)] transition-colors hover:bg-gray-100 rounded-lg group-hover:bg-white" title="Review Photos">
-                        <ImageIcon className="w-5 h-5" />
-                      </button>
-                      <button className="p-2.5 text-gray-400 hover:text-[var(--color-shelby-blue)] transition-colors hover:bg-gray-100 rounded-lg group-hover:bg-white" title="View Listing Draft">
-                        <Eye className="w-5 h-5" />
-                      </button>
-                      <button onClick={() => approveListing(l.id)} className="ml-4 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-900/10 transition-transform active:scale-95 flex items-center gap-2 text-sm uppercase tracking-wide">
-                        <CheckCircle className="w-5 h-5" /> Approve
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {listings.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="p-16 text-center text-gray-500">
-                    <CheckCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                    <p className="font-medium text-xl">No pending listings to review.</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+  const checkTables = async () => {
+    setCheckingTables(true);
+    const tables = ['site_content', 'site_settings'];
+    const results: Record<string, boolean> = {};
+    
+    for (const table of tables) {
+      try {
+        const { error } = await supabase
+          .from(table)
+          .select('id')
+          .limit(1);
+        
+        results[table] = !error || !error.message.includes('does not exist');
+      } catch {
+        results[table] = false;
+      }
+    }
+    
+    setTableStatus(results);
+    setCheckingTables(false);
+  };
+
+  const handleApprove = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("listings")
+        .update({ 
+          status: "ACTIVE",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+      await loadListings();
+    } catch (error) {
+      console.error("Error approving listing:", error);
+      alert("Failed to approve listing");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this listing?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("listings")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      await loadListings();
+    } catch (error) {
+      console.error("Error deleting listing:", error);
+      alert("Failed to delete listing");
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active": return "bg-green-100 text-green-700";
+      case "pending": return "bg-yellow-100 text-yellow-700";
+      case "sold": return "bg-[#002D72] text-white";
+      case "rejected": return "bg-red-100 text-red-700";
+      default: return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const getPackageColor = (pkg: string) => {
+    switch (pkg.toLowerCase()) {
+      case "homepage_plus_ads": return "bg-[#002D72] text-white";
+      case "homepage": return "bg-[#002D72] text-white";
+      case "standard": return "bg-gray-600 text-white";
+      default: return "bg-gray-600 text-white";
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0
+    }).format(price);
+  };
+
+  // Filter listings based on active tab
+  const filteredListings = listings.filter(listing => {
+    if (activeTab === "pending") return listing.status === "PENDING";
+    if (activeTab === "featured") return listing.is_featured;
+    return true; // overview shows all
+  });
+
+  // Calculate tab counts
+  const pendingCount = listings.filter(l => l.status === "PENDING").length;
+  const featuredCount = listings.filter(l => l.is_featured).length;
+
+  const statsData = [
+    { label: "Total Listings", value: stats.total.toString(), change: "+12%", icon: Package, color: "blue" },
+    { label: "Pending Review", value: stats.pending.toString(), change: "+3", icon: AlertTriangle, color: "yellow" },
+    { label: "Active Users", value: "2,847", change: "+18%", icon: Users, color: "green" },
+    { label: "Revenue (Mo)", value: "$14,280", change: "+24%", icon: DollarSign, color: "red" },
+  ];
+
+  return (
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-outfit font-black text-gray-900 mb-2">Dashboard</h1>
+        <p className="text-gray-500">Welcome back! Here's what's happening with your marketplace.</p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {statsData.map((stat) => (
+          <div key={stat.label} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <div className="flex items-start justify-between mb-4">
+              <div className={`p-3 rounded-lg ${
+                stat.color === "blue" ? "bg-blue-100 text-blue-600" :
+                stat.color === "yellow" ? "bg-yellow-100 text-yellow-600" :
+                stat.color === "green" ? "bg-green-100 text-green-600" :
+                "bg-[#E31837]/10 text-[#E31837]"
+              }`}>
+                <stat.icon className="w-6 h-6" />
+              </div>
+              <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                stat.change.startsWith("+") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+              }`}>
+                {stat.change}
+              </span>
+            </div>
+            <div className="text-3xl font-black text-gray-900 mb-1">{stat.value}</div>
+            <div className="text-sm text-gray-500 font-medium">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mb-8">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action) => (
+            <Link 
+              key={action.label}
+              href={action.href}
+              className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#002D72] transition-all group"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-[#002D72] group-hover:text-white transition-colors">
+                  <action.icon className="w-5 h-5" />
+                </div>
+                <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-[#002D72]" />
+              </div>
+              <h3 className="font-bold text-gray-900 mb-1">{action.label}</h3>
+              <p className="text-xs text-gray-500">{action.desc}</p>
+            </Link>
+          ))}
         </div>
+      </div>
+
+      {/* System Status */}
+      <div className="mb-8">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">System Status</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          {checkingTables ? (
+            <div className="flex items-center gap-3">
+              <Loader2 className="w-5 h-5 animate-spin text-[#002D72]" />
+              <span className="text-gray-600">Checking database tables...</span>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Database className="w-5 h-5 text-gray-400" />
+                <span className="font-medium text-gray-700">Required Tables:</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {Object.entries(tableStatus).map(([table, exists]) => (
+                  <div 
+                    key={table} 
+                    className={`flex items-center gap-3 p-3 rounded-lg ${
+                      exists ? 'bg-green-50' : 'bg-red-50'
+                    }`}
+                  >
+                    {exists ? (
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-600" />
+                    )}
+                    <div>
+                      <span className={`font-medium ${exists ? 'text-green-700' : 'text-red-700'}`}>
+                        {table}
+                      </span>
+                      <span className="text-xs text-gray-500 block">
+                        {exists ? 'Table exists' : 'Table missing - run SQL setup'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {(!tableStatus.site_content || !tableStatus.site_settings) && (
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Action Required:</strong> Some required tables are missing. 
+                    Please run the SQL setup script in your Supabase dashboard.
+                  </p>
+                  <button 
+                    onClick={checkTables}
+                    className="mt-2 px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 transition-colors"
+                  >
+                    Refresh Check
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div className="border-b border-gray-200">
+          <div className="flex gap-1 p-2">
+            {[
+              { id: "overview", label: "Recent Activity" },
+              { id: "pending", label: "Pending Review", count: pendingCount },
+              { id: "featured", label: "Homepage Featured", count: featuredCount },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${
+                  activeTab === tab.id 
+                    ? "bg-[#002D72] text-white" 
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                {tab.label}
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    activeTab === tab.id ? "bg-white/20" : "bg-[#E31837] text-white"
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Table */}
+        {loading ? (
+          <div className="p-16 text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-[#002D72] mx-auto mb-4" />
+            <p className="text-gray-500">Loading listings...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Vehicle</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Seller</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Package</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredListings.map((listing) => (
+                  <tr key={listing.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                          <img 
+                            src={listing.primary_image_url || "/images/logo.png"} 
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/images/logo.png';
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <div className="font-bold text-gray-900">
+                            {listing.year} {listing.make} {listing.model}
+                          </div>
+                          <div className="text-xs text-gray-500 font-mono">{listing.vin}</div>
+                          <div className="text-sm font-bold text-[#E31837]">{formatPrice(listing.price)}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{listing.seller_name}</div>
+                      {listing.seller_type === "dealer" && (
+                        <span className="inline-block px-1.5 py-0.5 bg-[#002D72] text-white text-[10px] font-bold rounded mt-1">
+                          DEALER
+                        </span>
+                      )}
+                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                        <Calendar className="w-3 h-3" />
+                        {listing.date_display}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold uppercase ${
+                        getPackageColor(listing.package_tier)
+                      }`}>
+                        {listing.package_tier.replace(/_/g, " ")}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${
+                        getStatusColor(listing.status)
+                      }`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          listing.status === 'PENDING' ? 'bg-yellow-500' :
+                          listing.status === 'ACTIVE' ? 'bg-green-500' :
+                          'bg-gray-500'
+                        }`} />
+                        {listing.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {/* View Detail */}
+                        <Link
+                          href={`/admin/listings/${listing.id}`}
+                          className="p-2 text-gray-400 hover:text-[#002D72] hover:bg-blue-50 rounded-lg transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                        
+                        {/* Approve - Only for pending */}
+                        {listing.status === "PENDING" && (
+                          <button 
+                            onClick={() => handleApprove(listing.id)}
+                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Approve Listing"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                        )}
+                        
+                        {/* View Live */}
+                        <Link
+                          href={`/listings/${listing.id}`}
+                          target="_blank"
+                          className="p-2 text-gray-400 hover:text-[#002D72] hover:bg-blue-50 rounded-lg transition-colors"
+                          title="View Live Page"
+                        >
+                          <Car className="w-4 h-4" />
+                        </Link>
+                        
+                        {/* Delete */}
+                        <button 
+                          onClick={() => handleDelete(listing.id)}
+                          className="p-2 text-gray-400 hover:text-[#E31837] hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Listing"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {filteredListings.length === 0 && !loading && (
+          <div className="p-16 text-center">
+            <CheckCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <p className="text-gray-500 font-medium">No items to display.</p>
+          </div>
+        )}
       </div>
     </div>
   );

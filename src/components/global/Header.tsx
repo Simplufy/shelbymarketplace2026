@@ -9,8 +9,16 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/listings?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -54,18 +62,20 @@ export default function Header() {
             </Link>
           </div>
 
-          <div className="flex-1 max-w-2xl hidden md:flex items-center bg-[#f3f4f6]/50 rounded-lg px-4 py-2 gap-3 border border-transparent focus-within:border-[#002D72] focus-within:bg-white transition-all">
+          <form onSubmit={handleSearch} className="flex-1 max-w-2xl hidden md:flex items-center bg-[#f3f4f6]/50 rounded-lg px-4 py-2 gap-3 border border-transparent focus-within:border-[#002D72] focus-within:bg-white transition-all">
             <Search className="w-5 h-5 text-[#565d6d]" />
             <input 
               type="text" 
-              placeholder="Search by model, year, or VIN..." 
+              placeholder="Search by model, year, or VIN..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent border-none outline-none w-full text-sm placeholder:text-[#565d6d]"
             />
             <div className="h-6 w-px bg-[#dee1e6] mx-2" />
-            <button className="flex items-center gap-1 text-xs font-semibold whitespace-nowrap">
-              All <ChevronDown className="w-4 h-4" />
+            <button type="submit" className="flex items-center gap-1 text-xs font-semibold whitespace-nowrap hover:text-[#002D72]">
+              Search
             </button>
-          </div>
+          </form>
 
           <div className="flex items-center gap-4">
             <Link href="/sell" className="hidden lg:flex px-4 py-2 border border-[#dee1e6] rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">

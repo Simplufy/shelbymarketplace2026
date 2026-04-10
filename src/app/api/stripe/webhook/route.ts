@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       const { data: listing, error } = await supabase
         .from('listings')
         .insert({
-          user_id: session.client_reference_id || 'anonymous',
+          user_id: session.client_reference_id,
           vin: vehicleData.vin,
           year: vehicleData.year,
           make: vehicleData.make,
@@ -48,8 +48,8 @@ export async function POST(req: NextRequest) {
           location: vehicleData.location,
           package_tier: package_tier,
           status: 'PENDING',
-          transmission: 'Automatic', // Default, should be collected in form
-          drivetrain: 'RWD', // Default, should be collected in form
+          transmission: vehicleData.transmission || 'Automatic',
+          drivetrain: vehicleData.drivetrain || 'RWD',
         })
         .select()
         .single();

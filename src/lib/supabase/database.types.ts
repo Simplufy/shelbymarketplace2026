@@ -263,6 +263,8 @@ export interface Database {
           published_at: string | null
           created_at: string
           updated_at: string
+          status: 'draft' | 'published' | 'archived'
+          views: number
         }
         Insert: {
           id?: string
@@ -277,6 +279,8 @@ export interface Database {
           published_at?: string | null
           created_at?: string
           updated_at?: string
+          status?: 'draft' | 'published' | 'archived'
+          views?: number
         }
         Update: {
           id?: string
@@ -291,6 +295,57 @@ export interface Database {
           published_at?: string | null
           created_at?: string
           updated_at?: string
+          status?: 'draft' | 'published' | 'archived'
+          views?: number
+        }
+      }
+      site_content: {
+        Row: {
+          id: string
+          section: string
+          key: string
+          value: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          section: string
+          key: string
+          value: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          section?: string
+          key?: string
+          value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+      }
+      site_settings: {
+        Row: {
+          id: string
+          key: string
+          value: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          key: string
+          value: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          key?: string
+          value?: Json
+          updated_at?: string
+          updated_by?: string | null
         }
       }
     }
@@ -339,3 +394,5 @@ export type ListingImage = Tables<'listing_images'>
 export type DealerProfile = Tables<'dealer_profiles'>
 export type SavedListing = Tables<'saved_listings'>
 export type NewsArticle = Tables<'news_articles'>
+export type SiteContent = Tables<'site_content'>
+export type SiteSettings = Tables<'site_settings'>

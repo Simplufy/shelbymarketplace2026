@@ -1,58 +1,175 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import { ChevronRight, Share2, Calendar, Gauge, Zap, Palette, ShieldCheck, Copy, Check, Star, MapPin, ExternalLink, Phone, MessageSquare, ArrowRight, Calculator, Wrench, FileText, CalendarCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { ChevronRight, Share2, Calendar, Gauge, Zap, Palette, ShieldCheck, Copy, Check, Star, MapPin, ExternalLink, Phone, MessageSquare, ArrowRight, Calculator, Wrench, FileText, CalendarCheck, Loader2, Printer } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { ShareModal } from "@/components/ShareModal";
+import { createClient } from "@/lib/supabase/client";
 
-const MOCK = {
-  id: "1", year: 2022, make: "Ford Shelby", model: "GT500", trim: "Heritage Edition",
-  price: 124900, msrp: 127450, location: "Las Vegas, NV", dateListed: "Listed 2 days ago",
-  images: [
-    "/images/Shelby-GT500-for-Sale-2022-Ford-Mustang-Shelby-GT500-Front.jpg",
-    "/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg",
-    "/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg",
-    "/images/2-w-A-FrontSide.webp",
-    "/images/05_FordMustang.webp",
-  ],
-  specs: { mileage: "1,240 mi", transmission: "7-Speed Dual Clutch", engine: "5.2L V8 Predator Supercharged", exterior: "Brittany Blue w/ Wimbledon White Stripes" },
-  vin: "1FA6P8SJ1N51XXXXX",
-  history: { title: "Clean", owners: 1, accidents: "None" },
-  description: [
-    "This 2022 Ford Shelby GT500 Heritage Edition is a masterpiece of modern engineering and a tribute to the legendary 1967 GT500. Finished in the iconic Brittany Blue with Wimbledon White over-the-top racing stripes, this vehicle has been meticulously maintained and features only 1,240 original miles.",
-    "The Heritage Edition is restricted to just a few hundred units, making this a collector's dream. Equipped with the Carbon Fiber Track Pack, it includes 20-inch exposed carbon fiber wheels, adjustable strut top mounts, and a massive carbon fiber GT4 track wing."
-  ],
-  features: ["Carbon Fiber Track Pack", "MagneRide Damping System", "Brembo™ High-Performance Brakes", "TORSEN® Differential", "B&O® Sound System by Bang & Olufsen", "Alcantara®-Wrapped Steering Wheel", "Recaro® Leather-Trimmed Front Seats", "Blind Spot Information System (BLIS)", "Dual-Zone Electronic Climate Control", "Sync® 3 with 8-inch Touchscreen"],
-  technicalSpecs: [
-    { label: "Fuel Type", value: "Premium Unleaded (93 Octane Required)" },
-    { label: "Drivetrain", value: "Rear-Wheel Drive (RWD)" },
-    { label: "Brakes", value: "Brembo™ 6-Piston Front, 4-Piston Rear" },
-    { label: "Weight", value: "4,171 lbs" },
-    { label: "Horsepower", value: "760 hp @ 7,300 rpm" },
-    { label: "Torque", value: "625 lb-ft @ 5,000 rpm" },
-  ],
-  serviceHistory: [
-    { date: "Mar 15, 2024", type: "Service", description: "15,000 mile service - Oil change, filter replacement, full inspection", mileage: "14,985" },
-    { date: "Dec 8, 2023", type: "Maintenance", description: "Tire rotation and brake inspection", mileage: "12,450" },
-    { date: "Sep 22, 2023", type: "Service", description: "10,000 mile service - Synthetic oil change, cabin filter", mileage: "9,875" },
-    { date: "Jun 14, 2023", type: "Inspection", description: "Pre-delivery inspection - Certified by Shelby Performance LV", mileage: "7,200" },
-    { date: "Apr 3, 2023", type: "Service", description: "5,000 mile service - Oil change, multi-point inspection", mileage: "4,950" },
-    { date: "Jan 20, 2023", type: "Delivery", description: "Vehicle delivered to first owner - Brand new", mileage: "12" },
-  ],
-  seller: { name: "Shelby Performance LV", rating: 4.9, reviews: 214, phone: "(702) 555-0199", location: "Las Vegas Motor Speedway, NV", avatar: "/images/cq5dam.web.1280.1280.avif" },
-  related: [
-    { id: 2, image: "/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg", name: "2020 Shelby GT350R", price: "$98,500", miles: "4,500 mi" },
-    { id: 3, image: "/images/2026_supersnaker_gallery_06-938430.jpg", name: "2023 Shelby F-150 Super Snake", price: "$112,000", miles: "500 mi" },
-    { id: 5, image: "/images/1967-ford-shelby-gt500-super-snake.avif", name: "2021 Shelby Cobra 427 Replica", price: "$85,900", miles: "2,100 mi" },
-    { id: 7, image: "/images/ford-mustang-shelby-gt500-super-snake1-e1526674717750.webp", name: "2022 Shelby Super Snake", price: "$135,000", miles: "150 mi" },
-  ]
-};
+interface ListingDetail {
+  id: string;
+  year: number;
+  make: string;
+  model: string;
+  trim: string | null;
+  price: number;
+  mileage: number;
+  description: string;
+  transmission: string;
+  drivetrain: string;
+  engine: string | null;
+  exterior_color: string | null;
+  interior_color: string | null;
+  location: string | null;
+  vin: string;
+  status: string;
+  is_featured: boolean;
+  created_at: string;
+  user_id: string;
+  seller_name: string;
+  seller_email: string;
+  seller_phone: string | null;
+  seller_avatar: string | null;
+  dealership_name: string | null;
+  seller_rating: number | null;
+  images: { url: string; is_primary: boolean }[];
+  features: string[];
+}
 
 export default function VehicleDetailPage() {
+  const params = useParams();
   const [activeThumb, setActiveThumb] = useState(0);
   const [copied, setCopied] = useState(false);
-  const car = MOCK;
+  const [listing, setListing] = useState<ListingDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' });
+  const [sending, setSending] = useState(false);
+  const [contactSent, setContactSent] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  
+  const supabase = createClient();
+  const listingId = params.id as string;
 
-  const copyVin = () => { navigator.clipboard.writeText(car.vin); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  useEffect(() => {
+    fetchListing();
+  }, [listingId]);
+
+  const fetchListing = async () => {
+    try {
+      setLoading(true);
+      
+      // Get listing details
+      const { data: listingData, error: listingError } = await supabase
+        .from('active_listings')
+        .select('*')
+        .eq('id', listingId)
+        .single();
+
+      if (listingError) throw listingError;
+      if (!listingData) {
+        setError('Listing not found');
+        return;
+      }
+
+      // Get images
+      const { data: imagesData } = await supabase
+        .from('listing_images')
+        .select('url, is_primary')
+        .eq('listing_id', listingId)
+        .order('order_index', { ascending: true });
+
+      // Get features
+      const { data: featuresData } = await supabase
+        .from('listing_features')
+        .select('feature')
+        .eq('listing_id', listingId);
+
+      // Get seller profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email, phone, avatar_url')
+        .eq('id', listingData.user_id)
+        .single();
+
+      // Get dealer info if applicable
+      let dealershipName = null;
+      let sellerRating = null;
+      if (profileData) {
+        const { data: dealerData } = await supabase
+          .from('dealer_profiles')
+          .select('dealership_name, rating')
+          .eq('user_id', listingData.user_id)
+          .single();
+        dealershipName = dealerData?.dealership_name;
+        sellerRating = dealerData?.rating;
+      }
+
+      setListing({
+        ...listingData,
+        seller_name: profileData 
+          ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Private Seller'
+          : 'Private Seller',
+        seller_email: profileData?.email || '',
+        seller_phone: profileData?.phone,
+        seller_avatar: profileData?.avatar_url,
+        dealership_name: dealershipName,
+        seller_rating: sellerRating,
+        images: imagesData || [],
+        features: featuresData?.map(f => f.feature) || []
+      });
+    } catch (err: any) {
+      console.error('Error fetching listing:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyVin = () => { 
+    if (listing?.vin) {
+      navigator.clipboard.writeText(listing.vin); 
+      setCopied(true); 
+      setTimeout(() => setCopied(false), 2000); 
+    }
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!listing) return;
+    
+    setSending(true);
+    try {
+      // Store inquiry in database
+      const { error } = await supabase
+        .from('listing_inquiries')
+        .insert({
+          listing_id: listingId,
+          seller_id: listing.user_id,
+          buyer_name: contactForm.name,
+          buyer_email: contactForm.email,
+          buyer_phone: contactForm.phone || null,
+          message: contactForm.message,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      
+      setContactSent(true);
+      setTimeout(() => {
+        setShowContactModal(false);
+        setContactSent(false);
+        setContactForm({ name: '', email: '', phone: '', message: '' });
+      }, 3000);
+    } catch (err) {
+      console.error('Error sending inquiry:', err);
+      alert('Failed to send message. Please try again.');
+    }
+    setSending(false);
+  };
 
   const getServiceIcon = (type: string) => {
     switch(type) {
@@ -64,33 +181,163 @@ export default function VehicleDetailPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-[#002D72] mx-auto mb-4" />
+          <p className="text-[#565d6d] font-medium">Loading vehicle details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !listing) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <h2 className="text-2xl font-bold mb-2">Vehicle Not Found</h2>
+          <p className="text-[#565d6d] mb-6">{error || "This listing doesn't exist or has been removed."}</p>
+          <Link href="/listings" className="px-6 py-3 bg-[#002D72] text-white font-bold rounded-lg">
+            Browse Inventory
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const car = listing;
+  const primaryImage = car.images.find(img => img.is_primary)?.url || car.images[0]?.url || '/images/logo.png';
+  const otherImages = car.images.filter(img => !img.is_primary).map(img => img.url);
+  const allImages = [primaryImage, ...otherImages].filter(Boolean);
+
   return (
     <div className="min-h-screen bg-white">
+      {/* Contact Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-xl font-bold">Contact Seller</h3>
+              <button onClick={() => setShowContactModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <span className="sr-only">Close</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            {contactSent ? (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Check className="w-8 h-8 text-green-600" />
+                </div>
+                <h4 className="text-lg font-bold mb-2">Message Sent!</h4>
+                <p className="text-gray-600">The seller will contact you soon.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleContactSubmit} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2">Your Name *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={contactForm.name}
+                    onChange={e => setContactForm({...contactForm, name: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+                    placeholder="John Doe"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-2">Email *</label>
+                  <input 
+                    type="email" 
+                    required
+                    value={contactForm.email}
+                    onChange={e => setContactForm({...contactForm, email: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+                    placeholder="john@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-2">Phone</label>
+                  <input 
+                    type="tel"
+                    value={contactForm.phone}
+                    onChange={e => setContactForm({...contactForm, phone: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+                    placeholder="(555) 123-4567"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-2">Message *</label>
+                  <textarea 
+                    required
+                    rows={4}
+                    value={contactForm.message}
+                    onChange={e => setContactForm({...contactForm, message: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none resize-none"
+                    placeholder={`I'm interested in the ${car.year} ${car.make} ${car.model}. Please contact me with more information.`}
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={sending}
+                  className="w-full py-3 bg-[#002D72] text-white font-bold rounded-xl hover:bg-[#001D4A] transition-colors disabled:opacity-50"
+                >
+                  {sending ? 'Sending...' : 'Send Message'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
       <main className="max-w-[1440px] mx-auto px-4 lg:px-16 py-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-[#565d6d] mb-6">
           <Link href="/listings" className="hover:text-[#002D72]">Inventory</Link><ChevronRight className="w-3 h-3" />
           <span>{car.make}</span><ChevronRight className="w-3 h-3" />
           <span>{car.model}</span><ChevronRight className="w-3 h-3" />
-          <span className="font-medium text-[#171a1f]">{car.trim}</span>
+          <span className="font-medium text-[#171a1f]">{car.trim || 'Standard'}</span>
         </nav>
 
         {/* Title & Price */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-outfit font-extrabold tracking-tight mb-4 break-words">{car.year} {car.make} {car.model} {car.trim}</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-outfit font-extrabold tracking-tight mb-4 break-words">
+              {car.year} {car.make} {car.model} {car.trim || ''}
+            </h1>
             <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-1 bg-[#002D72]/10 border border-[#002D72]/20 rounded-full">
-                <ShieldCheck className="w-3 h-3 text-[#002D72]" /><span className="text-xs font-semibold text-[#002D72]">Certified Heritage Edition</span>
+              {car.is_featured && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-[#002D72]/10 border border-[#002D72]/20 rounded-full">
+                  <ShieldCheck className="w-3 h-3 text-[#002D72]" /><span className="text-xs font-semibold text-[#002D72]">Featured Listing</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1.5 text-sm text-[#565d6d]">
+                <Calendar className="w-4 h-4" />
+                <span>Listed {new Date(car.created_at).toLocaleDateString()}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-sm text-[#565d6d]"><Calendar className="w-4 h-4" /><span>{car.dateListed}</span></div>
               <FavoriteButton listingId={car.id} showLabel />
-              <button className="flex items-center gap-1.5 text-sm text-[#565d6d] hover:text-[#002D72]"><Share2 className="w-4 h-4" /> Share</button>
+              <button 
+                onClick={() => setShowShareModal(true)}
+                className="flex items-center gap-1.5 text-sm text-[#565d6d] hover:text-[#002D72]"
+              >
+                <Share2 className="w-4 h-4" /> Share
+              </button>
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center gap-1.5 text-sm text-[#565d6d] hover:text-[#002D72] print:hidden"
+              >
+                <Printer className="w-4 h-4" /> Print
+              </button>
             </div>
           </div>
           <div className="text-left lg:text-right">
-            <div className="text-3xl md:text-4xl font-outfit font-black text-[#E31837]">${car.price.toLocaleString()}</div>
-            <div className="text-sm text-[#565d6d] font-medium mt-1">MSRP: ${car.msrp.toLocaleString()} (Window Sticker Included)</div>
+            <div className="text-3xl md:text-4xl font-outfit font-black text-[#E31837]">
+              ${car.price.toLocaleString()}
+            </div>
+            <div className="text-sm text-[#565d6d] font-medium mt-1">
+              {car.mileage.toLocaleString()} miles
+            </div>
           </div>
         </div>
 
@@ -101,24 +348,35 @@ export default function VehicleDetailPage() {
             {/* Gallery */}
             <div className="space-y-4">
               <div className="aspect-[16/9] w-full bg-[#f3f4f6] rounded-lg overflow-hidden shadow-sm">
-                <img src={car.images[activeThumb]} alt="Main" className="w-full h-full object-cover" />
+                <img 
+                  src={allImages[activeThumb] || '/images/logo.png'} 
+                  alt={`${car.year} ${car.make} ${car.model}`} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/logo.png'; }}
+                />
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
-                {car.images.map((img, idx) => (
-                  <button key={idx} onClick={() => setActiveThumb(idx)} className={`flex-shrink-0 w-32 h-20 rounded-md overflow-hidden border-2 transition-all cursor-pointer ${idx === activeThumb ? 'border-[#002D72]' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                    <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
+              {allImages.length > 1 && (
+                <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
+                  {allImages.map((img, idx) => (
+                    <button 
+                      key={idx} 
+                      onClick={() => setActiveThumb(idx)} 
+                      className={`flex-shrink-0 w-32 h-20 rounded-md overflow-hidden border-2 transition-all cursor-pointer ${idx === activeThumb ? 'border-[#002D72]' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                    >
+                      <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Quick Specs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { icon: Gauge, label: "MILEAGE", value: car.specs.mileage },
-                { icon: Zap, label: "TRANSMISSION", value: car.specs.transmission },
-                { icon: Zap, label: "ENGINE", value: car.specs.engine },
-                { icon: Palette, label: "EXTERIOR", value: car.specs.exterior },
+                { icon: Gauge, label: "MILEAGE", value: `${car.mileage.toLocaleString()} mi` },
+                { icon: Zap, label: "TRANSMISSION", value: car.transmission },
+                { icon: Zap, label: "DRIVETRAIN", value: car.drivetrain },
+                { icon: Palette, label: "EXTERIOR", value: car.exterior_color || 'Not specified' },
               ].map((spec, idx) => (
                 <div key={idx} className="bg-white p-5 rounded-lg shadow-soft border border-[#f3f4f6] min-w-0 overflow-hidden">
                   <spec.icon className="w-5 h-5 mb-3 text-[#002D72] shrink-0" />
@@ -128,90 +386,40 @@ export default function VehicleDetailPage() {
               ))}
             </div>
 
-            {/* Vehicle History Timeline */}
-            <div className="bg-[#fafafb] p-6 rounded-lg shadow-soft">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#002D72]/10 rounded-full flex items-center justify-center">
-                    <CalendarCheck className="w-5 h-5 text-[#002D72]" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-outfit font-bold">Vehicle History & Service Records</h3>
-                    <p className="text-xs text-[#565d6d]">Complete maintenance history • FREE with every listing</p>
-                  </div>
+            {/* Description */}
+            {car.description && (
+              <section>
+                <h2 className="text-2xl font-outfit font-bold mb-4">Seller&apos;s Description</h2>
+                <div className="text-[#565d6d] leading-relaxed whitespace-pre-wrap">
+                  {car.description}
                 </div>
-                <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                  Clean Title
-                </div>
-              </div>
+              </section>
+            )}
 
-              {/* Timeline */}
-              <div className="relative">
-                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-[#dee1e6]" />
-                <div className="space-y-4">
-                  {car.serviceHistory.map((record, idx) => (
-                    <div key={idx} className="relative flex gap-4 pl-2">
-                      <div className="relative z-10 w-5 h-5 rounded-full bg-white border-2 border-[#002D72] flex items-center justify-center shrink-0 mt-0.5">
-                        <div className="w-2 h-2 rounded-full bg-[#002D72]" />
-                      </div>
-                      <div className="flex-1 pb-4">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <span className="text-xs font-bold text-[#565d6d]">{record.date}</span>
-                          <span className="px-2 py-0.5 bg-[#002D72]/10 text-[#002D72] text-[10px] font-bold rounded">
-                            {record.type}
-                          </span>
-                          <span className="text-[10px] text-[#565d6d]">{record.mileage} mi</span>
-                        </div>
-                        <p className="text-sm text-[#171a1f]">{record.description}</p>
-                      </div>
+            {/* Features */}
+            {car.features.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-outfit font-bold mb-6">Key Features &amp; Options</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                  {car.features.map((f, i) => (
+                    <div key={i} className="flex items-center gap-3 py-2 border-b border-[#f3f4f6]">
+                      <Check className="w-4 h-4 text-[#002D72]" /><span className="text-sm font-medium">{f}</span>
                     </div>
                   ))}
                 </div>
-              </div>
+              </section>
+            )}
 
-              <div className="mt-4 pt-4 border-t border-[#dee1e6]">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#565d6d]">VIN: {car.vin}</span>
-                  <button onClick={copyVin} className="flex items-center gap-1 text-xs font-bold text-[#002D72] hover:underline">
-                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    {copied ? "Copied!" : "Copy VIN"}
-                  </button>
-                </div>
+            {/* VIN */}
+            <div className="bg-[#fafafb] p-6 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-[#565d6d]">VIN: {car.vin}</span>
+                <button onClick={copyVin} className="flex items-center gap-1 text-xs font-bold text-[#002D72] hover:underline">
+                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  {copied ? "Copied!" : "Copy VIN"}
+                </button>
               </div>
             </div>
-
-            {/* Description */}
-            <section>
-              <h2 className="text-2xl font-outfit font-bold mb-4">Seller&apos;s Description</h2>
-              <div className="space-y-4 text-[#565d6d] leading-relaxed">
-                {car.description.map((p, i) => <p key={i}>{p}</p>)}
-              </div>
-            </section>
-
-            {/* Features */}
-            <section>
-              <h2 className="text-2xl font-outfit font-bold mb-6">Key Features &amp; Options</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
-                {car.features.map((f, i) => (
-                  <div key={i} className="flex items-center gap-3 py-2 border-b border-[#f3f4f6]">
-                    <Check className="w-4 h-4 text-[#002D72]" /><span className="text-sm font-medium">{f}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Technical Specs */}
-            <section>
-              <h2 className="text-2xl font-outfit font-bold mb-6">Technical Specifications</h2>
-              <div className="border border-[#f3f4f6] rounded-lg overflow-hidden">
-                {car.technicalSpecs.map((spec, idx) => (
-                  <div key={idx} className={`flex items-center justify-between p-4 ${idx !== car.technicalSpecs.length - 1 ? 'border-b border-[#f3f4f6]' : ''} ${idx % 2 === 0 ? 'bg-[#fafafb]' : ''}`}>
-                    <span className="text-sm font-medium text-[#565d6d]">{spec.label}</span>
-                    <span className="text-sm font-bold text-right">{spec.value}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
           </div>
 
           {/* Right Sidebar */}
@@ -220,55 +428,78 @@ export default function VehicleDetailPage() {
               {/* Contact Card */}
               <div className="bg-white rounded-lg shadow-soft border-t-4 border-[#002D72] p-6 overflow-hidden">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-full overflow-hidden bg-[#002D72]/10"><img src={car.seller.avatar} alt="Dealer" className="w-full h-full object-cover" /></div>
+                  <div className="w-14 h-14 rounded-full overflow-hidden bg-[#002D72]/10">
+                    <img 
+                      src={car.seller_avatar || '/images/logo.png'} 
+                      alt={car.seller_name} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = '/images/logo.png'; }}
+                    />
+                  </div>
                   <div>
-                    <h3 className="text-lg font-outfit font-bold">{car.seller.name}</h3>
-                    <div className="flex items-center gap-1 mt-1">
-                      <span className="text-sm font-bold">{car.seller.rating}</span>
-                      <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />)}</div>
-                      <span className="text-xs text-[#565d6d] ml-1">({car.seller.reviews} reviews)</span>
-                    </div>
+                    <h3 className="text-lg font-outfit font-bold">{car.dealership_name || car.seller_name}</h3>
+                    {car.seller_rating && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="text-sm font-bold">{car.seller_rating}</span>
+                        <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />)}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-3 mb-8">
-                  <button className="w-full h-12 bg-[#002D72] text-white font-bold rounded-md flex items-center justify-center gap-3 hover:bg-[#001D4A] transition-colors"><MessageSquare className="w-5 h-5" /> Email Seller</button>
-                  <button className="w-full h-12 bg-white border border-[#dee1e6] font-semibold rounded-md flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"><Phone className="w-5 h-5" /> {car.seller.phone}</button>
+                  <button 
+                    onClick={() => setShowContactModal(true)}
+                    className="w-full h-12 bg-[#002D72] text-white font-bold rounded-md flex items-center justify-center gap-3 hover:bg-[#001D4A] transition-colors"
+                  >
+                    <MessageSquare className="w-5 h-5" /> Email Seller
+                  </button>
+                  {car.seller_phone && (
+                    <a 
+                      href={`tel:${car.seller_phone}`}
+                      className="w-full h-12 bg-white border border-[#dee1e6] font-semibold rounded-md flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+                    >
+                      <Phone className="w-5 h-5" /> {car.seller_phone}
+                    </a>
+                  )}
                 </div>
-                <div className="pt-6 border-t border-[#f3f4f6] space-y-4">
-                  <div className="flex items-center justify-between"><span className="text-sm font-medium">Financing from</span><span className="text-lg font-bold">$1,842 /mo</span></div>
-                  <button className="w-full h-10 bg-[#f3f4f6] text-sm font-medium rounded-md flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"><Calculator className="w-4 h-4" /> Estimate Monthly Payments</button>
+                <div className="pt-6 border-t border-[#f3f4f6] space-y-3">
+                  <div className="flex items-center gap-2 text-xs text-[#565d6d]">
+                    <MapPin className="w-3 h-3" /> {car.location || 'Location not specified'}
+                  </div>
                 </div>
-                <div className="mt-8 space-y-3">
-                  <div className="flex items-center gap-2 text-xs text-[#565d6d]"><MapPin className="w-3 h-3" /> {car.seller.location}</div>
-                  <div className="flex items-center gap-2 text-xs text-[#565d6d] cursor-pointer hover:text-[#002D72]"><ExternalLink className="w-3 h-3" /> Visit Dealer Website</div>
-                </div>
-              </div>
-
-              {/* You May Also Like */}
-              <div className="bg-white rounded-lg shadow-soft border border-[#f3f4f6] p-6">
-                <h3 className="text-lg font-outfit font-bold mb-4">You May Also Like</h3>
-                <div className="space-y-4">
-                  {car.related.slice(0, 3).map((r) => (
-                    <Link key={r.id} href={`/listings/${r.id}`} className="flex gap-4 group cursor-pointer">
-                      <div className="w-20 h-16 rounded-lg overflow-hidden shrink-0">
-                        <img src={r.image} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold truncate group-hover:text-[#002D72] transition-colors">{r.name}</h4>
-                        <div className="text-sm font-bold text-[#E31837] mt-1">{r.price}</div>
-                        <div className="text-xs text-[#565d6d]">{r.miles}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-                <Link href="/listings" className="block mt-4 text-center text-sm font-medium text-[#002D72] hover:underline">
-                  View All Inventory
-                </Link>
               </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title={`${car.year} ${car.make} ${car.model} for Sale`}
+        url={typeof window !== 'undefined' ? window.location.href : ''}
+        description={`Check out this ${car.year} ${car.make} ${car.model} with ${car.mileage.toLocaleString()} miles for $${car.price.toLocaleString()}`}
+      />
+
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+          header, footer, .print\\:hidden, button, nav {
+            display: none !important;
+          }
+          body {
+            background: white !important;
+          }
+          main {
+            max-width: 100% !important;
+            padding: 0 !important;
+          }
+          img {
+            max-width: 100% !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
