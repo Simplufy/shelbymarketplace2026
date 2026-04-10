@@ -2,11 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-03-25.dahlia',
-});
-
 export async function POST(req: NextRequest) {
+  // Initialize Stripe inside the function to avoid build-time issues
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) {
+    return NextResponse.json(
+      { error: 'Stripe configuration missing' },
+      { status: 500 }
+    );
+  }
+  
+  const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: '2026-03-25.dahlia',
+  });
   try {
     const { package_tier, vehicle_info } = await req.json();
     
