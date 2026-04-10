@@ -57,14 +57,12 @@ export async function POST(req: NextRequest) {
       .insert({
         user_id: user.id,
         dealership_name,
-        dealer_license,
-        website: website || null,
+        license_number: dealer_license,
+        website_url: website || null,
         phone,
         location,
         subscription_tier,
-        subscription_status: 'PENDING',
-        verification_status: 'PENDING',
-        documents: documents || {},
+        subscription_status: 'INACTIVE',
       })
       .select()
       .single();
@@ -111,7 +109,7 @@ export async function POST(req: NextRequest) {
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dealers/register?canceled=true`,
       client_reference_id: user.id,
       metadata: {
-        dealer_profile_id: dealerProfile.id,
+        dealer_user_id: dealerProfile.user_id,
         subscription_tier,
         dealership_name,
       },

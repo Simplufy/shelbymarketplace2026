@@ -15,8 +15,8 @@ import {
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-const TRANSMISSIONS = ["Manual", "Automatic", "DCT"];
-const DRIVETRAINS = ["RWD", "AWD", "FWD"];
+const TRANSMISSIONS = ["Manual", "Automatic"];
+const DRIVETRAINS = ["RWD", "AWD", "4WD"];
 const PACKAGES = [
   { id: "STANDARD", name: "Standard Listing" },
   { id: "HOMEPAGE", name: "Homepage Featured" },

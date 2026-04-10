@@ -36,19 +36,55 @@ export default function AdminListings() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("active_listings")
+        .from("listings")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       if (data) {
-        const listingsWithDetails: ListingWithDetails[] = data.map(listing => ({
-          ...listing,
-          seller_name: listing.dealership_name || "Private Seller",
-          seller_type: listing.dealership_name ? "dealer" : "private",
-          primary_image_url: listing.primary_image_url
-        }));
+        if (data.length === 0) {
+          setListings([]);
+          setLoading(false);
+          return;
+        }
+
+        const listingIds = data.map((l: any) => l.id);
+        const userIds = [...new Set(data.map((l: any) => l.user_id))];
+
+        const [{ data: primaryImages }, { data: profiles }, { data: dealers }] = await Promise.all([
+          supabase
+            .from("listing_images")
+            .select("listing_id, url")
+            .eq("is_primary", true)
+            .in("listing_id", listingIds),
+          supabase
+            .from("profiles")
+            .select("id, first_name, last_name")
+            .in("id", userIds),
+          supabase
+            .from("dealer_profiles")
+            .select("user_id, dealership_name")
+            .in("user_id", userIds),
+        ]);
+
+        const imageByListing = new Map((primaryImages || []).map((img: any) => [img.listing_id, img.url]));
+        const profileByUser = new Map((profiles || []).map((p: any) => [p.id, p]));
+        const dealerByUser = new Map((dealers || []).map((d: any) => [d.user_id, d]));
+
+        const listingsWithDetails: ListingWithDetails[] = data.map((listing: any) => {
+          const dealer = dealerByUser.get(listing.user_id);
+          const profile = profileByUser.get(listing.user_id);
+          const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim();
+
+          return {
+            ...listing,
+            seller_name: dealer?.dealership_name || fullName || "Private Seller",
+            seller_type: dealer ? "dealer" : "private",
+            dealership_name: dealer?.dealership_name || null,
+            primary_image_url: imageByListing.get(listing.id) || null,
+          };
+        });
         setListings(listingsWithDetails);
       }
     } catch (error) {

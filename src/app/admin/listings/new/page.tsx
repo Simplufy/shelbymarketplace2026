@@ -2,22 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
+import {
   ArrowLeft, 
   Car, 
   DollarSign, 
   MapPin, 
   UploadCloud, 
   X, 
-  Check,
   Loader2,
   Save
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-const TRANSMISSIONS = ["Manual", "Automatic", "DCT"];
-const DRIVETRAINS = ["RWD", "AWD", "FWD"];
+const TRANSMISSIONS = ["Manual", "Automatic"];
+const DRIVETRAINS = ["RWD", "AWD", "4WD"];
 const PACKAGES = [
   { id: "STANDARD", name: "Standard Listing", price: 0 },
   { id: "HOMEPAGE", name: "Homepage Featured", price: 0 },
@@ -97,10 +96,16 @@ export default function AdminCreateListing() {
     setLoading(true);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("You must be logged in to create listings");
+      }
+
       // Create listing
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .insert({
+          user_id: user.id,
           ...formData,
           price: Number(formData.price),
           mileage: Number(formData.mileage),

@@ -89,7 +89,6 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
             <option value="">Select transmission...</option>
             <option value="Manual">Manual</option>
             <option value="Automatic">Automatic</option>
-            <option value="DCT">Dual-Clutch (DCT)</option>
           </select>
         </div>
         <div>
@@ -98,7 +97,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
             <option value="">Select drivetrain...</option>
             <option value="RWD">Rear-Wheel Drive (RWD)</option>
             <option value="AWD">All-Wheel Drive (AWD)</option>
-            <option value="FWD">Front-Wheel Drive (FWD)</option>
+            <option value="4WD">Four-Wheel Drive (4WD)</option>
           </select>
         </div>
       </div>

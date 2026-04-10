@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { 
+  AlertTriangle,
   CheckCircle, Eye, Image as ImageIcon, TrendingUp, Users, DollarSign, 
   Package, ArrowUpRight, MoreHorizontal, Search, Filter, ChevronDown, Edit, Trash2,
   Layout, Type, Palette, Loader2, Car, MapPin, Calendar
@@ -51,7 +52,7 @@ export default function AdminDashboard() {
       );
       
       const queryPromise = supabase
-        .from("active_listings")
+        .from("listings")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(20);
@@ -61,11 +62,12 @@ export default function AdminDashboard() {
       if (error) throw error;
 
       if (data) {
-        const listingsWithDetails: ListingWithDetails[] = data.map(listing => ({
+        const listingsWithDetails: ListingWithDetails[] = data.map((listing: any) => ({
           ...listing,
-          seller_name: listing.dealership_name || "Private Seller",
-          seller_type: listing.dealership_name ? "dealer" : "private",
-          primary_image_url: listing.primary_image_url,
+          seller_name: "Private Seller",
+          seller_type: "private",
+          dealership_name: null,
+          primary_image_url: null,
           date_display: getTimeAgo(listing.created_at)
         }));
         setListings(listingsWithDetails);
