@@ -30,15 +30,27 @@ export default function AdminListings() {
 
   useEffect(() => {
     loadListings();
+
+    const safety = setTimeout(() => {
+      setLoading(false);
+    }, 12000);
+
+    return () => clearTimeout(safety);
   }, []);
 
   const loadListings = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Listings request timeout")), 8000)
+      );
+
+      const queryPromise = supabase
         .from("listings")
         .select("*")
         .order("created_at", { ascending: false });
+
+      const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
 
       if (error) throw error;
 
@@ -89,6 +101,7 @@ export default function AdminListings() {
       }
     } catch (error) {
       console.error("Error loading listings:", error);
+      setListings([]);
     }
     setLoading(false);
   };

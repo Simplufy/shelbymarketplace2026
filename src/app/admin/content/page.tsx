@@ -139,6 +139,12 @@ export default function ContentManager() {
     loadContent();
     loadListings();
     getCurrentUser();
+
+    const safety = setTimeout(() => {
+      setIsLoading(false);
+    }, 12000);
+
+    return () => clearTimeout(safety);
   }, []);
 
   const getCurrentUser = async () => {
@@ -149,17 +155,23 @@ export default function ContentManager() {
   const loadContent = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Content request timeout")), 8000)
+      );
+
+      const queryPromise = supabase
         .from("site_content")
         .select("*")
         .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
+
+      const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
 
       if (error) throw error;
 
       if (data && data.length > 0) {
         const loadedContent = { ...defaultContent };
         
-        data.forEach((item) => {
+        data.forEach((item: any) => {
           switch (item.key) {
             case "hero":
               loadedContent.hero = item.value as HeroContent;
@@ -195,8 +207,9 @@ export default function ContentManager() {
           console.error("Failed to parse saved content");
         }
       }
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const loadListings = async () => {
