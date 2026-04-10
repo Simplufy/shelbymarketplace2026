@@ -36,8 +36,15 @@ export async function POST(req: NextRequest) {
     
     try {
       // Get metadata from the session
-      const { package_tier, vehicle_info } = session.metadata || {};
+      const { package_tier, vehicle_info, selected_addons } = session.metadata || {};
       const vehicleData = JSON.parse(vehicle_info || '{}');
+      const selectedAddonIds: string[] = JSON.parse(selected_addons || '[]');
+
+      const featuredByPackage = package_tier === 'HOMEPAGE' || package_tier === 'HOMEPAGE_PLUS_ADS';
+      const featuredByAddon =
+        selectedAddonIds.includes('featured_listing') ||
+        selectedAddonIds.includes('premium_listing_upgrade') ||
+        selectedAddonIds.includes('pro_seller_package');
 
       // Create the listing in Supabase
       const supabase = await createClient();
@@ -57,6 +64,7 @@ export async function POST(req: NextRequest) {
           location: vehicleData.location,
           package_tier: package_tier,
           status: 'PENDING',
+          is_featured: featuredByPackage || featuredByAddon,
           transmission: vehicleData.transmission || 'Automatic',
           drivetrain: vehicleData.drivetrain || 'RWD',
         })
@@ -79,6 +87,38 @@ export async function POST(req: NextRequest) {
 
         if (serviceRecords.length > 0) {
           await supabase.from('listing_features').insert(serviceRecords);
+        }
+      }
+
+      // Add purchased upsell features
+      if (selectedAddonIds.length > 0) {
+        const addonLabels: Record<string, string> = {
+          carfax_report: 'Upsell: Vehicle History Report included',
+          featured_listing: 'Upsell: Featured Listing enabled',
+          social_media_promotion: 'Upsell: Social Media Promotion included',
+          video_showcase: 'Upsell: Video Showcase included',
+          premium_listing_upgrade: 'Upsell: Premium Listing Upgrade enabled',
+          concierge_service: 'Upsell: Concierge Service purchased (writing, optimization, photo positioning)',
+          pro_seller_package: 'Upsell: Pro Seller Package enabled',
+        };
+
+        const addonFeatures = selectedAddonIds
+          .filter((id) => addonLabels[id])
+          .map((id) => ({
+            listing_id: listing.id,
+            feature: addonLabels[id],
+          }));
+
+        // Bundle fulfillment notes
+        if (selectedAddonIds.includes('pro_seller_package')) {
+          addonFeatures.push(
+            { listing_id: listing.id, feature: 'Bundle: Email blast included' },
+            { listing_id: listing.id, feature: 'Bundle: Urgent badge included' }
+          );
+        }
+
+        if (addonFeatures.length > 0) {
+          await supabase.from('listing_features').insert(addonFeatures);
         }
       }
 

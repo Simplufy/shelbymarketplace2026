@@ -1,13 +1,70 @@
 "use client";
-import { CheckCircle2, Lock, CreditCard, Loader2 } from "lucide-react";
+import { CheckCircle2, Lock, CreditCard, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { loadStripe } from '@stripe/stripe-js';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const ADDON_CATALOG = [
+  {
+    id: "carfax_report",
+    name: "CarFax Report",
+    description: "Add Vehicle History Report",
+    price: 29,
+    defaultChecked: true,
+  },
+  {
+    id: "featured_listing",
+    name: "Featured Listing",
+    description: "Feature My Listing",
+    price: 79,
+    defaultChecked: true,
+  },
+  {
+    id: "social_media_promotion",
+    name: "Social Media Promotion",
+    description: "Promote on Social Media",
+    price: 99,
+    defaultChecked: false,
+  },
+  {
+    id: "video_showcase",
+    name: "Video Showcase",
+    description: "Add Video Showcase",
+    price: 49,
+    defaultChecked: false,
+  },
+  {
+    id: "premium_listing_upgrade",
+    name: "Premium Listing",
+    description: "Upgrade to Premium Listing",
+    price: 129,
+    defaultChecked: false,
+  },
+  {
+    id: "concierge_service",
+    name: "Concierge Service",
+    description: "We write, optimize, and position your listing",
+    price: 199,
+    defaultChecked: false,
+  },
+  {
+    id: "pro_seller_package",
+    name: "Pro Seller Package",
+    description: "Featured + Social + Email Blast + Urgent Badge",
+    price: 199,
+    defaultChecked: false,
+    isRecommended: true,
+  },
+] as const;
 
 export default function Step4Checkout({ formData, onBack }: any) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAddons, setSelectedAddons] = useState<Record<string, boolean>>(() => {
+    const defaults: Record<string, boolean> = {};
+    for (const addon of ADDON_CATALOG) {
+      defaults[addon.id] = addon.defaultChecked;
+    }
+    return defaults;
+  });
 
   const getPrice = () => {
     if (formData.package_tier === "HOMEPAGE_PLUS_ADS") return 299;
@@ -20,6 +77,24 @@ export default function Step4Checkout({ formData, onBack }: any) {
     if (formData.package_tier === "HOMEPAGE") return "Homepage Featured";
     return "Standard Listing";
   };
+
+  const toggleAddon = (addonId: string) => {
+    setSelectedAddons((prev) => {
+      const next = { ...prev, [addonId]: !prev[addonId] };
+
+      // Bundle behavior: selecting Pro Seller auto-includes key promotions
+      if (addonId === "pro_seller_package" && !prev[addonId]) {
+        next.featured_listing = true;
+        next.social_media_promotion = true;
+      }
+
+      return next;
+    });
+  };
+
+  const selectedAddonItems = ADDON_CATALOG.filter((addon) => selectedAddons[addon.id]);
+  const addonsTotal = selectedAddonItems.reduce((sum, addon) => sum + addon.price, 0);
+  const total = getPrice() + addonsTotal;
 
   const handleCheckout = async () => {
     setLoading(true);
@@ -34,6 +109,7 @@ export default function Step4Checkout({ formData, onBack }: any) {
         },
         body: JSON.stringify({
           package_tier: formData.package_tier,
+          selected_addons: selectedAddonItems.map((addon) => addon.id),
           vehicle_info: {
             vin: formData.vin,
             year: formData.year,
@@ -44,6 +120,8 @@ export default function Step4Checkout({ formData, onBack }: any) {
             mileage: formData.mileage,
             description: formData.description,
             location: formData.location,
+            transmission: formData.transmission,
+            drivetrain: formData.drivetrain,
             serviceHistory: formData.serviceHistory,
             images: formData.images,
           },
@@ -109,6 +187,48 @@ export default function Step4Checkout({ formData, onBack }: any) {
         </div>
       </div>
 
+      {/* Checkout Upsells */}
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-inner">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="w-5 h-5 text-[#E31837]" />
+          <h3 className="font-bold text-gray-900 text-lg tracking-tight">Boost Your Listing</h3>
+        </div>
+
+        <div className="space-y-3">
+          {ADDON_CATALOG.map((addon) => (
+            <label
+              key={addon.id}
+              className={`block rounded-xl border p-4 cursor-pointer transition-colors ${
+                selectedAddons[addon.id]
+                  ? "border-[#002D72] bg-blue-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedAddons[addon.id]}
+                    onChange={() => toggleAddon(addon.id)}
+                    className="mt-1 w-4 h-4 rounded border-gray-300 accent-[#002D72]"
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">{addon.name}</p>
+                    <p className="text-xs text-gray-600">{addon.description}</p>
+                    {("isRecommended" in addon && addon.isRecommended) && (
+                      <span className="inline-flex mt-2 px-2 py-1 text-[10px] font-bold uppercase tracking-wide rounded-full bg-[#E31837]/10 text-[#E31837]">
+                        Most sellers choose this option
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className="font-bold text-sm text-gray-900">+${addon.price}</span>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+
       {/* Order Summary */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-inner">
         <h3 className="font-bold text-gray-900 text-lg tracking-tight mb-4">Order Summary</h3>
@@ -122,9 +242,15 @@ export default function Step4Checkout({ formData, onBack }: any) {
             <span className="text-gray-600 text-sm">Listing Fee</span>
             <span className="font-bold shrink-0">${getPrice().toFixed(2)}</span>
           </div>
+          {selectedAddonItems.map((addon) => (
+            <div key={addon.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-gray-200">
+              <span className="text-gray-600 text-sm">{addon.name}</span>
+              <span className="font-bold shrink-0">+${addon.price.toFixed(2)}</span>
+            </div>
+          ))}
           <div className="flex justify-between items-center py-4 text-xl font-black text-[var(--color-shelby-blue)] border-t-2 border-gray-300 mt-2">
             <span>Total</span>
-            <span>${getPrice().toFixed(2)}</span>
+            <span>${total.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -162,7 +288,7 @@ export default function Step4Checkout({ formData, onBack }: any) {
           ) : (
             <>
               <CreditCard className="w-5 h-5" />
-              Pay ${getPrice()}
+              Pay ${total.toFixed(2)}
             </>
           )}
         </button>
