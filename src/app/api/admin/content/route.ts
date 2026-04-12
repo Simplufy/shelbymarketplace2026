@@ -36,16 +36,17 @@ export async function POST(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseUrl || !serviceKey) {
-      return NextResponse.json({ error: "Server configuration missing" }, { status: 500 });
-    }
-
-    const admin = createAdminClient(supabaseUrl, serviceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
+    // Prefer service-role writes when configured, fallback to session client
+    // so saves can still work in environments where service key is missing.
+    const writer =
+      supabaseUrl && serviceKey
+        ? createAdminClient(supabaseUrl, serviceKey, {
+            auth: { autoRefreshToken: false, persistSession: false },
+          })
+        : supabase;
 
     for (const section of sections) {
-      const { data: existingRows, error: selectError } = await admin
+      const { data: existingRows, error: selectError } = await writer
         .from("site_content")
         .select("id")
         .eq("section", "homepage")
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       if (selectError) throw selectError;
 
       if (existingRows && existingRows.length > 0) {
-        const { error: updateError } = await admin
+        const { error: updateError } = await writer
           .from("site_content")
           .update({
             value: section.value,
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
 
         if (updateError) throw updateError;
       } else {
-        const { error: insertError } = await admin
+        const { error: insertError } = await writer
           .from("site_content")
           .insert({
             section: "homepage",
@@ -81,8 +82,13 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Admin content save failed:", error);
-    return NextResponse.json({ error: "Failed to save content" }, { status: 500 });
+
+    const message =
+      error?.message ||
+      "Failed to save content. If this is production, add SUPABASE_SERVICE_ROLE_KEY in Vercel or enable update/insert RLS policies for site_content.";
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
