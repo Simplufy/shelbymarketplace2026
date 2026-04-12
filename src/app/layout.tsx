@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/global/Header";
 import Footer from "@/components/global/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CompareProvider } from "@/contexts/CompareContext";
 import { CompareBar } from "@/components/CompareBar";
+import { KlaviyoPopup } from "@/components/KlaviyoPopup";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -79,6 +81,13 @@ export default function RootLayout({
       className={`${inter.variable} ${outfit.variable} h-full antialiased`}
     >
       <body className="font-sans min-h-full flex flex-col pt-0 bg-white text-[#171a1f]">
+        {process.env.NEXT_PUBLIC_KLAVIYO_COMPANY_ID ? (
+          <Script
+            id="klaviyo-tracking"
+            strategy="afterInteractive"
+            src={`https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=${process.env.NEXT_PUBLIC_KLAVIYO_COMPANY_ID}`}
+          />
+        ) : null}
         <AuthProvider>
           <CompareProvider>
             <Header />
@@ -87,6 +96,7 @@ export default function RootLayout({
             </main>
             <Footer />
             <CompareBar />
+            <KlaviyoPopup />
           </CompareProvider>
         </AuthProvider>
       </body>

@@ -3,17 +3,115 @@ import {
   Search, Heart, ArrowRight, Calendar, Gauge, Zap, ExternalLink
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
+
+type WhySellReason = { num: string; title: string; description: string };
+
+const defaultCmsContent = {
+  hero: {
+    badge: "Exclusively Shelby",
+    headline: "The Fastest Way to Buy or Sell a Ford Shelby",
+    subheadline: "The world's premier marketplace for authentic Shelby engineering.",
+    heroImage: "/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg",
+    searchPlaceholder: "Search by Model, Year, or ZIP...",
+    ctaText: "Search Inventory",
+  },
+  featuredListingIds: [] as string[],
+  whySellTitle: "Why Sell With Shelby Exchange?",
+  whySellSubtitle:
+    "Join thousands of satisfied sellers who trust our platform to connect with serious Shelby buyers worldwide.",
+  whySellReasons: [
+    {
+      num: "01",
+      title: "Verified Listings",
+      description:
+        "Every listing undergoes our rigorous verification process. Buyers trust our platform because they know each vehicle has been authenticated, ensuring you connect with serious, qualified buyers who are ready to purchase.",
+    },
+    {
+      num: "02",
+      title: "Shelby Customers Look for Us",
+      description:
+        "Our marketplace is the first destination for Shelby enthusiasts worldwide. When collectors and enthusiasts search for their next performance vehicle, they come to Shelby Exchange first-putting your listing in front of the right audience.",
+    },
+    {
+      num: "03",
+      title: "No Transaction Fees",
+      description:
+        "Keep more of your money. Unlike other marketplaces that charge hefty commissions on every sale, we offer zero transaction fees. You only pay a simple listing fee or choose our subscription model for unlimited listings.",
+    },
+    {
+      num: "04",
+      title: "Dealer Discounted Rates",
+      description:
+        "Professional dealers benefit from our exclusive subscription plans with significant savings. Our Enthusiast and Apex packages offer unlimited listings, priority placement, and dedicated support at rates designed to maximize your ROI.",
+    },
+  ] as WhySellReason[],
+  ctaTitle: "FIND THE SPEC NOBODY ELSE CAN.",
+  ctaSubtitle:
+    "Whether you're looking for a track-ready GT350R or a pristine 1960s classic, the Ford Shelby Exchange is your definitive destination.",
+  ctaImage: "/images/c5f4c-hi-tech-mustang-front.webp",
+};
 
 export default async function Home() {
   // Fetch featured listings from database
   const supabase = await createClient();
+
+  // Load CMS-managed homepage content
+  const cmsContent = { ...defaultCmsContent };
+  const { data: cmsRows } = await supabase
+    .from("site_content")
+    .select("key, value")
+    .eq("section", "homepage")
+    .order("updated_at", { ascending: true })
+    .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
+
+  if (cmsRows && cmsRows.length > 0) {
+    for (const row of cmsRows as any[]) {
+      if (row.key === "hero" && row.value) {
+        cmsContent.hero = { ...cmsContent.hero, ...(row.value as Record<string, string>) };
+      }
+      if (row.key === "featured_listings" && Array.isArray(row.value)) {
+        cmsContent.featuredListingIds = row.value as string[];
+      }
+      if (row.key === "why_sell" && row.value) {
+        const val = row.value as any;
+        cmsContent.whySellTitle = val.title || cmsContent.whySellTitle;
+        cmsContent.whySellSubtitle = val.subtitle || cmsContent.whySellSubtitle;
+        cmsContent.whySellReasons = Array.isArray(val.reasons) && val.reasons.length > 0
+          ? val.reasons
+          : cmsContent.whySellReasons;
+      }
+      if (row.key === "cta" && row.value) {
+        const val = row.value as any;
+        cmsContent.ctaTitle = val.title || cmsContent.ctaTitle;
+        cmsContent.ctaSubtitle = val.subtitle || cmsContent.ctaSubtitle;
+        cmsContent.ctaImage = val.image || cmsContent.ctaImage;
+      }
+    }
+  }
   
-  const { data: featuredListings } = await supabase
-    .from('active_listings')
-    .select('*')
-    .eq('is_featured', true)
-    .eq('status', 'ACTIVE')
-    .limit(4);
+  let featuredListings: any[] = [];
+
+  if (cmsContent.featuredListingIds.length > 0) {
+    const { data } = await supabase
+      .from("active_listings")
+      .select("*")
+      .in("id", cmsContent.featuredListingIds)
+      .eq("status", "ACTIVE");
+
+    featuredListings = (data || []).sort(
+      (a, b) => cmsContent.featuredListingIds.indexOf(a.id) - cmsContent.featuredListingIds.indexOf(b.id)
+    );
+  } else {
+    const { data } = await supabase
+      .from("active_listings")
+      .select("*")
+      .eq("is_featured", true)
+      .eq("status", "ACTIVE")
+      .limit(4);
+
+    featuredListings = data || [];
+  }
 
   const { data: newsItems } = await supabase
     .from('news_articles')
@@ -34,20 +132,20 @@ export default async function Home() {
     <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[560px] bg-[#0F172A] overflow-hidden">
-        <img src="/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg" className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
+        <img src={cmsContent.hero.heroImage} className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
         <div className="absolute inset-0 bg-black/40" />
         
         <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 h-full flex flex-col justify-center">
           <div className="inline-flex items-center px-4 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-4 self-start">
-            <span className="text-xs font-bold text-white uppercase tracking-wider">Exclusively Shelby</span>
+            <span className="text-xs font-bold text-white uppercase tracking-wider">{cmsContent.hero.badge}</span>
           </div>
           
           <h1 className="text-white font-black text-3xl sm:text-5xl md:text-6xl lg:text-[64px] leading-tight tracking-tighter mb-2 drop-shadow-2xl break-words italic uppercase max-w-4xl">
-            The Fastest Way to Buy or Sell a Ford Shelby
+            {cmsContent.hero.headline}
           </h1>
           
           <p className="text-[#D1D5DB] font-outfit text-lg max-w-lg mb-4">
-            The world&apos;s premier marketplace for authentic Shelby engineering.
+            {cmsContent.hero.subheadline}
           </p>
 
           <form action="/listings" method="GET" className="glass-search max-w-3xl w-full mx-auto rounded-2xl p-3 flex flex-col md:flex-row items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20">
@@ -56,12 +154,12 @@ export default async function Home() {
               <input 
                 type="text" 
                 name="search"
-                placeholder="Search by Model, Year, or ZIP..." 
+                placeholder={cmsContent.hero.searchPlaceholder}
                 className="bg-transparent border-none outline-none w-full text-sm font-medium placeholder:text-[#565d6d]/50 min-w-0" 
               />
             </div>
             <button type="submit" className="w-full md:w-auto px-10 py-4 bg-[#E31837] text-white font-black rounded-xl shadow-lg shadow-[#E31837]/20 hover:bg-[#c41530] transition-colors">
-              Search Inventory
+              {cmsContent.hero.ctaText}
             </button>
           </form>
         </div>
@@ -79,6 +177,14 @@ export default async function Home() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="py-10 px-4 md:px-12 max-w-[1440px] mx-auto">
+        <KlaviyoInlineForm
+          title="Get Weekly Shelby Deals & Listings"
+          description="Be first to hear about hot listings, price drops, and collector opportunities."
+          source="homepage_inline"
+        />
       </section>
 
       {/* Featured Listings */}
@@ -152,8 +258,8 @@ export default async function Home() {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
               <span className="text-xs font-bold text-[#E31837] uppercase tracking-wider">For Sellers</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">Why Sell With Shelby Exchange?</h2>
-            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Join thousands of satisfied sellers who trust our platform to connect with serious Shelby buyers worldwide.</p>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">{cmsContent.whySellTitle}</h2>
+            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">{cmsContent.whySellSubtitle}</p>
           </div>
 
           {/* 3 Column Layout - 40/20/40 */}
@@ -188,34 +294,13 @@ export default async function Home() {
 
             {/* Right Column - Reasons */}
             <div className="flex flex-col justify-center space-y-8">
-              {[
-                { 
-                  num: '01', 
-                  title: 'Verified Listings', 
-                  desc: 'Every listing undergoes our rigorous verification process. Buyers trust our platform because they know each vehicle has been authenticated, ensuring you connect with serious, qualified buyers who are ready to purchase.'
-                },
-                { 
-                  num: '02', 
-                  title: 'Shelby Customers Look for Us', 
-                  desc: 'Our marketplace is the first destination for Shelby enthusiasts worldwide. When collectors and enthusiasts search for their next performance vehicle, they come to Shelby Exchange first—putting your listing in front of the right audience.'
-                },
-                { 
-                  num: '03', 
-                  title: 'No Transaction Fees', 
-                  desc: 'Keep more of your money. Unlike other marketplaces that charge hefty commissions on every sale, we offer zero transaction fees. You only pay a simple listing fee or choose our subscription model for unlimited listings.'
-                },
-                { 
-                  num: '04', 
-                  title: 'Dealer Discounted Rates', 
-                  desc: 'Professional dealers benefit from our exclusive subscription plans with significant savings. Our Enthusiast and Apex packages offer unlimited listings, priority placement, and dedicated support at rates designed to maximize your ROI.'
-                },
-              ].map((reason, idx) => (
+              {cmsContent.whySellReasons.map((reason, idx) => (
                 <div key={idx} className="group">
                   <div className="flex items-start gap-4">
                     <span className="text-[#E31837] font-black text-sm tracking-wider">{reason.num}</span>
                     <div>
                       <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
-                      <p className="text-[#565d6d] text-sm leading-relaxed">{reason.desc}</p>
+                      <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
                     </div>
                   </div>
                 </div>
@@ -289,10 +374,10 @@ export default async function Home() {
               <span className="text-sm font-black text-white/60 uppercase tracking-[4px]">Ready to Ride?</span>
             </div>
             <h2 className="text-white font-outfit font-black text-3xl sm:text-5xl md:text-6xl leading-[0.95] uppercase tracking-tighter mb-10 break-words">
-              FIND THE SPEC NOBODY ELSE CAN.
+              {cmsContent.ctaTitle}
             </h2>
             <p className="text-[#9CA3AF] font-outfit text-xl max-w-lg mb-12 leading-relaxed">
-              Whether you&apos;re looking for a track-ready GT350R or a pristine 1960s classic, the Ford Shelby Exchange is your definitive destination.
+              {cmsContent.ctaSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/listings" className="px-12 py-5 bg-[#002D72] text-white font-black rounded-2xl shadow-2xl shadow-[#002D72]/30 hover:bg-[#001D4A] transition-all text-center">Browse All Inventory</Link>
@@ -302,7 +387,7 @@ export default async function Home() {
           <div className="relative group">
             <div className="absolute -inset-1 bg-white/10 rounded-[32px] blur-xl group-hover:bg-[#E31837]/20 transition-all duration-500" />
             <div className="relative h-[480px] rounded-3xl overflow-hidden border-4 border-white/10 shadow-2xl">
-              <img src="/images/c5f4c-hi-tech-mustang-front.webp" className="w-full h-full object-cover" alt="Dream Shelby" />
+              <img src={cmsContent.ctaImage} className="w-full h-full object-cover" alt="Dream Shelby" />
               <div className="absolute inset-0 bg-[#002D72]/20 mix-blend-overlay" />
             </div>
           </div>

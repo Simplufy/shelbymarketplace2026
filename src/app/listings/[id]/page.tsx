@@ -1,11 +1,14 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ChevronRight, Share2, Calendar, Gauge, Zap, Palette, ShieldCheck, Copy, Check, Star, MapPin, ExternalLink, Phone, MessageSquare, ArrowRight, Calculator, Wrench, FileText, CalendarCheck, Loader2, Printer } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareModal } from "@/components/ShareModal";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { trackClientEvent } from "@/lib/klaviyo/client";
+import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
 
 interface ListingDetail {
   id: string;
@@ -39,6 +42,8 @@ interface ListingDetail {
 
 export default function VehicleDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const [activeThumb, setActiveThumb] = useState(0);
   const [copied, setCopied] = useState(false);
   const [listing, setListing] = useState<ListingDetail | null>(null);
@@ -56,6 +61,25 @@ export default function VehicleDetailPage() {
   useEffect(() => {
     fetchListing();
   }, [listingId]);
+
+  useEffect(() => {
+    if (!listing) return;
+
+    void trackClientEvent({
+      event: "Viewed Listing",
+      profile: {
+        email: user?.email,
+        external_id: user?.id,
+      },
+      properties: {
+        vehicle_name: `${listing.year} ${listing.make} ${listing.model}`,
+        price: listing.price,
+        image: listing.images?.[0]?.url || null,
+        url: typeof window !== "undefined" ? window.location.href : null,
+        location: listing.location,
+      },
+    });
+  }, [listing, user?.email, user?.id]);
 
   const fetchListing = async () => {
     try {
@@ -157,7 +181,7 @@ export default function VehicleDetailPage() {
         });
 
       if (error) throw error;
-      
+
       setContactSent(true);
       setTimeout(() => {
         setShowContactModal(false);
@@ -448,20 +472,56 @@ export default function VehicleDetailPage() {
                 </div>
                 <div className="space-y-3 mb-8">
                   <button 
-                    onClick={() => setShowContactModal(true)}
+                    onClick={() => {
+                      void trackClientEvent({
+                        event: "Contact Seller Click",
+                        profile: {
+                          email: user?.email,
+                          external_id: user?.id,
+                        },
+                        properties: {
+                          vehicle_name: `${car.year} ${car.make} ${car.model}`,
+                          price: car.price,
+                          image: car.images?.[0]?.url || null,
+                          url: typeof window !== "undefined" ? window.location.href : null,
+                          location: car.location,
+                        },
+                      });
+
+                      if (!user) {
+                        router.push(`/login?redirect=/listings/${listingId}`);
+                        return;
+                      }
+                      setShowContactModal(true);
+                    }}
                     className="w-full h-12 bg-[#002D72] text-white font-bold rounded-md flex items-center justify-center gap-3 hover:bg-[#001D4A] transition-colors"
                   >
-                    <MessageSquare className="w-5 h-5" /> Email Seller
+                    <MessageSquare className="w-5 h-5" /> {user ? "Email Seller" : "Create Account to Contact Seller"}
                   </button>
                   {car.seller_phone && (
-                    <a 
-                      href={`tel:${car.seller_phone}`}
-                      className="w-full h-12 bg-white border border-[#dee1e6] font-semibold rounded-md flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <Phone className="w-5 h-5" /> {car.seller_phone}
-                    </a>
+                    user ? (
+                      <a 
+                        href={`tel:${car.seller_phone}`}
+                        className="w-full h-12 bg-white border border-[#dee1e6] font-semibold rounded-md flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+                      >
+                        <Phone className="w-5 h-5" /> {car.seller_phone}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => router.push(`/login?redirect=/listings/${listingId}`)}
+                        className="w-full h-12 bg-white border border-[#dee1e6] font-semibold rounded-md flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+                      >
+                        <Phone className="w-5 h-5" /> {car.seller_phone.slice(0, 4)}••• (login to view)
+                      </button>
+                    )
                   )}
                 </div>
+                {!user ? (
+                  <div className="mb-6 p-4 rounded-lg border border-[#E31837]/20 bg-[#E31837]/5">
+                    <p className="text-sm font-semibold text-[#171a1f]">Lead Wall</p>
+                    <p className="text-xs text-[#565d6d] mt-1">Create a free account to unlock seller contact details and get priority alerts.</p>
+                  </div>
+                ) : null}
                 <div className="pt-6 border-t border-[#f3f4f6] space-y-3">
                   <div className="flex items-center gap-2 text-xs text-[#565d6d]">
                     <MapPin className="w-3 h-3" /> {car.location || 'Location not specified'}
@@ -470,6 +530,14 @@ export default function VehicleDetailPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-10">
+          <KlaviyoInlineForm
+            title="Get Weekly Shelby Deals & Listings"
+            description="Track listing drops and rare specs before they sell."
+            source="listing_inline"
+          />
         </div>
       </main>
 

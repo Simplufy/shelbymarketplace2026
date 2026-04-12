@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Listing } from "@/lib/supabase/database.types";
+import { trackClientEvent } from "@/lib/klaviyo/client";
 
 interface ListingWithDetails extends Listing {
   seller_name: string;
@@ -117,6 +118,20 @@ export default function AdminListings() {
         .eq("id", id);
 
       if (error) throw error;
+      const listing = listings.find((l) => l.id === id);
+      if (listing) {
+        void trackClientEvent({
+          event: "Listing Approved",
+          profile: { external_id: listing.user_id },
+          properties: {
+            vehicle_name: `${listing.year} ${listing.make} ${listing.model}`,
+            price: listing.price,
+            image: listing.primary_image_url,
+            url: `${window.location.origin}/listings/${listing.id}`,
+            location: listing.location,
+          },
+        });
+      }
       await loadListings();
     } catch (error) {
       console.error("Error approving listing:", error);
@@ -187,6 +202,19 @@ export default function AdminListings() {
         .in("id", selectedListings);
 
       if (error) throw error;
+      for (const listing of listings.filter((l) => selectedListings.includes(l.id))) {
+        void trackClientEvent({
+          event: "Listing Approved",
+          profile: { external_id: listing.user_id },
+          properties: {
+            vehicle_name: `${listing.year} ${listing.make} ${listing.model}`,
+            price: listing.price,
+            image: listing.primary_image_url,
+            url: `${window.location.origin}/listings/${listing.id}`,
+            location: listing.location,
+          },
+        });
+      }
       
       await loadListings();
       setSelectedListings([]);

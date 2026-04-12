@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
+import { trackKlaviyoEvent } from '@/lib/klaviyo/server';
 
 export async function POST(req: NextRequest) {
   // Initialize Stripe inside the function to avoid build-time issues
@@ -134,6 +135,31 @@ export async function POST(req: NextRequest) {
 
         await supabase.from('listing_images').insert(imageRecords);
       }
+
+      let profileEmail: string | undefined;
+      if (session.client_reference_id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', session.client_reference_id)
+          .single();
+        profileEmail = profile?.email;
+      }
+
+      await trackKlaviyoEvent({
+        metricName: 'New Listing Created',
+        profile: {
+          email: profileEmail,
+          external_id: session.client_reference_id || undefined,
+        },
+        properties: {
+          vehicle_name: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
+          price: vehicleData.price,
+          image: vehicleData.images?.[0]?.url || null,
+          url: `${process.env.NEXT_PUBLIC_SITE_URL}/listings/${listing.id}`,
+          location: vehicleData.location,
+        },
+      });
 
       console.log('Listing created successfully:', listing.id);
     } catch (error) {

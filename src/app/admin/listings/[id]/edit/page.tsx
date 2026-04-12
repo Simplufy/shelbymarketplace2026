@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { trackClientEvent } from "@/lib/klaviyo/client";
 
 const TRANSMISSIONS = ["Manual", "Automatic"];
 const DRIVETRAINS = ["RWD", "AWD", "4WD"];
@@ -34,6 +35,8 @@ export default function AdminEditListing() {
   const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string; isNew?: boolean }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [originalImages, setOriginalImages] = useState<any[]>([]);
+  const [originalPrice, setOriginalPrice] = useState<number>(0);
+  const [listingUserId, setListingUserId] = useState<string>("");
 
   const [formData, setFormData] = useState({
     vin: "",
@@ -101,6 +104,8 @@ export default function AdminEditListing() {
         is_featured: listing.is_featured || false,
         engine: listing.engine || "",
       });
+      setOriginalPrice(Number(listing.price || 0));
+      setListingUserId(listing.user_id || "");
 
       // Set images
       if (images) {
@@ -168,11 +173,12 @@ export default function AdminEditListing() {
 
     try {
       // Update listing
+      const newPrice = Number(formData.price);
       const { error: listingError } = await supabase
         .from('listings')
         .update({
           ...formData,
-          price: Number(formData.price),
+          price: newPrice,
           mileage: Number(formData.mileage),
           year: Number(formData.year),
           updated_at: new Date().toISOString(),
@@ -192,6 +198,22 @@ export default function AdminEditListing() {
           .in('id', imagesToDelete.map(img => img.id));
 
         if (deleteError) throw deleteError;
+      }
+
+      if (originalPrice > 0 && newPrice < originalPrice) {
+        await trackClientEvent({
+          event: "Price Drop",
+          profile: { external_id: listingUserId || undefined },
+          properties: {
+            vehicle_name: `${formData.year} ${formData.make} ${formData.model}`,
+            old_price: originalPrice,
+            new_price: newPrice,
+            price: newPrice,
+            image: uploadedImages[0]?.url || null,
+            url: `${window.location.origin}/listings/${listingId}`,
+            location: formData.location,
+          },
+        });
       }
 
       // Add new images

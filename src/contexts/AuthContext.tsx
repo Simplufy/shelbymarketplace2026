@@ -116,6 +116,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           console.log('Profile created successfully')
         }
+
+        // Sync to Klaviyo list for lifecycle automation
+        try {
+          await fetch('/api/klaviyo/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email,
+              firstName,
+              lastName,
+              source: 'account_signup',
+              properties: {
+                role: 'BUYER',
+              },
+            }),
+          })
+        } catch (syncError) {
+          console.error('Klaviyo sync failed:', syncError)
+        }
       }
 
       return { error: null }
