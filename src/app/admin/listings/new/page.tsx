@@ -93,42 +93,59 @@ export default function AdminCreateListing() {
     e.preventDefault();
     setLoading(true);
 
-    // Timeout helper
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Request timed out - please try again')), 15000)
-    );
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error("You must be logged in to create listings");
+        setLoading(false);
+        alert("You must be logged in");
+        return;
       }
 
       const insertData = {
         user_id: user.id,
-        ...formData,
+        vin: formData.vin,
+        year: Number(formData.year),
+        make: formData.make,
+        model: formData.model,
+        trim: formData.trim || "",
         price: Number(formData.price),
         mileage: Number(formData.mileage),
-        year: Number(formData.year),
+        transmission: formData.transmission,
+        drivetrain: formData.drivetrain,
+        exterior_color: formData.exterior_color || "",
+        interior_color: formData.interior_color || "",
+        location: formData.location,
+        description: formData.description,
+        package_tier: formData.package_tier,
+        status: "ACTIVE",
+        is_featured: formData.is_featured || false,
+        engine: formData.engine || "",
       };
       
-      console.log('Creating listing...');
+      console.log('Inserting listing:', insertData);
       
-      // Race between actual request and timeout
-      const queryPromise = supabase.from('listings').insert(insertData).select().single();
-      const result = await Promise.race([queryPromise, timeoutPromise]) as any;
+      const { data: listing, error: listingError } = await supabase
+        .from('listings')
+        .insert(insertData)
+        .select()
+        .single();
 
-      if (result.error) {
-        console.error('Listing error:', result.error);
-        throw new Error(result.error.message);
+      console.log('Insert result:', { listing, listingError });
+
+      if (listingError) {
+        console.error('Listing error:', listingError);
+        alert("Error: " + listingError.message);
+        setLoading(false);
+        return;
       }
 
-      if (!result.data) {
-        throw new Error("Failed to create listing");
+      if (!listing) {
+        alert("Failed to create listing");
+        setLoading(false);
+        return;
       }
 
-      const listing = result.data;
-      console.log('Listing created:', listing.id);
+      console.log('Listing created:', listing);
 
       // Add images
       if (uploadedImages.length > 0) {
@@ -140,25 +157,24 @@ export default function AdminCreateListing() {
           order_index: index,
         }));
 
-        const imgResult = await Promise.race([
-          supabase.from('listing_images').insert(imageRecords),
-          timeoutPromise
-        ]) as any;
+        const { error: imageError } = await supabase
+          .from('listing_images')
+          .insert(imageRecords);
 
-        if (imgResult.error) {
-          console.error('Image error:', imgResult.error);
-          throw new Error(imgResult.error.message);
+        console.log('Image insert result:', { imageError });
+        
+        if (imageError) {
+          console.error('Image error:', imageError);
         }
       }
 
       alert('Listing created successfully!');
       router.push('/admin/listings');
     } catch (error: any) {
-      console.error('Error creating listing:', error);
+      console.error('Error:', error);
       alert(error.message || 'Failed to create listing');
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (
