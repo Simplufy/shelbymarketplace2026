@@ -29,11 +29,18 @@ export function useStorage() {
         body: formData,
       })
 
+      const data = await response.json().catch(() => ({}))
+
       if (!response.ok) {
+        console.error("Upload failed:", response.status, data)
         return null
       }
 
-      const data = await response.json()
+      if (data.error) {
+        console.error("Upload error:", data.error)
+        return null
+      }
+
       setProgress(100)
 
       return {
