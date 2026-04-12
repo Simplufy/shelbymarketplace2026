@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -28,7 +29,6 @@ export default function AdminCreateListing() {
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     vin: "",
@@ -45,7 +45,7 @@ export default function AdminCreateListing() {
     location: "",
     description: "",
     package_tier: "STANDARD",
-    status: "ACTIVE",
+    status: "ACTIVE", // Admin can set status directly
     is_featured: false,
     engine: "",
   });
@@ -59,33 +59,26 @@ export default function AdminCreateListing() {
     if (!files) return;
 
     setIsUploading(true);
-    setUploadError(null);
     
     for (let i = 0; i < Math.min(files.length, 20 - uploadedImages.length); i++) {
       const file = files[i];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${i}.${fileExt}`;
-      const filePath = `listing-images/${fileName}`;
-
+      
       try {
-        const { error: uploadError } = await supabase.storage
-          .from('listing-images')
-          .upload(filePath, file);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("pathname", `admin-listings/${Date.now()}-${file.name}`);
 
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          setUploadError(`Failed to upload ${file.name}: ${uploadError.message}`);
-          continue;
-        }
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('listing-images')
-          .getPublicUrl(filePath);
+        if (!response.ok) continue;
 
-        setUploadedImages(prev => [...prev, { url: publicUrl, storagePath: filePath }]);
-      } catch (error: any) {
+        const data = await response.json();
+        setUploadedImages(prev => [...prev, { url: data.url, storagePath: data.pathname }]);
+      } catch (error) {
         console.error('Upload error:', error);
-        setUploadError(`Failed to upload ${file.name}: ${error?.message || 'Unknown error'}`);
       }
     }
     
@@ -106,6 +99,7 @@ export default function AdminCreateListing() {
         throw new Error("You must be logged in to create listings");
       }
 
+      // Create listing
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .insert({
@@ -120,6 +114,7 @@ export default function AdminCreateListing() {
 
       if (listingError) throw listingError;
 
+      // Add images
       if (uploadedImages.length > 0) {
         const imageRecords = uploadedImages.map((img, index) => ({
           listing_id: listing.id,
@@ -148,6 +143,7 @@ export default function AdminCreateListing() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
+      {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Link 
           href="/admin/listings" 
@@ -162,6 +158,7 @@ export default function AdminCreateListing() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Basic Info */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
             <Car className="w-5 h-5 text-[#002D72]" />
@@ -239,6 +236,7 @@ export default function AdminCreateListing() {
           </div>
         </div>
 
+        {/* Specs */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-[#002D72]" />
@@ -348,17 +346,12 @@ export default function AdminCreateListing() {
           </div>
         </div>
 
+        {/* Images */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
             <UploadCloud className="w-5 h-5 text-[#002D72]" />
             Images ({uploadedImages.length}/20)
           </h2>
-
-          {uploadError && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-700">{uploadError}</p>
-            </div>
-          )}
 
           <div className="mb-4">
             <input
@@ -410,6 +403,7 @@ export default function AdminCreateListing() {
           )}
         </div>
 
+        {/* Admin Settings */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-bold mb-6">Admin Settings</h2>
           
@@ -454,6 +448,7 @@ export default function AdminCreateListing() {
           </div>
         </div>
 
+        {/* Actions */}
         <div className="flex items-center justify-end gap-4">
           <Link
             href="/admin/listings"
