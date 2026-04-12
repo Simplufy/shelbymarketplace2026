@@ -63,22 +63,19 @@ function ListingsContent() {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      // Try without status filter first to see if ANY data comes back
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
+      // Use server API to avoid client-side Supabase issues
+      const res = await fetch('/api/debug-listings');
+      const result = await res.json();
 
-      console.log('Raw listings response:', data, error);
+      console.log('API Response:', result);
       
-      // Filter to ACTIVE in JS instead of DB
-      const activeListings = (data || []).filter(l => l.status === 'ACTIVE');
+      // Filter to ACTIVE
+      const activeListings = (result.data || []).filter((l: any) => l.status === 'ACTIVE');
       setListings(activeListings);
       
-      if (error) {
-        console.error('Supabase error:', error);
-        setError(error.message);
+      if (result.error) {
+        console.error('API error:', result.error);
+        setError(result.error);
       }
     } catch (err: any) {
       console.error('Fetch error:', err);
