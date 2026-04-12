@@ -114,54 +114,32 @@ export default async function Home() {
   let featuredListings: ActiveListing[] = [];
 
   if (cmsContent.featuredListingIds.length > 0) {
-    try {
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000);
-      const query = supabase
-        .from("listings")
-        .select("*")
-        .in("id", cmsContent.featuredListingIds)
-        .eq("status", "ACTIVE");
-      const result = await Promise.race([query, timeout]) as any;
-      featuredListings = (result?.data || []).sort(
-        (a: any, b: any) => cmsContent.featuredListingIds.indexOf(a.id) - cmsContent.featuredListingIds.indexOf(b.id)
-      );
-    } catch (err) {
-      console.log('Featured by IDs failed:', err.message);
-      featuredListings = [];
-    }
+    const { data } = await supabase
+      .from("active_listings")
+      .select("*")
+      .in("id", cmsContent.featuredListingIds)
+      .eq("status", "ACTIVE");
+
+    featuredListings = (data || []).sort(
+      (a, b) => cmsContent.featuredListingIds.indexOf(a.id) - cmsContent.featuredListingIds.indexOf(b.id)
+    );
   } else {
-    // Query listings table directly with timeout to prevent hang
-    try {
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000);
-      const query = supabase
-        .from("listings")
-        .select("*")
-        .eq("is_featured", true)
-        .eq("status", "ACTIVE")
-        .limit(4);
-      const result = await Promise.race([query, timeout]) as any;
-      featuredListings = result?.data || [];
-    } catch (err) {
-      console.log('Featured query failed:', err.message);
-      featuredListings = [];
-    }
+    const { data } = await supabase
+      .from("active_listings")
+      .select("*")
+      .eq("is_featured", true)
+      .eq("status", "ACTIVE")
+      .limit(4);
+
+    featuredListings = data || [];
   }
 
-  // News with timeout
-  let newsItems: any[] = [];
-  try {
-    const newsQuery = supabase
-      .from('news_articles')
-      .select('*')
-      .eq('status', 'PUBLISHED')
-      .order('published_at', { ascending: false })
-      .limit(3);
-    const newsTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000);
-    const result = await Promise.race([newsQuery, newsTimeout]) as any;
-    newsItems = result?.data || [];
-  } catch (err) {
-    console.log('News query failed:', err.message);
-  }
+  const { data: newsItems } = await supabase
+    .from('news_articles')
+    .select('*')
+    .eq('status', 'PUBLISHED')
+    .order('published_at', { ascending: false })
+    .limit(3);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
