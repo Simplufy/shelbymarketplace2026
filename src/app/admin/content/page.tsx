@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Types for CMS content
 type HeroContent = {
@@ -84,12 +85,12 @@ export default function ContentManager() {
   const [saveMessage, setSaveMessage] = useState<{type: "success" | "error", text: string} | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [listings, setListings] = useState<Array<{id: string; title: string; price: number; image: string}>>([]);
-  const [user, setUser] = useState<{id: string} | null>(null);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingCta, setUploadingCta] = useState(false);
   
   const supabase = createClient();
   const router = useRouter();
+  const { user: authUser } = useAuth();
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'hero' | 'cta') => {
     const file = e.target.files?.[0];
@@ -138,7 +139,6 @@ export default function ContentManager() {
   useEffect(() => {
     loadContent();
     loadListings();
-    getCurrentUser();
 
     const safety = setTimeout(() => {
       setIsLoading(false);
@@ -146,11 +146,6 @@ export default function ContentManager() {
 
     return () => clearTimeout(safety);
   }, []);
-
-  const getCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
 
   const loadContent = async () => {
     setIsLoading(true);
@@ -237,7 +232,15 @@ export default function ContentManager() {
   };
 
   const handleSave = async () => {
-    if (!user) {
+    let effectiveUserId = authUser?.id;
+
+    // Fallback in case auth context has not hydrated yet
+    if (!effectiveUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      effectiveUserId = user?.id;
+    }
+
+    if (!effectiveUserId) {
       setSaveMessage({ type: "error", text: "You must be logged in to save changes" });
       return;
     }
@@ -270,7 +273,7 @@ export default function ContentManager() {
             key: section.key,
             value: section.value,
             updated_at: new Date().toISOString(),
-            updated_by: user.id
+            updated_by: effectiveUserId
           }, {
             onConflict: "section,key"
           });
