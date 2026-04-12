@@ -65,21 +65,32 @@ export default function AdminListings() {
         const listingIds = data.map((l: any) => l.id);
         const userIds = [...new Set(data.map((l: any) => l.user_id))];
 
-        const [{ data: primaryImages }, { data: profiles }, { data: dealers }] = await Promise.all([
-          supabase
-            .from("listing_images")
-            .select("listing_id, url")
-            .eq("is_primary", true)
-            .in("listing_id", listingIds),
-          supabase
-            .from("profiles")
-            .select("id, first_name, last_name")
-            .in("id", userIds),
-          supabase
-            .from("dealer_profiles")
-            .select("user_id, dealership_name")
-            .in("user_id", userIds),
-        ]);
+        // Fetch with short timeout - don't let it hang forever
+        const fetchWithTimeout = async (query: any, label: string) => {
+          try {
+            const timeout = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error(label + ' timeout')), 5000)
+            );
+            const result = await Promise.race([query, timeout]);
+            return (result as any)?.data || [];
+          } catch (err) {
+            console.log(label, 'failed:', err.message);
+            return [];
+          }
+        };
+
+        const primaryImages = await fetchWithTimeout(
+          supabase.from("listing_images").select("listing_id, url").eq("is_primary", true).in("listing_id", listingIds),
+          "Images"
+        );
+        const profiles = await fetchWithTimeout(
+          supabase.from("profiles").select("id, first_name, last_name").in("id", userIds),
+          "Profiles"  
+        );
+        const dealers = await fetchWithTimeout(
+          supabase.from("dealer_profiles").select("user_id, dealership_name").in("user_id", userIds),
+          "Dealers"
+        );
 
         const imageByListing = new Map((primaryImages || []).map((img: any) => [img.listing_id, img.url]));
         const profileByUser = new Map((profiles || []).map((p: any) => [p.id, p]));
