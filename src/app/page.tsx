@@ -114,24 +114,25 @@ export default async function Home() {
   let featuredListings: ActiveListing[] = [];
 
   if (cmsContent.featuredListingIds.length > 0) {
+    // Fetch by IDs and filter in JS
     const { data } = await supabase
       .from("listings")
       .select("*")
-      .in("id", cmsContent.featuredListingIds)
-      .eq("status", "ACTIVE");
+      .in("id", cmsContent.featuredListingIds);
 
-    featuredListings = (data || []).sort(
+    const filtered = (data || []).filter(l => l.status === 'ACTIVE');
+    featuredListings = filtered.sort(
       (a, b) => cmsContent.featuredListingIds.indexOf(a.id) - cmsContent.featuredListingIds.indexOf(b.id)
     );
   } else {
+    // Fetch all and filter in JS to avoid DB query issues
     const { data } = await supabase
       .from("listings")
       .select("*")
       .eq("is_featured", true)
-      .eq("status", "ACTIVE")
-      .limit(4);
-
-    featuredListings = data || [];
+      .limit(20);
+    
+    featuredListings = (data || []).filter(l => l.status === 'ACTIVE').slice(0, 4);
   }
 
   const { data: newsItems } = await supabase
