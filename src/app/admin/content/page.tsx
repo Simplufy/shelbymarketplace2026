@@ -92,6 +92,15 @@ export default function ContentManager() {
   const router = useRouter();
   const { user: authUser } = useAuth();
 
+  const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+      ),
+    ]);
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'hero' | 'cta') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -265,29 +274,29 @@ export default function ContentManager() {
         }}
       ];
 
-      for (const section of sections) {
-        const { error } = await supabase
-          .from("site_content")
-          .upsert({
-            section: "homepage",
-            key: section.key,
-            value: section.value,
-            updated_at: new Date().toISOString(),
-            updated_by: effectiveUserId
-          }, {
-            onConflict: "section,key"
-          });
+      const rows = sections.map((section) => ({
+        section: "homepage",
+        key: section.key,
+        value: section.value,
+        updated_at: new Date().toISOString(),
+        updated_by: effectiveUserId,
+      }));
 
-        if (error) throw error;
-      }
+      const query = supabase
+        .from("site_content")
+        .upsert(rows, { onConflict: "section,key" });
+
+      const { error } = (await withTimeout(Promise.resolve(query), 10000, "Saving homepage content")) as any;
+
+      if (error) throw error;
 
       // Also save to localStorage as backup
       localStorage.setItem("shelby_cms_content", JSON.stringify(content));
       
       setSaveMessage({ type: "success", text: "Changes saved successfully!" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving content:", error);
-      setSaveMessage({ type: "error", text: "Failed to save changes. Please try again." });
+      setSaveMessage({ type: "error", text: error?.message || "Failed to save changes. Please try again." });
     }
     
     setIsSaving(false);
