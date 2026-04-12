@@ -87,7 +87,7 @@ export default function VehicleDetailPage() {
       
       // Get listing details
       const { data: listingData, error: listingError } = await supabase
-        .from('active_listings')
+        .from('listings')
         .select('*')
         .eq('id', listingId)
         .single();

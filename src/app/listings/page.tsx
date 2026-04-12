@@ -64,7 +64,7 @@ function ListingsContent() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('active_listings')
+        .from('listings')
         .select('*')
         .eq('status', 'ACTIVE')
         .order('created_at', { ascending: false });

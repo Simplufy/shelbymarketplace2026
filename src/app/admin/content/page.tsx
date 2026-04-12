@@ -230,7 +230,7 @@ export default function ContentManager() {
   const loadListings = async () => {
     try {
       const { data, error } = await supabase
-        .from("active_listings")
+        .from("listings")
         .select("id, year, make, model, price, primary_image_url")
         .eq("status", "ACTIVE")
         .order("created_at", { ascending: false })

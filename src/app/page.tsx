@@ -115,7 +115,7 @@ export default async function Home() {
 
   if (cmsContent.featuredListingIds.length > 0) {
     const { data } = await supabase
-      .from("active_listings")
+      .from("listings")
       .select("*")
       .in("id", cmsContent.featuredListingIds)
       .eq("status", "ACTIVE");
@@ -125,7 +125,7 @@ export default async function Home() {
     );
   } else {
     const { data } = await supabase
-      .from("active_listings")
+      .from("listings")
       .select("*")
       .eq("is_featured", true)
       .eq("status", "ACTIVE")
