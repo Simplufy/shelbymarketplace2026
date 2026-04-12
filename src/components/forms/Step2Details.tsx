@@ -1,16 +1,17 @@
 "use client";
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { UploadCloud, Plus, Trash2, X, Loader2 } from "lucide-react";
+import { UploadCloud, Plus, Trash2, X, Loader2, AlertCircle } from "lucide-react";
 import { useStorage } from "@/hooks/useStorage";
 
 export default function Step2Details({ initialData, onNext, onBack }: any) {
-  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialData });
+  const { register, handleSubmit } = useForm({ defaultValues: initialData });
   const [serviceRecords, setServiceRecords] = useState([
     { date: "", type: "", description: "", mileage: "" }
   ]);
   const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadListingImage } = useStorage();
 
@@ -33,24 +34,28 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
+    setUploadError(null);
     
-    // Upload each file
     for (let i = 0; i < Math.min(files.length, 20 - uploadedImages.length); i++) {
       const file = files[i];
-      
-      // Create a temporary ID for the upload
       const tempId = `temp-${Date.now()}`;
       
-      const result = await uploadListingImage(file, tempId, i === 0);
-      
-      if (result) {
-        setUploadedImages(prev => [...prev, result]);
+      try {
+        const result = await uploadListingImage(file, tempId, i === 0);
+        
+        if (result) {
+          setUploadedImages(prev => [...prev, result]);
+        } else {
+          setUploadError(`Failed to upload ${file.name}. Please try again.`);
+        }
+      } catch (error: any) {
+        console.error('Upload error:', error);
+        setUploadError(`Failed to upload ${file.name}: ${error?.message || 'Unknown error'}`);
       }
     }
     
     setIsUploading(false);
     
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -193,7 +198,13 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
           Photos ({uploadedImages.length}/20)
         </label>
         
-        {/* Upload Area */}
+        {uploadError && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+            <p className="text-sm text-red-700">{uploadError}</p>
+          </div>
+        )}
+        
         {uploadedImages.length < 20 && (
           <>
             <input
@@ -205,8 +216,8 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
               className="hidden"
             />
             <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all cursor-pointer group"
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+              className={`border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {isUploading ? (
                 <>
@@ -215,8 +226,8 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
                 </>
               ) : (
                 <>
-                  <UploadCloud className="w-12 h-12 mb-3 text-[var(--color-shelby-blue)] opacity-70 group-hover:opacity-100 transition-opacity group-hover:scale-110" />
-                  <p className="font-bold text-gray-800 text-sm mb-1 text-center break-words">Click to upload or drag & drop</p>
+                  <UploadCloud className="w-12 h-12 mb-3 text-[var(--color-shelby-blue)] opacity-70 hover:opacity-100 transition-opacity" />
+                  <p className="font-bold text-gray-800 text-sm mb-1 text-center">Click to upload or drag & drop</p>
                   <p className="text-xs font-medium text-gray-500 text-center">High-res JPEG, PNG (max 10MB each)</p>
                 </>
               )}
@@ -224,7 +235,6 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
           </>
         )}
 
-        {/* Preview Grid */}
         {uploadedImages.length > 0 && (
           <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
             {uploadedImages.map((image, index) => (

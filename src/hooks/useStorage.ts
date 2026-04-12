@@ -22,11 +22,20 @@ export function useStorage() {
       setIsUploading(true)
       setProgress(0)
 
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('File size exceeds 10MB limit')
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('File must be an image')
+      }
+
       const fileExt = file.name.split('.').pop()
       const fileName = `${listingId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
       const filePath = `listings/${fileName}`
 
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('listing-images')
         .upload(filePath, file, {
@@ -35,10 +44,10 @@ export function useStorage() {
         })
 
       if (uploadError) {
-        throw uploadError
+        console.error('Supabase storage upload error:', uploadError)
+        throw new Error(uploadError.message || 'Failed to upload image')
       }
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('listing-images')
         .getPublicUrl(filePath)
@@ -49,9 +58,9 @@ export function useStorage() {
         url: publicUrl,
         storagePath: filePath,
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image:', error)
-      return null
+      throw error
     } finally {
       setIsUploading(false)
     }
@@ -64,9 +73,13 @@ export function useStorage() {
     const results: UploadResult[] = []
 
     for (let i = 0; i < files.length; i++) {
-      const result = await uploadListingImage(files[i], listingId, i === 0)
-      if (result) {
-        results.push(result)
+      try {
+        const result = await uploadListingImage(files[i], listingId, i === 0)
+        if (result) {
+          results.push(result)
+        }
+      } catch (error) {
+        console.error(`Failed to upload image ${i + 1}:`, error)
       }
       setProgress(((i + 1) / files.length) * 100)
     }
