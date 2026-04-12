@@ -93,33 +93,42 @@ export default function AdminCreateListing() {
     e.preventDefault();
     setLoading(true);
 
+    // Timeout helper
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timed out - please try again')), 15000)
+    );
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error("You must be logged in to create listings");
       }
 
-      // Create listing
-      const { data: listing, error: listingError } = await supabase
-        .from('listings')
-        .insert({
-          user_id: user.id,
-          ...formData,
-          price: Number(formData.price),
-          mileage: Number(formData.mileage),
-          year: Number(formData.year),
-        })
-        .select()
-        .single();
+      const insertData = {
+        user_id: user.id,
+        ...formData,
+        price: Number(formData.price),
+        mileage: Number(formData.mileage),
+        year: Number(formData.year),
+      };
+      
+      console.log('Creating listing...');
+      
+      // Race between actual request and timeout
+      const queryPromise = supabase.from('listings').insert(insertData).select().single();
+      const result = await Promise.race([queryPromise, timeoutPromise]) as any;
 
-      if (listingError) {
-        console.error('Listing error:', listingError);
-        throw new Error(listingError.message);
+      if (result.error) {
+        console.error('Listing error:', result.error);
+        throw new Error(result.error.message);
       }
 
-      if (!listing) {
-        throw new Error("Failed to create listing - no data returned");
+      if (!result.data) {
+        throw new Error("Failed to create listing");
       }
+
+      const listing = result.data;
+      console.log('Listing created:', listing.id);
 
       // Add images
       if (uploadedImages.length > 0) {
@@ -131,13 +140,14 @@ export default function AdminCreateListing() {
           order_index: index,
         }));
 
-        const { error: imageError } = await supabase
-          .from('listing_images')
-          .insert(imageRecords);
+        const imgResult = await Promise.race([
+          supabase.from('listing_images').insert(imageRecords),
+          timeoutPromise
+        ]) as any;
 
-        if (imageError) {
-          console.error('Image error:', imageError);
-          throw new Error(imageError.message);
+        if (imgResult.error) {
+          console.error('Image error:', imgResult.error);
+          throw new Error(imgResult.error.message);
         }
       }
 
