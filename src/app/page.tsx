@@ -79,11 +79,15 @@ export default async function Home() {
     .from("site_content")
     .select("key, value")
     .eq("section", "homepage")
-    .order("updated_at", { ascending: true })
+    .order("updated_at", { ascending: false })
     .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
 
   if (cmsRows && cmsRows.length > 0) {
+    const seenKeys = new Set<string>();
     for (const row of cmsRows as CmsRow[]) {
+      if (seenKeys.has(row.key)) continue;
+      seenKeys.add(row.key);
+
       if (row.key === "hero" && row.value) {
         cmsContent.hero = { ...cmsContent.hero, ...(row.value as Record<string, string>) };
       }

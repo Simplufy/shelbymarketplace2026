@@ -132,7 +132,7 @@ export default function Header() {
                 { label: 'Featured', href: '/' },
                 { label: 'News & Reviews', href: '/news' },
                 { label: 'Dealers', href: '/dealers' },
-                { label: 'About', href: '/' },
+                { label: 'About', href: '/about' },
               ].map((item) => (
                 <Link key={item.label} href={item.href} className="relative h-full flex items-center text-xs font-bold text-[#565d6d] uppercase tracking-widest group hover:text-[#002D72] transition-colors">
                   {item.label}
@@ -149,6 +149,7 @@ export default function Header() {
             <Link href="/listings" className="block text-sm font-bold text-[#002D72] uppercase tracking-wider">Browse Inventory</Link>
             <Link href="/news" className="block text-sm font-medium text-[#565d6d]">News & Reviews</Link>
             <Link href="/dealers" className="block text-sm font-medium text-[#565d6d]">Dealers</Link>
+            <Link href="/about" className="block text-sm font-medium text-[#565d6d]">About</Link>
             <Link href="/sell" className="block text-sm font-medium text-[#565d6d]">Sell A Shelby</Link>
             {user ? (
               <>

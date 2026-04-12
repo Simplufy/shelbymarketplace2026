@@ -101,6 +101,7 @@ export default function Footer() {
         <div className="lg:col-span-2">
           <h5 className="font-heading font-bold text-xs uppercase tracking-widest mb-6">Resources</h5>
           <ul className="space-y-4 text-sm text-[#565d6d]">
+            <li><Link href="/about" className="hover:text-[#002D72]">About Shelby Exchange</Link></li>
             <li><Link href="/dealers" className="hover:text-[#002D72]">Dealer Network</Link></li>
             <li><Link href="/news" className="hover:text-[#002D72]">News & Reviews</Link></li>
             <li><Link href="/sell" className="hover:text-[#002D72]">Sell Your Shelby</Link></li>

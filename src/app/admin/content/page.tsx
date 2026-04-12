@@ -41,8 +41,6 @@ type ContentRow = {
   value: unknown;
 };
 
-type SaveResponse = { error: { message?: string } | null };
-
 // Default content matching current homepage
 const defaultContent: SiteContent = {
   hero: {
@@ -172,6 +170,8 @@ export default function ContentManager() {
       const queryPromise = supabase
         .from("site_content")
         .select("*")
+        .eq("section", "homepage")
+        .order("updated_at", { ascending: false })
         .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
 
       const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as {
@@ -183,8 +183,12 @@ export default function ContentManager() {
 
       if (data && data.length > 0) {
         const loadedContent = { ...defaultContent };
+        const seenKeys = new Set<string>();
         
         data.forEach((item) => {
+          if (seenKeys.has(item.key)) return;
+          seenKeys.add(item.key);
+
           switch (item.key) {
             case "hero":
               loadedContent.hero = item.value as HeroContent;
@@ -250,15 +254,7 @@ export default function ContentManager() {
   };
 
   const handleSave = async () => {
-    let effectiveUserId = authUser?.id;
-
-    // Fallback in case auth context has not hydrated yet
-    if (!effectiveUserId) {
-      const { data: { user } } = await supabase.auth.getUser();
-      effectiveUserId = user?.id;
-    }
-
-    if (!effectiveUserId) {
+    if (!authUser?.id) {
       setSaveMessage({ type: "error", text: "You must be logged in to save changes" });
       return;
     }
@@ -283,25 +279,19 @@ export default function ContentManager() {
         }}
       ];
 
-      const rows = sections.map((section) => ({
-        section: "homepage",
-        key: section.key,
-        value: section.value,
-        updated_at: new Date().toISOString(),
-        updated_by: effectiveUserId,
-      }));
+      const saveRequest = fetch("/api/admin/content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sections }),
+      }).then(async (res) => {
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(payload?.error || "Failed to save content");
+        }
+        return payload;
+      });
 
-      const query = supabase
-        .from("site_content")
-        .upsert(rows, { onConflict: "section,key" });
-
-      const { error } = (await withTimeout(
-        Promise.resolve(query),
-        10000,
-        "Saving homepage content"
-      )) as SaveResponse;
-
-      if (error) throw error;
+      await withTimeout(saveRequest, 10000, "Saving homepage content");
 
       // Also save to localStorage as backup
       localStorage.setItem("shelby_cms_content", JSON.stringify(content));
