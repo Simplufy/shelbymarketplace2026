@@ -138,22 +138,21 @@ export default function AdminEditListing() {
     
     for (let i = 0; i < Math.min(files.length, 20 - uploadedImages.length); i++) {
       const file = files[i];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${i}.${fileExt}`;
-      const filePath = `listing-images/${fileName}`;
-
+      
       try {
-        const { error: uploadError } = await supabase.storage
-          .from('listing-images')
-          .upload(filePath, file);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("pathname", `admin-listings/${Date.now()}-${i}-${file.name}`);
 
-        if (uploadError) throw uploadError;
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('listing-images')
-          .getPublicUrl(filePath);
+        if (!response.ok) throw new Error("Upload failed");
 
-        setUploadedImages(prev => [...prev, { url: publicUrl, storagePath: filePath, isNew: true }]);
+        const data = await response.json();
+        setUploadedImages(prev => [...prev, { url: data.url, storagePath: data.pathname, isNew: true }]);
       } catch (error) {
         console.error('Upload error:', error);
         alert(`Failed to upload ${file.name}`);

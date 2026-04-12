@@ -21,43 +21,9 @@ export default function NewArticle() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<{id: string} | null>(null);
-  const [bucketError, setBucketError] = useState<string | null>(null);
-  const [creatingBucket, setCreatingBucket] = useState(false);
-
   useEffect(() => {
     getCurrentUser();
-    checkBucket();
   }, []);
-
-  const checkBucket = async () => {
-    try {
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const hasSiteImages = buckets?.some(b => b.name === 'site-images');
-      if (!hasSiteImages) {
-        setBucketError('Storage bucket "site-images" not found. Click "Create Bucket" below.');
-      }
-    } catch (err) {
-      console.error('Error checking buckets:', err);
-    }
-  };
-
-  const createBucket = async () => {
-    setCreatingBucket(true);
-    try {
-      const response = await fetch('/api/admin/setup', { method: 'POST' });
-      const data = await response.json();
-      
-      if (data.success) {
-        setBucketError(null);
-        alert('Bucket created successfully! You can now upload images.');
-      } else {
-        alert(data.error || 'Failed to create bucket');
-      }
-    } catch (err: any) {
-      alert('Error: ' + err.message);
-    }
-    setCreatingBucket(false);
-  };
 
   const getCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -69,35 +35,24 @@ export default function NewArticle() {
     if (!file) return;
 
     setUploading(true);
-    setBucketError(null);
     
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `article-${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("pathname", `news/${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`);
 
-      const { error: uploadError } = await supabase
-        .storage
-        .from('site-images')
-        .upload(fileName, file);
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      if (uploadError) {
-        if (uploadError.message?.includes('not found') || uploadError.message?.includes('does not exist')) {
-          setBucketError('Storage bucket "site-images" not found. Click "Create Bucket" below.');
-        }
-        throw uploadError;
-      }
+      if (!response.ok) throw new Error("Upload failed");
 
-      const { data: { publicUrl } } = supabase
-        .storage
-        .from('site-images')
-        .getPublicUrl(fileName);
-
-      setFeaturedImage(publicUrl);
+      const data = await response.json();
+      setFeaturedImage(data.url);
     } catch (error: any) {
       console.error('Error uploading image:', error);
-      if (!error.message?.includes('not found')) {
-        alert(`Failed to upload image: ${error.message}`);
-      }
+      alert(`Failed to upload image: ${error.message}`);
     }
     setUploading(false);
   };
@@ -305,30 +260,6 @@ export default function NewArticle() {
               Featured Image
             </label>
             
-            {/* Bucket Error */}
-            {bucketError && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm text-red-700">{bucketError}</p>
-                    <button
-                      onClick={createBucket}
-                      disabled={creatingBucket}
-                      className="mt-2 px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {creatingBucket ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <CheckCircle className="w-4 h-4" />
-                      )}
-                      {creatingBucket ? 'Creating...' : 'Create Bucket'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             {featuredImage ? (
               <div className="relative">
                 <img 
@@ -344,13 +275,11 @@ export default function NewArticle() {
                 </button>
               </div>
             ) : (
-              <label className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg transition-colors cursor-pointer ${
-                bucketError ? 'border-red-300 bg-red-50 hover:border-red-400' : 'border-gray-300 hover:border-[#002D72] hover:bg-blue-50'
-              }`}>
+              <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg transition-colors cursor-pointer hover:border-[#002D72] hover:bg-blue-50">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <ImageIcon className={`w-10 h-10 mb-3 ${bucketError ? 'text-red-400' : 'text-gray-400'}`} />
-                  <p className={`text-sm ${bucketError ? 'text-red-600' : 'text-gray-500'}`}>
-                    {bucketError ? 'Fix storage bucket first' : 'Click to upload featured image'}
+                  <ImageIcon className="w-10 h-10 mb-3 text-gray-400" />
+                  <p className="text-sm text-gray-500">
+                    Click to upload featured image
                   </p>
                   <p className="text-xs text-gray-400">PNG, JPG, WEBP up to 10MB</p>
                 </div>
@@ -358,7 +287,7 @@ export default function NewArticle() {
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
-                  disabled={uploading || !!bucketError}
+                  disabled={uploading}
                   className="hidden"
                 />
               </label>

@@ -115,25 +115,23 @@ export default function ContentManager() {
     }
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${type}-${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("pathname", `site/${type}-${Date.now()}.${file.name.split('.').pop()}`);
 
-      const { error: uploadError } = await supabase
-        .storage
-        .from('site-images')
-        .upload(fileName, file);
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      if (uploadError) throw uploadError;
+      if (!response.ok) throw new Error("Upload failed");
 
-      const { data: { publicUrl } } = supabase
-        .storage
-        .from('site-images')
-        .getPublicUrl(fileName);
+      const data = await response.json();
 
       if (type === 'hero') {
-        updateHero('heroImage', publicUrl);
+        updateHero('heroImage', data.url);
       } else {
-        setContent(prev => ({ ...prev, ctaImage: publicUrl }));
+        setContent(prev => ({ ...prev, ctaImage: data.url }));
       }
     } catch (error: unknown) {
       console.error('Error uploading image:', error);

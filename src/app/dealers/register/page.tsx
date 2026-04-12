@@ -62,28 +62,19 @@ function DealerRegisterForm() {
     setError(null);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${docKey}.${fileExt}`;
-      const filePath = `dealer_docs/${fileName}`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("pathname", `dealer-docs/${Date.now()}-${docKey}.${file.name.split('.').pop()}`);
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('dealer-documents')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      if (uploadError) {
-        throw uploadError;
-      }
+      if (!response.ok) throw new Error("Upload failed");
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('dealer-documents')
-        .getPublicUrl(filePath);
-
-      setUploadedDocs(prev => ({ ...prev, [docKey]: publicUrl }));
+      const data = await response.json();
+      setUploadedDocs(prev => ({ ...prev, [docKey]: data.url }));
     } catch (err: any) {
       console.error('Upload error:', err);
       setError(`Failed to upload ${docKey}: ${err.message}`);

@@ -153,30 +153,27 @@ export default function ProfilePage() {
 
     setIsUploadingAvatar(true);
     
-    // Upload to avatar-images bucket
-    const { createClient } = await import('@/lib/supabase/client');
-    const supabase = createClient();
-    
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${user.id}/avatar.${fileExt}`;
-    
-    const { error: uploadError } = await supabase.storage
-      .from('avatar-images')
-      .upload(filePath, file, { upsert: true });
-    
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("pathname", `avatars/${user.id}/avatar-${Date.now()}.${file.name.split('.').pop()}`);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      
+      await updateProfile({ avatar_url: data.url });
+      await refreshProfile();
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
       setIsUploadingAvatar(false);
-      return;
     }
-    
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatar-images')
-      .getPublicUrl(filePath);
-    
-    await updateProfile({ avatar_url: publicUrl });
-    await refreshProfile();
-    setIsUploadingAvatar(false);
   };
 
   const getInitials = () => {
