@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronRight, Share2, Calendar, Gauge, Zap, Palette, ShieldCheck, Copy, Check, Star, MapPin, ExternalLink, Phone, MessageSquare, ArrowRight, Calculator, Wrench, FileText, CalendarCheck, Loader2, Printer } from "lucide-react";
+import { ChevronRight, Share2, Calendar, Gauge, Zap, Palette, ShieldCheck, Copy, Check, Star, MapPin, Phone, MessageSquare, Loader2, Printer } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareModal } from "@/components/ShareModal";
 import { createClient } from "@/lib/supabase/client";
@@ -144,9 +144,9 @@ export default function VehicleDetailPage() {
         images: imagesData || [],
         features: featuresData?.map(f => f.feature) || []
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching listing:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Failed to load listing");
     } finally {
       setLoading(false);
     }
@@ -193,16 +193,6 @@ export default function VehicleDetailPage() {
       alert('Failed to send message. Please try again.');
     }
     setSending(false);
-  };
-
-  const getServiceIcon = (type: string) => {
-    switch(type) {
-      case "Service": return <Wrench className="w-4 h-4" />;
-      case "Maintenance": return <CalendarCheck className="w-4 h-4" />;
-      case "Inspection": return <ShieldCheck className="w-4 h-4" />;
-      case "Delivery": return <FileText className="w-4 h-4" />;
-      default: return <Wrench className="w-4 h-4" />;
-    }
   };
 
   if (loading) {

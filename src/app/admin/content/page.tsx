@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Save, Image, Type, Layout, Eye, ArrowLeft, Upload, 
-  CheckCircle, AlertCircle, Search, Loader2, X
+  Save, Type, Layout, Eye, ArrowLeft, Upload,
+  CheckCircle, AlertCircle, Search, Loader2
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 // Types for CMS content
@@ -36,6 +35,13 @@ type SiteContent = {
   ctaSubtitle: string;
   ctaImage: string;
 };
+
+type ContentRow = {
+  key: "hero" | "featured_listings" | "why_sell" | "cta";
+  value: unknown;
+};
+
+type SaveResponse = { error: { message?: string } | null };
 
 // Default content matching current homepage
 const defaultContent: SiteContent = {
@@ -89,7 +95,6 @@ export default function ContentManager() {
   const [uploadingCta, setUploadingCta] = useState(false);
   
   const supabase = createClient();
-  const router = useRouter();
   const { user: authUser } = useAuth();
 
   const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
@@ -132,9 +137,10 @@ export default function ContentManager() {
       } else {
         setContent(prev => ({ ...prev, ctaImage: publicUrl }));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading image:', error);
-      alert(`Failed to upload image: ${error.message}`);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to upload image: ${message}`);
     }
 
     if (type === 'hero') {
@@ -168,14 +174,17 @@ export default function ContentManager() {
         .select("*")
         .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
 
-      const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
+      const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as {
+        data: ContentRow[] | null;
+        error: { message?: string } | null;
+      };
 
       if (error) throw error;
 
       if (data && data.length > 0) {
         const loadedContent = { ...defaultContent };
         
-        data.forEach((item: any) => {
+        data.forEach((item) => {
           switch (item.key) {
             case "hero":
               loadedContent.hero = item.value as HeroContent;
@@ -207,7 +216,7 @@ export default function ContentManager() {
       if (saved) {
         try {
           setContent(JSON.parse(saved));
-        } catch (e) {
+        } catch {
           console.error("Failed to parse saved content");
         }
       }
@@ -286,7 +295,11 @@ export default function ContentManager() {
         .from("site_content")
         .upsert(rows, { onConflict: "section,key" });
 
-      const { error } = (await withTimeout(Promise.resolve(query), 10000, "Saving homepage content")) as any;
+      const { error } = (await withTimeout(
+        Promise.resolve(query),
+        10000,
+        "Saving homepage content"
+      )) as SaveResponse;
 
       if (error) throw error;
 
@@ -294,9 +307,10 @@ export default function ContentManager() {
       localStorage.setItem("shelby_cms_content", JSON.stringify(content));
       
       setSaveMessage({ type: "success", text: "Changes saved successfully!" });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving content:", error);
-      setSaveMessage({ type: "error", text: error?.message || "Failed to save changes. Please try again." });
+      const message = error instanceof Error ? error.message : "Failed to save changes. Please try again.";
+      setSaveMessage({ type: "error", text: message });
     }
     
     setIsSaving(false);
@@ -328,7 +342,7 @@ export default function ContentManager() {
     }));
   };
 
-  const tabs = [
+  const tabs: Array<{ id: "hero" | "featured" | "why-sell" | "cta"; label: string; icon: typeof Layout }> = [
     { id: "hero", label: "Hero Section", icon: Layout },
     { id: "featured", label: "Featured Listings", icon: Eye },
     { id: "why-sell", label: "Why Sell Section", icon: Type },
@@ -361,7 +375,7 @@ export default function ContentManager() {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-sm transition-all ${
               activeTab === tab.id 
                 ? "bg-[#002D72] text-white shadow-lg shadow-[#002D72]/20" 

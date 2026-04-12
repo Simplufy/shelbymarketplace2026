@@ -92,7 +92,7 @@ function ListingsContent() {
   ];
 
   const filtered = useMemo(() => {
-    let result = listings.filter(car => {
+    const result = listings.filter(car => {
       // Search query filter
       if (searchQuery) {
         const searchLower = searchQuery.toLowerCase();

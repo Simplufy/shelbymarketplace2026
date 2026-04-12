@@ -6,6 +6,23 @@ import { createClient } from "@/lib/supabase/server";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
 
 type WhySellReason = { num: string; title: string; description: string };
+type CmsRow = {
+  key: "hero" | "featured_listings" | "why_sell" | "cta";
+  value: unknown;
+};
+
+type ActiveListing = {
+  id: string;
+  year: number;
+  make: string;
+  model: string;
+  price: number;
+  mileage: number;
+  transmission: string;
+  primary_image_url: string | null;
+  is_featured: boolean;
+  status: string;
+};
 
 const defaultCmsContent = {
   hero: {
@@ -66,7 +83,7 @@ export default async function Home() {
     .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
 
   if (cmsRows && cmsRows.length > 0) {
-    for (const row of cmsRows as any[]) {
+    for (const row of cmsRows as CmsRow[]) {
       if (row.key === "hero" && row.value) {
         cmsContent.hero = { ...cmsContent.hero, ...(row.value as Record<string, string>) };
       }
@@ -74,7 +91,7 @@ export default async function Home() {
         cmsContent.featuredListingIds = row.value as string[];
       }
       if (row.key === "why_sell" && row.value) {
-        const val = row.value as any;
+        const val = row.value as { title?: string; subtitle?: string; reasons?: WhySellReason[] };
         cmsContent.whySellTitle = val.title || cmsContent.whySellTitle;
         cmsContent.whySellSubtitle = val.subtitle || cmsContent.whySellSubtitle;
         cmsContent.whySellReasons = Array.isArray(val.reasons) && val.reasons.length > 0
@@ -82,7 +99,7 @@ export default async function Home() {
           : cmsContent.whySellReasons;
       }
       if (row.key === "cta" && row.value) {
-        const val = row.value as any;
+        const val = row.value as { title?: string; subtitle?: string; image?: string };
         cmsContent.ctaTitle = val.title || cmsContent.ctaTitle;
         cmsContent.ctaSubtitle = val.subtitle || cmsContent.ctaSubtitle;
         cmsContent.ctaImage = val.image || cmsContent.ctaImage;
@@ -90,7 +107,7 @@ export default async function Home() {
     }
   }
   
-  let featuredListings: any[] = [];
+  let featuredListings: ActiveListing[] = [];
 
   if (cmsContent.featuredListingIds.length > 0) {
     const { data } = await supabase
@@ -177,14 +194,6 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </section>
-
-      <section className="py-10 px-4 md:px-12 max-w-[1440px] mx-auto">
-        <KlaviyoInlineForm
-          title="Get Weekly Shelby Deals & Listings"
-          description="Be first to hear about hot listings, price drops, and collector opportunities."
-          source="homepage_inline"
-        />
       </section>
 
       {/* Featured Listings */}
@@ -366,6 +375,14 @@ export default async function Home() {
       </section>
 
       {/* CTA Section */}
+      <section className="py-12 px-4 md:px-12 max-w-[1440px] mx-auto w-full">
+        <KlaviyoInlineForm
+          title="Get Weekly Shelby Deals & Listings"
+          description="Be first to hear about hot listings, price drops, and collector opportunities."
+          source="homepage_inline"
+        />
+      </section>
+
       <section className="relative bg-[#001530] py-32 overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
           <div>

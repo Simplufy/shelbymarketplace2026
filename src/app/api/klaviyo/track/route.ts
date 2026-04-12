@@ -17,8 +17,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ ok: true, result });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Klaviyo track API error:", error);
-    return NextResponse.json({ error: error.message || "Failed" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

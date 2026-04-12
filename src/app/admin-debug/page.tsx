@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
@@ -12,11 +13,7 @@ export default function AdminDebug() {
   
   const supabase = createClient();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       // Check if user is authenticated
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -51,7 +48,15 @@ export default function AdminDebug() {
     } catch (err) {
       setError(`Unexpected Error: ${err}`);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void checkAuth();
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [checkAuth]);
 
   const isAdmin = userRole === 'ADMIN';
 
@@ -131,12 +136,12 @@ export default function AdminDebug() {
           {authStatus === 'not-authenticated' && (
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
               <p className="text-blue-800 font-medium mb-2">You need to log in first</p>
-              <a 
+              <Link
                 href="/login?redirect=/admin"
                 className="inline-block px-4 py-2 bg-[#002D72] text-white font-bold rounded-lg hover:bg-[#001D4A] transition-colors"
               >
                 Go to Login
-              </a>
+              </Link>
             </div>
           )}
 
@@ -149,7 +154,7 @@ export default function AdminDebug() {
               <div className="space-y-2 text-sm text-yellow-700">
                 <p>To fix this, run this SQL in Supabase:</p>
                 <code className="block bg-yellow-100 p-2 rounded text-xs font-mono">
-                  UPDATE profiles SET role = 'ADMIN' WHERE email = '{userEmail}';
+                  {`UPDATE profiles SET role = 'ADMIN' WHERE email = '${userEmail}';`}
                 </code>
               </div>
             </div>
@@ -161,12 +166,12 @@ export default function AdminDebug() {
               <p className="text-green-700 text-sm mb-4">
                 You should be able to access the admin panel.
               </p>
-              <a 
+              <Link
                 href="/admin"
                 className="inline-block px-4 py-2 bg-[#002D72] text-white font-bold rounded-lg hover:bg-[#001D4A] transition-colors"
               >
                 Go to Admin
-              </a>
+              </Link>
             </div>
           )}
         </div>
