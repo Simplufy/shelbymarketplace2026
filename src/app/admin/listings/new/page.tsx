@@ -112,7 +112,14 @@ export default function AdminCreateListing() {
         .select()
         .single();
 
-      if (listingError) throw listingError;
+      if (listingError) {
+        console.error('Listing error:', listingError);
+        throw new Error(listingError.message);
+      }
+
+      if (!listing) {
+        throw new Error("Failed to create listing - no data returned");
+      }
 
       // Add images
       if (uploadedImages.length > 0) {
@@ -128,7 +135,10 @@ export default function AdminCreateListing() {
           .from('listing_images')
           .insert(imageRecords);
 
-        if (imageError) throw imageError;
+        if (imageError) {
+          console.error('Image error:', imageError);
+          throw new Error(imageError.message);
+        }
       }
 
       alert('Listing created successfully!');
