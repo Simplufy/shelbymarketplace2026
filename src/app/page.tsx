@@ -113,29 +113,40 @@ export default async function Home() {
         cmsContent.ctaImage = val.image || cmsContent.ctaImage;
       }
     }
-  }
+}
   
   let featuredListings: ActiveListing[] = [];
-
-  // Featured listings - use server API instead of client
-  let featuredData: any[] = [];
+  
+  // Featured listings - query directly from database
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://shelbymarketplace2026.vercel.app";
-    const res = await fetch(`${siteUrl}/api/featured`, { cache: 'no-store' });
-    const result = await res.json();
-    featuredData = result.data || [];
+    // First get featured listings
+    const { data: listings, error: listErr } = await supabase
+      .from("listings")
+      .select("*")
+      .eq("is_featured", true)
+      .limit(4);
+    
+    if (!listErr && listings && listings.length > 0) {
+      const activeListings = listings.filter(l => l.status === 'ACTIVE');
+      
+      if (activeListings.length > 0) {
+        const listingIds = activeListings.map(l => l.id);
+        const { data: images } = await supabase
+          .from("listing_images")
+          .select("listing_id, url")
+          .eq("is_primary", true)
+          .in("listing_id", listingIds);
+        
+        const imageByListingId = new Map((images || []).map(img => [img.listing_id, img.url]));
+        
+        featuredListings = activeListings.map(listing => ({
+          ...listing,
+          primary_image_url: imageByListingId.get(listing.id) || null
+        }));
+      }
+    }
   } catch (err) {
     console.error('Featured fetch error:', err);
-  }
-  
-  if (cmsContent.featuredListingIds.length > 0) {
-    featuredListings = featuredData
-      .filter(l => cmsContent.featuredListingIds.includes(l.id))
-      .sort(
-        (a, b) => cmsContent.featuredListingIds.indexOf(a.id) - cmsContent.featuredListingIds.indexOf(b.id)
-      );
-  } else {
-    featuredListings = featuredData;
   }
 
   const { data: newsItems } = await supabase
