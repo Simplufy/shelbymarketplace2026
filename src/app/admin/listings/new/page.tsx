@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { trackClientEvent } from "@/lib/klaviyo/client";
 
 const TRANSMISSIONS = ["Manual", "Automatic"];
 const DRIVETRAINS = ["RWD", "AWD", "4WD"];
@@ -167,6 +168,23 @@ export default function AdminCreateListing() {
           console.error('Image error:', imageError);
         }
       }
+
+      void trackClientEvent({
+        event: "New Listing Created",
+        profile: {
+          external_id: user.id,
+          email: user.email,
+        },
+        properties: {
+          vehicle_name: `${formData.year} ${formData.make} ${formData.model}`,
+          price: Number(formData.price),
+          image: uploadedImages[0]?.url || null,
+          url: `${window.location.origin}/listings/${listing.id}`,
+          location: formData.location,
+          listing_status: "ACTIVE",
+          created_by: "admin",
+        },
+      });
 
       alert('Listing created successfully!');
       router.push('/admin/listings');

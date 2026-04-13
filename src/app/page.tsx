@@ -3,6 +3,7 @@ import {
   Search, Heart, ArrowRight, Calendar, Gauge, Zap, ExternalLink
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { trackKlaviyoEvent } from "@/lib/klaviyo/server";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
 
 export const revalidate = 0;
@@ -147,6 +148,36 @@ export default async function Home() {
     }
   } catch (err) {
     console.error('Featured fetch error:', err);
+  }
+
+  try {
+    const { count } = await supabase
+      .from("listings")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "ACTIVE");
+
+    const activeInventoryCount = count || 0;
+
+    await trackKlaviyoEvent({
+      metricName: "Inventory Snapshot",
+      profile: { external_id: "system_inventory" },
+      properties: {
+        active_inventory_count: activeInventoryCount,
+      },
+    });
+
+    if (activeInventoryCount <= 12) {
+      await trackKlaviyoEvent({
+        metricName: "Low Inventory Alert",
+        profile: { external_id: "system_inventory" },
+        properties: {
+          active_inventory_count: activeInventoryCount,
+          headline: `Only ${activeInventoryCount} Shelbys available right now`,
+        },
+      });
+    }
+  } catch (err) {
+    console.error("Failed to send inventory events:", err);
   }
 
   const { data: newsItems } = await supabase

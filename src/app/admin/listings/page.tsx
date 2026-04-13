@@ -13,6 +13,7 @@ import { trackClientEvent } from "@/lib/klaviyo/client";
 
 interface ListingWithDetails extends Listing {
   seller_name: string;
+  seller_email?: string;
   seller_type: "private" | "dealer";
   primary_image_url: string | null;
   dealership_name: string | null;
@@ -73,7 +74,7 @@ export default function AdminListings() {
             .in("listing_id", listingIds),
           supabase
             .from("profiles")
-            .select("id, first_name, last_name")
+            .select("id, first_name, last_name, email")
             .in("id", userIds),
           supabase
             .from("dealer_profiles")
@@ -93,6 +94,7 @@ export default function AdminListings() {
           return {
             ...listing,
             seller_name: dealer?.dealership_name || fullName || "Private Seller",
+            seller_email: profile?.email || undefined,
             seller_type: dealer ? "dealer" : "private",
             dealership_name: dealer?.dealership_name || null,
             primary_image_url: imageByListing.get(listing.id) || null,
@@ -121,8 +123,8 @@ export default function AdminListings() {
       const listing = listings.find((l) => l.id === id);
       if (listing) {
         void trackClientEvent({
-          event: "Listing Approved",
-          profile: { external_id: listing.user_id },
+          event: "Listing Approved/Published",
+          profile: { external_id: listing.user_id, email: listing.seller_email },
           properties: {
             vehicle_name: `${listing.year} ${listing.make} ${listing.model}`,
             price: listing.price,
@@ -204,8 +206,8 @@ export default function AdminListings() {
       if (error) throw error;
       for (const listing of listings.filter((l) => selectedListings.includes(l.id))) {
         void trackClientEvent({
-          event: "Listing Approved",
-          profile: { external_id: listing.user_id },
+          event: "Listing Approved/Published",
+          profile: { external_id: listing.user_id, email: listing.seller_email },
           properties: {
             vehicle_name: `${listing.year} ${listing.make} ${listing.model}`,
             price: listing.price,

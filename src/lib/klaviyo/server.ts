@@ -21,6 +21,20 @@ function getHeaders() {
   };
 }
 
+function resolveListId(source?: string, explicitListId?: string) {
+  if (explicitListId) return explicitListId;
+
+  const sourceMap: Record<string, string | undefined> = {
+    account_signup: process.env.KLAVIYO_LIST_ID_BUYERS,
+    listing_view: process.env.KLAVIYO_LIST_ID_BUYERS,
+    high_intent_contact: process.env.KLAVIYO_LIST_ID_HIGH_INTENT,
+    seller_listing_submit: process.env.KLAVIYO_LIST_ID_SELLERS,
+    listing_published: process.env.KLAVIYO_LIST_ID_SELLERS,
+  };
+
+  return sourceMap[source || ""] || process.env.KLAVIYO_LIST_ID;
+}
+
 export async function trackKlaviyoEvent(params: {
   metricName: string;
   profile: KlaviyoProfile;
@@ -80,13 +94,9 @@ export async function subscribeKlaviyoEmail(params: {
   properties?: Record<string, unknown>;
 }) {
   const headers = getHeaders();
-  console.log('Klaviyo headers check:', headers ? 'has headers' : 'NO HEADERS');
-  console.log('Klaviyo API key prefix:', process.env.KLAVIYO_PRIVATE_API_KEY?.substring(0, 10));
-  
   if (!headers) return { ok: false, skipped: true, reason: "missing_api_key" };
 
-  const listId = params.listId || process.env.KLAVIYO_LIST_ID;
-  console.log('Klaviyo listId:', listId);
+  const listId = resolveListId(params.source, params.listId);
 
   try {
     // Upsert profile
@@ -109,9 +119,10 @@ export async function subscribeKlaviyoEmail(params: {
       }),
     });
     
-    console.log('Profile upsert status:', profileRes.status);
-    const profileText = await profileRes.text();
-    console.log('Profile response:', profileText.substring(0, 500));
+    if (!profileRes.ok) {
+      const profileText = await profileRes.text();
+      console.error("Klaviyo profile upsert failed:", profileText);
+    }
 
     if (listId) {
       const subRes = await fetch(`${KLAVIYO_API_BASE}/profile-subscription-bulk-create-jobs`, {
@@ -143,9 +154,10 @@ export async function subscribeKlaviyoEmail(params: {
         }),
       });
       
-      console.log('Subscription status:', subRes.status);
-      const subText = await subRes.text();
-      console.log('Subscription response:', subText.substring(0, 500));
+      if (!subRes.ok) {
+        const subText = await subRes.text();
+        console.error("Klaviyo list subscription failed:", subText);
+      }
     }
 
     return { ok: true };
