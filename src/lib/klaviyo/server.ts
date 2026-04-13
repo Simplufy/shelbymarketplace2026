@@ -80,13 +80,17 @@ export async function subscribeKlaviyoEmail(params: {
   properties?: Record<string, unknown>;
 }) {
   const headers = getHeaders();
+  console.log('Klaviyo headers check:', headers ? 'has headers' : 'NO HEADERS');
+  console.log('Klaviyo API key prefix:', process.env.KLAVIYO_PRIVATE_API_KEY?.substring(0, 10));
+  
   if (!headers) return { ok: false, skipped: true, reason: "missing_api_key" };
 
   const listId = params.listId || process.env.KLAVIYO_LIST_ID;
+  console.log('Klaviyo listId:', listId);
 
   try {
     // Upsert profile
-    await fetch(`${KLAVIYO_API_BASE}/profiles/`, {
+    const profileRes = await fetch(`${KLAVIYO_API_BASE}/profiles/`, {
       method: "POST",
       headers,
       body: JSON.stringify({
@@ -104,9 +108,13 @@ export async function subscribeKlaviyoEmail(params: {
         },
       }),
     });
+    
+    console.log('Profile upsert status:', profileRes.status);
+    const profileText = await profileRes.text();
+    console.log('Profile response:', profileText.substring(0, 500));
 
     if (listId) {
-      await fetch(`${KLAVIYO_API_BASE}/profile-subscription-bulk-create-jobs`, {
+      const subRes = await fetch(`${KLAVIYO_API_BASE}/profile-subscription-bulk-create-jobs`, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -134,6 +142,10 @@ export async function subscribeKlaviyoEmail(params: {
           },
         }),
       });
+      
+      console.log('Subscription status:', subRes.status);
+      const subText = await subRes.text();
+      console.log('Subscription response:', subText.substring(0, 500));
     }
 
     return { ok: true };
