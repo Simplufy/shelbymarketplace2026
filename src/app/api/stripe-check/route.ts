@@ -10,8 +10,22 @@ export async function POST() {
   
   try {
     const stripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia' });
-    const account = await stripe.account.retrieve();
-    return NextResponse.json({ success: true, accountId: account.id });
+    // Just try to create a test checkout session to verify the key works
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: { name: 'Test' },
+          unit_amount: 100,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      cancel_url: 'https://example.com/cancel',
+      success_url: 'https://example.com/success',
+    });
+    return NextResponse.json({ success: true, sessionId: session.id });
   } catch (e: any) {
     return NextResponse.json({ 
       error: e.message, 
