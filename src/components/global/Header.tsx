@@ -66,7 +66,7 @@ export default function Header() {
             <Search className="w-5 h-5 text-[#565d6d]" />
             <input 
               type="text" 
-              placeholder="Search by model, year, or VIN..."
+              placeholder="Search by Model, Year, or ZIP..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent border-none outline-none w-full text-sm placeholder:text-[#565d6d]"
