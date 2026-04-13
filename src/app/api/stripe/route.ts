@@ -117,9 +117,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error: any) {
-    console.error('Stripe error:', error);
+    console.error('Stripe error full:', JSON.stringify(error, null, 2));
+    console.error('Stripe error message:', error.message);
+    console.error('Stripe error type:', error.type);
+    console.error('Stripe error code:', error.code);
     return NextResponse.json(
-      { error: error.message || 'Something went wrong' },
+      { error: error.message || 'Something went wrong', stripeError: error.type },
       { status: 500 }
     );
   }
