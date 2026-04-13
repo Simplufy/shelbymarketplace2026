@@ -3,11 +3,16 @@ import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
-  // Initialize Stripe inside the function to avoid build-time issues
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  
+  console.log('Stripe env check:', { 
+    hasKey: !!stripeSecretKey, 
+    keyPrefix: stripeSecretKey?.substring(0, 10)
+  });
+  
   if (!stripeSecretKey) {
     return NextResponse.json(
-      { error: 'Stripe configuration missing' },
+      { error: 'Stripe configuration missing', debug: 'STRIPE_SECRET_KEY not found in env' },
       { status: 500 }
     );
   }
@@ -15,6 +20,7 @@ export async function POST(req: NextRequest) {
   const stripe = new Stripe(stripeSecretKey, {
     apiVersion: '2026-03-25.dahlia',
   });
+  
   try {
     const { package_tier, vehicle_info, selected_addons = [] } = await req.json();
     
