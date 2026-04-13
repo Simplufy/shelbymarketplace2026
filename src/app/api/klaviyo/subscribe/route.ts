@@ -17,15 +17,20 @@ export async function POST(req: NextRequest) {
       source: source || "website",
       properties,
     });
+    
+    console.log('Subscribe result:', subscribeResult);
 
-    await trackKlaviyoEvent({
-      metricName: "User Signup",
-      profile: { email, first_name: firstName, last_name: lastName },
-      properties: {
-        source: source || "website",
-        ...(properties || {}),
-      },
-    });
+    // Don't track event if subscribe failed
+    if (subscribeResult.ok) {
+      await trackKlaviyoEvent({
+        metricName: "User Signup",
+        profile: { email, first_name: firstName, last_name: lastName },
+        properties: {
+          source: source || "website",
+          ...(properties || {}),
+        },
+      });
+    }
 
     return NextResponse.json({ ok: true, result: subscribeResult });
   } catch (error: unknown) {
