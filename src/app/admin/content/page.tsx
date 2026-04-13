@@ -161,70 +161,41 @@ export default function ContentManager() {
   const loadContent = async () => {
     setIsLoading(true);
     try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Content request timeout")), 8000)
-      );
-
-      const queryPromise = supabase
-        .from("site_content")
-        .select("*")
-        .eq("section", "homepage")
-        .order("updated_at", { ascending: false })
-        .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
-
-      const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as {
-        data: ContentRow[] | null;
-        error: { message?: string } | null;
-      };
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
+      const res = await fetch('/api/cms-content');
+      const result = await res.json();
+      
+      if (result.error) {
+        console.error("Load error:", result.error);
+      }
+      
+      if (result.data) {
         const loadedContent = { ...defaultContent };
-        const seenKeys = new Set<string>();
         
-        data.forEach((item) => {
-          if (seenKeys.has(item.key)) return;
-          seenKeys.add(item.key);
-
-          switch (item.key) {
-            case "hero":
-              loadedContent.hero = item.value as HeroContent;
-              break;
-            case "featured_listings":
-              loadedContent.featuredListingIds = (item.value as string[]) || [];
-              break;
-            case "why_sell":
-              const whySellData = item.value as { title: string; subtitle: string; reasons: WhySellReason[] };
-              loadedContent.whySellTitle = whySellData.title;
-              loadedContent.whySellSubtitle = whySellData.subtitle;
-              loadedContent.whySellReasons = whySellData.reasons;
-              break;
-            case "cta":
-              const ctaData = item.value as { title: string; subtitle: string; image: string };
-              loadedContent.ctaTitle = ctaData.title;
-              loadedContent.ctaSubtitle = ctaData.subtitle;
-              loadedContent.ctaImage = ctaData.image;
-              break;
-          }
-        });
+        if (result.data.hero) {
+          loadedContent.hero = result.data.hero as HeroContent;
+        }
+        if (result.data.featured_listings) {
+          loadedContent.featuredListingIds = (result.data.featured_listings as string[]) || [];
+        }
+        if (result.data.why_sell) {
+          const why = result.data.why_sell as { title?: string; subtitle?: string; reasons?: WhySellReason[] };
+          loadedContent.whySellTitle = why.title || loadedContent.whySellTitle;
+          loadedContent.whySellSubtitle = why.subtitle || loadedContent.whySellSubtitle;
+          loadedContent.whySellReasons = why.reasons || loadedContent.whySellReasons;
+        }
+        if (result.data.cta) {
+          const cta = result.data.cta as { title?: string; subtitle?: string; image?: string };
+          loadedContent.ctaTitle = cta.title || loadedContent.ctaTitle;
+          loadedContent.ctaSubtitle = cta.subtitle || loadedContent.ctaSubtitle;
+          loadedContent.ctaImage = cta.image || loadedContent.ctaImage;
+        }
         
         setContent(loadedContent);
       }
     } catch (error) {
       console.error("Error loading content:", error);
-      // Fall back to localStorage
-      const saved = localStorage.getItem("shelby_cms_content");
-      if (saved) {
-        try {
-          setContent(JSON.parse(saved));
-        } catch {
-          console.error("Failed to parse saved content");
-        }
-      }
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   const loadListings = async () => {
