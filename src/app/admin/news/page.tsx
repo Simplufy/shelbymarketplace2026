@@ -27,13 +27,13 @@ export default function NewsManager() {
   const loadArticles = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("news_articles")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setArticles(data || []);
+      const res = await fetch('/api/news-admin');
+      const result = await res.json();
+      
+      if (result.error) {
+        console.error("API error:", result.error);
+      }
+      setArticles(result.data || []);
     } catch (error) {
       console.error("Error loading articles:", error);
     }
