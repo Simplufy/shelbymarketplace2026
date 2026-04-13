@@ -5,6 +5,8 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
 
+export const revalidate = 0;
+
 type WhySellReason = { num: string; title: string; description: string };
 type CmsRow = {
   key: "hero" | "featured_listings" | "why_sell" | "cta";
@@ -68,6 +70,8 @@ const defaultCmsContent = {
     "Whether you're looking for a track-ready GT350R or a pristine 1960s classic, the Ford Shelby Exchange is your definitive destination.",
   ctaImage: "/images/c5f4c-hi-tech-mustang-front.webp",
 };
+
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   // Fetch featured listings from database
