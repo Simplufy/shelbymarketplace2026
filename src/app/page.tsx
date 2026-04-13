@@ -113,26 +113,25 @@ export default async function Home() {
   
   let featuredListings: ActiveListing[] = [];
 
+  // Featured listings - use server API instead of client
+  let featuredData: any[] = [];
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://shelbymarketplace2026.vercel.app";
+    const res = await fetch(`${siteUrl}/api/featured`, { cache: 'no-store' });
+    const result = await res.json();
+    featuredData = result.data || [];
+  } catch (err) {
+    console.error('Featured fetch error:', err);
+  }
+  
   if (cmsContent.featuredListingIds.length > 0) {
-    // Fetch by IDs and filter in JS
-    const { data } = await supabase
-      .from("listings")
-      .select("*")
-      .in("id", cmsContent.featuredListingIds);
-
-    const filtered = (data || []).filter(l => l.status === 'ACTIVE');
-    featuredListings = filtered.sort(
-      (a, b) => cmsContent.featuredListingIds.indexOf(a.id) - cmsContent.featuredListingIds.indexOf(b.id)
-    );
+    featuredListings = featuredData
+      .filter(l => cmsContent.featuredListingIds.includes(l.id))
+      .sort(
+        (a, b) => cmsContent.featuredListingIds.indexOf(a.id) - cmsContent.featuredListingIds.indexOf(b.id)
+      );
   } else {
-    // Fetch all and filter in JS to avoid DB query issues
-    const { data } = await supabase
-      .from("listings")
-      .select("*")
-      .eq("is_featured", true)
-      .limit(20);
-    
-    featuredListings = (data || []).filter(l => l.status === 'ACTIVE').slice(0, 4);
+    featuredListings = featuredData;
   }
 
   const { data: newsItems } = await supabase
