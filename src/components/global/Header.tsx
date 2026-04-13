@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Globe, Search, ChevronDown, Heart, Menu, X, User, LogOut, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSearchPlaceholder } from "@/hooks/useSearchPlaceholder";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,6 +13,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
+  const searchPlaceholder = useSearchPlaceholder();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +68,7 @@ export default function Header() {
             <Search className="w-5 h-5 text-[#565d6d]" />
             <input 
               type="text" 
-              placeholder="Search by Model, Year, or ZIP..."
+              placeholder={searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent border-none outline-none w-full text-sm placeholder:text-[#565d6d]"
