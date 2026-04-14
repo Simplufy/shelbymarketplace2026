@@ -66,13 +66,18 @@ export default function VehicleDetailPage() {
     if (!listing) return;
 
     void trackClientEvent({
-      event: "Viewed Listing",
+      event: "Viewed listing",
       profile: {
         email: user?.email,
         external_id: user?.id,
       },
       properties: {
+        listing_id: listing.id,
         vehicle_name: `${listing.year} ${listing.make} ${listing.model}`,
+        year: listing.year,
+        make: listing.make,
+        model: listing.model,
+        trim: listing.trim,
         price: listing.price,
         image: listing.images?.[0]?.url || null,
         url: typeof window !== "undefined" ? window.location.href : null,
@@ -464,13 +469,18 @@ export default function VehicleDetailPage() {
                   <button 
                     onClick={() => {
                       void trackClientEvent({
-                        event: "Contact Seller Click",
+                        event: "Contact seller click",
                         profile: {
                           email: user?.email,
                           external_id: user?.id,
                         },
                         properties: {
+                          listing_id: car.id,
                           vehicle_name: `${car.year} ${car.make} ${car.model}`,
+                          year: car.year,
+                          make: car.make,
+                          model: car.model,
+                          trim: car.trim,
                           price: car.price,
                           image: car.images?.[0]?.url || null,
                           url: typeof window !== "undefined" ? window.location.href : null,

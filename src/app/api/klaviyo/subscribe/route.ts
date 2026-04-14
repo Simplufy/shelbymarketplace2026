@@ -23,13 +23,17 @@ export async function POST(req: NextRequest) {
     // Don't track event if subscribe failed
     if (subscribeResult.ok) {
       await trackKlaviyoEvent({
-        metricName: "User Signup",
+        metricName: "User signup",
         profile: { email, first_name: firstName, last_name: lastName },
         properties: {
           source: source || "website",
           ...(properties || {}),
         },
       });
+    }
+
+    if (!subscribeResult.ok) {
+      return NextResponse.json({ ok: false, result: subscribeResult }, { status: 502 });
     }
 
     return NextResponse.json({ ok: true, result: subscribeResult });

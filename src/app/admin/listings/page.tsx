@@ -123,10 +123,15 @@ export default function AdminListings() {
       const listing = listings.find((l) => l.id === id);
       if (listing) {
         void trackClientEvent({
-          event: "Listing Approved/Published",
+          event: "Listing approved/published",
           profile: { external_id: listing.user_id, email: listing.seller_email },
           properties: {
+            listing_id: listing.id,
             vehicle_name: `${listing.year} ${listing.make} ${listing.model}`,
+            year: listing.year,
+            make: listing.make,
+            model: listing.model,
+            trim: listing.trim,
             price: listing.price,
             image: listing.primary_image_url,
             url: `${window.location.origin}/listings/${listing.id}`,
@@ -206,10 +211,15 @@ export default function AdminListings() {
       if (error) throw error;
       for (const listing of listings.filter((l) => selectedListings.includes(l.id))) {
         void trackClientEvent({
-          event: "Listing Approved/Published",
+          event: "Listing approved/published",
           profile: { external_id: listing.user_id, email: listing.seller_email },
           properties: {
+            listing_id: listing.id,
             vehicle_name: `${listing.year} ${listing.make} ${listing.model}`,
+            year: listing.year,
+            make: listing.make,
+            model: listing.model,
+            trim: listing.trim,
             price: listing.price,
             image: listing.primary_image_url,
             url: `${window.location.origin}/listings/${listing.id}`,

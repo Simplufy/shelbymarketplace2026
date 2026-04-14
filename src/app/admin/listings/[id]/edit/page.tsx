@@ -37,6 +37,7 @@ export default function AdminEditListing() {
   const [originalImages, setOriginalImages] = useState<any[]>([]);
   const [originalPrice, setOriginalPrice] = useState<number>(0);
   const [listingUserId, setListingUserId] = useState<string>("");
+  const [listingUserEmail, setListingUserEmail] = useState<string>("");
 
   const [formData, setFormData] = useState({
     vin: "",
@@ -106,6 +107,15 @@ export default function AdminEditListing() {
       });
       setOriginalPrice(Number(listing.price || 0));
       setListingUserId(listing.user_id || "");
+
+      if (listing.user_id) {
+        const { data: sellerProfile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', listing.user_id)
+          .single();
+        setListingUserEmail(sellerProfile?.email || "");
+      }
 
       // Set images
       if (images) {
@@ -201,10 +211,18 @@ export default function AdminEditListing() {
 
       if (originalPrice > 0 && newPrice < originalPrice) {
         await trackClientEvent({
-          event: "Price Drop",
-          profile: { external_id: listingUserId || undefined },
+          event: "Price drop",
+          profile: {
+            external_id: listingUserId || undefined,
+            email: listingUserEmail || undefined,
+          },
           properties: {
+            listing_id: listingId,
             vehicle_name: `${formData.year} ${formData.make} ${formData.model}`,
+            year: Number(formData.year),
+            make: formData.make,
+            model: formData.model,
+            trim: formData.trim || null,
             old_price: originalPrice,
             new_price: newPrice,
             price: newPrice,

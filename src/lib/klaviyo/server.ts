@@ -75,7 +75,7 @@ export async function trackKlaviyoEvent(params: {
     if (!res.ok) {
       const text = await res.text();
       console.error("Klaviyo event error:", text);
-      return { ok: false, status: res.status };
+      return { ok: false, status: res.status, error: text };
     }
 
     return { ok: true };
@@ -99,6 +99,8 @@ export async function subscribeKlaviyoEmail(params: {
   const listId = resolveListId(params.source, params.listId);
 
   try {
+    let hasError = false;
+
     // Upsert profile
     const profileRes = await fetch(`${KLAVIYO_API_BASE}/profiles/`, {
       method: "POST",
@@ -122,6 +124,7 @@ export async function subscribeKlaviyoEmail(params: {
     if (!profileRes.ok) {
       const profileText = await profileRes.text();
       console.error("Klaviyo profile upsert failed:", profileText);
+      hasError = true;
     }
 
     if (listId) {
@@ -157,10 +160,11 @@ export async function subscribeKlaviyoEmail(params: {
       if (!subRes.ok) {
         const subText = await subRes.text();
         console.error("Klaviyo list subscription failed:", subText);
+        hasError = true;
       }
     }
 
-    return { ok: true };
+    return hasError ? { ok: false } : { ok: true };
   } catch (error) {
     console.error("Klaviyo subscribe failed:", error);
     return { ok: false };

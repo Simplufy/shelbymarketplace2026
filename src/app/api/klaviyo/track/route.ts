@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     const email = profile?.email as string | undefined;
     if (email) {
-      if (event === "Viewed Listing") {
+      if (event === "Viewed listing" || event === "Viewed Listing") {
         await subscribeKlaviyoEmail({
           email,
           firstName: profile?.first_name,
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      if (event === "Contact Seller Click") {
+      if (event === "Contact seller click" || event === "Contact Seller Click") {
         await subscribeKlaviyoEmail({
           email,
           firstName: profile?.first_name,
@@ -44,18 +44,30 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      if (event === "New Listing Created" || event === "Listing Approved/Published") {
+      if (
+        event === "New listing created" ||
+        event === "New Listing Created" ||
+        event === "Listing approved/published" ||
+        event === "Listing Approved/Published"
+      ) {
         await subscribeKlaviyoEmail({
           email,
           firstName: profile?.first_name,
           lastName: profile?.last_name,
-          source: event === "New Listing Created" ? "seller_listing_submit" : "listing_published",
+          source:
+            event === "New listing created" || event === "New Listing Created"
+              ? "seller_listing_submit"
+              : "listing_published",
           properties: {
             seller_activity: true,
             ...(properties || {}),
           },
         });
       }
+    }
+
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, result }, { status: 502 });
     }
 
     return NextResponse.json({ ok: true, result });

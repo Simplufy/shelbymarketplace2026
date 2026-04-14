@@ -170,13 +170,18 @@ export default function AdminCreateListing() {
       }
 
       void trackClientEvent({
-        event: "New Listing Created",
+        event: "New listing created",
         profile: {
           external_id: user.id,
           email: user.email,
         },
         properties: {
+          listing_id: listing.id,
           vehicle_name: `${formData.year} ${formData.make} ${formData.model}`,
+          year: Number(formData.year),
+          make: formData.make,
+          model: formData.model,
+          trim: formData.trim || null,
           price: Number(formData.price),
           image: uploadedImages[0]?.url || null,
           url: `${window.location.origin}/listings/${listing.id}`,

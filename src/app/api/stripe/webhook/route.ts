@@ -147,13 +147,18 @@ export async function POST(req: NextRequest) {
       }
 
       await trackKlaviyoEvent({
-        metricName: 'New Listing Created',
+        metricName: 'New listing created',
         profile: {
           email: profileEmail,
           external_id: session.client_reference_id || undefined,
         },
         properties: {
+          listing_id: listing.id,
           vehicle_name: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
+          year: vehicleData.year,
+          make: vehicleData.make,
+          model: vehicleData.model,
+          trim: vehicleData.trim || null,
           price: vehicleData.price,
           image: vehicleData.images?.[0]?.url || null,
           url: `${process.env.NEXT_PUBLIC_SITE_URL}/listings/${listing.id}`,
