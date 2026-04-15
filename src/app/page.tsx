@@ -387,40 +387,34 @@ export default async function Home() {
             <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">{cmsContent.whySellSubtitle}</p>
           </div>
 
-          {/* 3 Column Layout - 40/20/40 */}
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_2fr] gap-8 lg:gap-12">
-            {/* Left Column - Images */}
-            <div className="space-y-6">
-              {[
-                { img: '/images/Shelby-GT500-for-Sale-2022-Ford-Mustang-Shelby-GT500-Front.jpg', alt: 'GT500 Sale' },
-                { img: '/images/2026_supersnaker_gallery_06-938430.jpg', alt: 'Super Snake' },
-                { img: '/images/1967-ford-shelby-gt500-super-snake.avif', alt: 'Classic Shelby' },
-                { img: '/images/ford-mustang-shelby-gt500-super-snake1-e1526674717750.webp', alt: 'Modern Shelby' },
-              ].map((item, idx) => (
-                <div key={idx} className="relative h-40 rounded-2xl overflow-hidden group">
-                  <img src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={item.alt} />
+          {/* Alternating Reasons/Images on mobile, 3-col on desktop */}
+          <div className="space-y-8 lg:space-y-0">
+            {cmsContent.whySellReasons.map((reason, idx) => (
+              <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center">
+                {/* Image - first on mobile for odd indices */}
+                <div className={`relative h-40 rounded-2xl overflow-hidden group ${idx % 2 === 1 ? 'lg:order-3' : 'lg:order-1'}`}>
+                  <img 
+                    src={[
+                      '/images/Shelby-GT500-for-Sale-2022-Ford-Mustang-Shelby-GT500-Front.jpg',
+                      '/images/2026_supersnaker_gallery_06-938430.jpg',
+                      '/images/1967-ford-shelby-gt500-super-snake.avif',
+                      '/images/ford-mustang-shelby-gt500-super-snake1-e1526674717750.webp',
+                    ][idx]} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                    alt={reason.title} 
+                  />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
                 </div>
-              ))}
-            </div>
-
-            {/* Center Column - Animated Timeline */}
-            <div className="hidden lg:flex flex-col items-center justify-center relative py-8">
-              <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#E31837]/20 -translate-x-1/2" />
-              {[0, 1, 2, 3].map((idx) => (
-                <div key={idx} className="relative flex-1 flex items-center justify-center w-full">
-                  <div className="relative z-10">
+                {/* Center Timeline - desktop only */}
+                <div className="hidden lg:flex lg:order-2 lg:relative lg:h-40 lg:items-center">
+                  <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#E31837]/20 -translate-x-1/2" />
+                  <div className="relative z-10 mx-auto">
                     <div className="w-4 h-4 bg-[#E31837] rounded-full shadow-lg shadow-[#E31837]/30 animate-pulse" />
                     <div className="absolute inset-0 w-4 h-4 bg-[#E31837] rounded-full animate-ping opacity-75" />
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Right Column - Reasons */}
-            <div className="flex flex-col justify-center space-y-8">
-              {cmsContent.whySellReasons.map((reason, idx) => (
-                <div key={idx} className="group">
+                {/* Reason - second on mobile for odd indices */}
+                <div className={`group ${idx % 2 === 1 ? 'lg:order-3' : 'lg:order-3'}`}>
                   <div className="flex items-start gap-4">
                     <span className="text-[#E31837] font-black text-sm tracking-wider">{reason.num}</span>
                     <div>
@@ -429,8 +423,8 @@ export default async function Home() {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
           {/* CTA */}
@@ -456,11 +450,11 @@ export default async function Home() {
               <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">{cmsContent.whyBuySubtitle}</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_2fr] gap-8 lg:gap-12">
-              {/* Left Column - Reasons */}
-              <div className="flex flex-col justify-center space-y-8 lg:order-1">
-                {cmsContent.whyBuyReasons.map((reason, idx) => (
-                  <div key={idx} className="group">
+<div className="space-y-8 lg:space-y-0">
+              {cmsContent.whyBuyReasons.map((reason, idx) => (
+                <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center">
+                  {/* Reason - first on mobile */}
+                  <div className="lg:order-1 group">
                     <div className="flex items-start gap-4">
                       <span className="text-[#002D72] font-black text-sm tracking-wider">{reason.num}</span>
                       <div>
@@ -469,36 +463,30 @@ export default async function Home() {
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Center Column - Blue Timeline */}
-              <div className="hidden lg:flex flex-col items-center justify-center relative py-8 lg:order-2">
-                <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#002D72]/20 -translate-x-1/2" />
-                {[0, 1, 2, 3].map((idx) => (
-                  <div key={idx} className="relative flex-1 flex items-center justify-center w-full">
-                    <div className="relative z-10">
+                  {/* Center Timeline - desktop only */}
+                  <div className="hidden lg:flex lg:order-2 lg:relative lg:h-40 lg:items-center">
+                    <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#002D72]/20 -translate-x-1/2" />
+                    <div className="relative z-10 mx-auto">
                       <div className="w-4 h-4 bg-[#002D72] rounded-full shadow-lg shadow-[#002D72]/30 animate-pulse" />
                       <div className="absolute inset-0 w-4 h-4 bg-[#002D72] rounded-full animate-ping opacity-75" />
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Right Column - Images */}
-              <div className="space-y-6 lg:order-3">
-                {[
-                  { img: '/images/1967-ford-shelby-gt500-super-snake.avif', alt: 'Classic Shelby GT500' },
-                  { img: '/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg', alt: 'Modern GT500' },
-                  { img: '/images/2019-ford-mustang-shelby-gt-s-lead2-1566224220.avif', alt: 'Shelby GT500 Rear' },
-                  { img: '/images/2026_supersnaker_gallery_06-938430.jpg', alt: 'Super Snake Detail' },
-                ].map((item, idx) => (
-                  <div key={idx} className="relative h-40 rounded-2xl overflow-hidden group">
-                    <img src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={item.alt} />
+                  {/* Image - second on mobile */}
+                  <div className="relative h-40 rounded-2xl overflow-hidden group lg:order-3">
+                    <img 
+                      src={[
+                        '/images/1967-ford-shelby-gt500-super-snake.avif',
+                        '/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg',
+                        '/images/2019-ford-mustang-shelby-gt-s-lead2-1566224220.avif',
+                        '/images/2026_supersnaker_gallery_06-938430.jpg',
+                      ][idx]} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                      alt={reason.title} 
+                    />
                     <div className="absolute inset-0 bg-gradient-to-l from-black/30 to-transparent" />
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
 
             <div className="mt-16 text-center">

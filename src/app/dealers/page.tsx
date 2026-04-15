@@ -13,8 +13,10 @@ export default function DealersPage() {
     <div className="min-h-screen bg-white">
       {/* Hero */}
       <section className="relative bg-[#002D72] py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#002D72] via-[#001D4A] to-[#000D2A]" />
-        <div className="absolute bottom-0 right-0 w-1/2 h-full bg-[radial-gradient(ellipse_at_bottom_right,_#E3183730_0%,_transparent_60%)]" />
+        <div className="absolute inset-0">
+          <img src="/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg" alt="" className="w-full h-full object-cover opacity-40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#000D2A] via-[#001D4A]/80 to-[#002D72]/60" />
+        </div>
         <ScrollReveal>
           <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1 bg-white/10 border border-white/20 rounded-full mb-8">
