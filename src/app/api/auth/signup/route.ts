@@ -116,16 +116,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (!klaviyoOk) {
-      return NextResponse.json(
-        {
-          error: "Account created but marketing sync failed. Please contact support so we can complete setup.",
-          code: "KLAVIYO_SYNC_FAILED",
-        },
-        { status: 502 }
-      );
+      console.error("Klaviyo sync failed after retries", { email });
+      return NextResponse.json({ ok: true, klaviyoSynced: false });
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, klaviyoSynced: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Signup failed" }, { status: 500 });
   }
