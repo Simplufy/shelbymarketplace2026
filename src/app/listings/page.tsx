@@ -310,7 +310,18 @@ function ListingsContent() {
             {activeFilters.map(f => (
               <div key={f} className="flex items-center gap-2 px-3 py-1 bg-[#002D72]/5 border border-[#002D72]/10 rounded-full text-[11px] font-semibold text-[#002D72]">
                 {f}
-                <button onClick={() => { setSelectedModels(sm => sm.filter(m => `Shelby ${m}` !== f)); setSelectedYears(sy => sy.filter(y => y !== f)); setSelectedTrans(st => st.filter(t => t !== f)); }} className="hover:text-[#E31837]"><X className="w-3 h-3" /></button>
+                <button
+                  onClick={() => {
+                    setSelectedModels((sm) => sm.filter((m) => `Shelby ${m}` !== f));
+                    setSelectedYears((sy) => sy.filter((y) => y !== f));
+                    setSelectedTrans((st) => st.filter((t) => t !== f));
+                    setSelectedDrivetrains((sd) => sd.filter((d) => d !== f));
+                    setSelectedMileage((sm) => sm.filter((m) => `Mileage: ${m}` !== f));
+                  }}
+                  className="hover:text-[#E31837]"
+                >
+                  <X className="w-3 h-3" />
+                </button>
               </div>
             ))}
             <button onClick={clearAll} className="text-[10px] font-bold text-[#E31837] ml-2">Reset</button>

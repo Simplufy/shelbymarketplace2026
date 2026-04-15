@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
 import { Globe, Search, Heart, Menu, X, User, LogOut, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchPlaceholder } from "@/hooks/useSearchPlaceholder";
 
@@ -14,12 +13,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
   const searchPlaceholder = useSearchPlaceholder();
-
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [pathname]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +23,7 @@ export default function Header() {
   };
 
   const handleSignOut = async () => {
+    setIsMenuOpen(false);
     setIsSigningOut(true);
     await signOut();
     setIsSigningOut(false);

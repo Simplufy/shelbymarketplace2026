@@ -463,7 +463,7 @@ export default async function Home() {
 
           {/* CTA */}
           <div className="mt-16 text-center">
-            <Link href="/sell" className="inline-flex items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
+            <Link href="/sell" className="inline-flex w-full sm:w-auto justify-center items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
               Start Selling Today
               <ArrowRight className="w-5 h-5" />
             </Link>
@@ -556,7 +556,7 @@ export default async function Home() {
             </div>
 
             <div className="mt-16 text-center">
-              <Link href="/listings" className="inline-flex items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
+              <Link href="/listings" className="inline-flex w-full sm:w-auto justify-center items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
                 Start Buying Today
                 <ArrowRight className="w-5 h-5" />
               </Link>
@@ -656,8 +656,8 @@ export default async function Home() {
               {cmsContent.ctaSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/listings" className="px-12 py-5 bg-[#002D72] text-white font-black rounded-2xl shadow-2xl shadow-[#002D72]/30 hover:bg-[#001D4A] transition-all text-center">Browse All Inventory</Link>
-              <Link href="/sell" className="px-12 py-5 bg-white text-[#323743] font-black rounded-2xl border border-white/20 hover:bg-gray-100 transition-all text-center">Sell Your Shelby</Link>
+              <Link href="/listings" className="w-full sm:w-auto px-12 py-5 bg-[#002D72] text-white font-black rounded-2xl shadow-2xl shadow-[#002D72]/30 hover:bg-[#001D4A] transition-all text-center">Browse All Inventory</Link>
+              <Link href="/sell" className="w-full sm:w-auto px-12 py-5 bg-white text-[#323743] font-black rounded-2xl border border-white/20 hover:bg-gray-100 transition-all text-center">Sell Your Shelby</Link>
             </div>
           </div>
           </div>

@@ -71,7 +71,7 @@ function ListingCard({ listing, onDelete }: { listing: any; onDelete?: () => voi
         {onDelete && (
           <button
             onClick={onDelete}
-            className="absolute top-3 right-3 p-2 bg-white/90 rounded-full text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+            className="absolute top-3 right-3 p-2 bg-white/90 rounded-full text-red-500 hover:bg-red-50 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
           >
             <Trash2 className="w-4 h-4" />
           </button>
