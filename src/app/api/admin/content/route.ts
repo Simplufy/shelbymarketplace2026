@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 type ContentSection = {
-  key: "hero" | "featured_listings" | "why_sell" | "cta";
+  key: "hero" | "featured_listings" | "why_sell" | "why_buy" | "cta";
   value: unknown;
 };
 

@@ -30,6 +30,9 @@ type SiteContent = {
   whySellTitle: string;
   whySellSubtitle: string;
   whySellReasons: WhySellReason[];
+  whyBuyTitle: string;
+  whyBuySubtitle: string;
+  whyBuyReasons: WhySellReason[];
   ctaTitle: string;
   ctaSubtitle: string;
   ctaImage: string;
@@ -70,13 +73,37 @@ const defaultContent: SiteContent = {
       description: "Professional dealers benefit from our exclusive subscription plans with significant savings. Our Enthusiast and Apex packages offer unlimited listings, priority placement, and dedicated support at rates designed to maximize your ROI."
     }
   ],
+  whyBuyTitle: "Why Buy With Shelby Exchange?",
+  whyBuySubtitle: "Find verified Shelby inventory faster with transparent details, trusted sellers, and enthusiast-focused search tools.",
+  whyBuyReasons: [
+    {
+      num: "01",
+      title: "Verified Shelby Inventory",
+      description: "Every listing is reviewed for authenticity and quality so buyers can shop with confidence.",
+    },
+    {
+      num: "02",
+      title: "Real Market Pricing",
+      description: "Compare current listings in one place and identify fair-market opportunities quickly.",
+    },
+    {
+      num: "03",
+      title: "Direct Seller Contact",
+      description: "Reach verified sellers directly for details on history, options, and condition.",
+    },
+    {
+      num: "04",
+      title: "Collector-Focused Search",
+      description: "Filter by model, year, transmission, mileage, and location to find exact specs.",
+    },
+  ],
   ctaTitle: "FIND THE SPEC NOBODY ELSE CAN.",
   ctaSubtitle: "Whether you're looking for a track-ready GT350R or a pristine 1960s classic, the Ford Shelby Exchange is your definitive destination.",
   ctaImage: "/images/c5f4c-hi-tech-mustang-front.webp"
 };
 
 export default function ContentManager() {
-  const [activeTab, setActiveTab] = useState<"hero" | "featured" | "why-sell" | "cta">("hero");
+  const [activeTab, setActiveTab] = useState<"hero" | "featured" | "why-sell" | "why-buy" | "cta">("hero");
   const [content, setContent] = useState<SiteContent>(defaultContent);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -176,6 +203,12 @@ export default function ContentManager() {
           loadedContent.whySellSubtitle = why.subtitle || loadedContent.whySellSubtitle;
           loadedContent.whySellReasons = why.reasons || loadedContent.whySellReasons;
         }
+        if (result.data.why_buy) {
+          const why = result.data.why_buy as { title?: string; subtitle?: string; reasons?: WhySellReason[] };
+          loadedContent.whyBuyTitle = why.title || loadedContent.whyBuyTitle;
+          loadedContent.whyBuySubtitle = why.subtitle || loadedContent.whyBuySubtitle;
+          loadedContent.whyBuyReasons = why.reasons || loadedContent.whyBuyReasons;
+        }
         if (result.data.cta) {
           const cta = result.data.cta as { title?: string; subtitle?: string; image?: string };
           loadedContent.ctaTitle = cta.title || loadedContent.ctaTitle;
@@ -228,6 +261,11 @@ export default function ContentManager() {
           subtitle: content.whySellSubtitle,
           reasons: content.whySellReasons
         }},
+        { key: "why_buy", value: {
+          title: content.whyBuyTitle,
+          subtitle: content.whyBuySubtitle,
+          reasons: content.whyBuyReasons
+        }},
         { key: "cta", value: {
           title: content.ctaTitle,
           subtitle: content.ctaSubtitle,
@@ -279,6 +317,15 @@ export default function ContentManager() {
     }));
   };
 
+  const updateWhyBuyReason = (index: number, field: keyof WhySellReason, value: string) => {
+    setContent(prev => ({
+      ...prev,
+      whyBuyReasons: prev.whyBuyReasons.map((reason, i) =>
+        i === index ? { ...reason, [field]: value } : reason
+      )
+    }));
+  };
+
   const toggleFeaturedListing = (id: string) => {
     setContent(prev => ({
       ...prev,
@@ -288,10 +335,11 @@ export default function ContentManager() {
     }));
   };
 
-  const tabs: Array<{ id: "hero" | "featured" | "why-sell" | "cta"; label: string; icon: typeof Layout }> = [
+  const tabs: Array<{ id: "hero" | "featured" | "why-sell" | "why-buy" | "cta"; label: string; icon: typeof Layout }> = [
     { id: "hero", label: "Hero Section", icon: Layout },
     { id: "featured", label: "Featured Listings", icon: Eye },
     { id: "why-sell", label: "Why Sell Section", icon: Type },
+    { id: "why-buy", label: "Why Buy Section", icon: Type },
     { id: "cta", label: "CTA Section", icon: Type },
   ];
 
@@ -586,6 +634,65 @@ export default function ContentManager() {
                       <textarea
                         value={reason.description}
                         onChange={(e) => updateWhySellReason(index, "description", e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "why-buy" && (
+          <div className="p-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Why Buy With Us Section</h2>
+
+            <div className="space-y-6 mb-8">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Section Title</label>
+                <input
+                  type="text"
+                  value={content.whyBuyTitle}
+                  onChange={(e) => setContent(prev => ({ ...prev, whyBuyTitle: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Section Subtitle</label>
+                <textarea
+                  value={content.whyBuySubtitle}
+                  onChange={(e) => setContent(prev => ({ ...prev, whyBuySubtitle: e.target.value }))}
+                  rows={2}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all resize-none"
+                />
+              </div>
+            </div>
+
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Reasons</h3>
+            <div className="space-y-6">
+              {content.whyBuyReasons.map((reason, index) => (
+                <div key={index} className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-[#002D72] font-black text-sm">{reason.num}</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Title</label>
+                      <input
+                        type="text"
+                        value={reason.title}
+                        onChange={(e) => updateWhyBuyReason(index, "title", e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
+                      <textarea
+                        value={reason.description}
+                        onChange={(e) => updateWhyBuyReason(index, "description", e.target.value)}
                         rows={3}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all resize-none"
                       />

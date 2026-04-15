@@ -11,7 +11,7 @@ export const revalidate = 0;
 
 type WhySellReason = { num: string; title: string; description: string };
 type CmsRow = {
-  key: "hero" | "featured_listings" | "why_sell" | "cta";
+  key: "hero" | "featured_listings" | "why_sell" | "why_buy" | "cta";
   value: unknown;
 };
 
@@ -67,6 +67,35 @@ const defaultCmsContent = {
         "Professional dealers benefit from our exclusive subscription plans with significant savings. Our Enthusiast and Apex packages offer unlimited listings, priority placement, and dedicated support at rates designed to maximize your ROI.",
     },
   ] as WhySellReason[],
+  whyBuyTitle: "Why Buy With Shelby Exchange?",
+  whyBuySubtitle:
+    "Find verified Shelby inventory faster with transparent details, trusted sellers, and enthusiast-focused search tools.",
+  whyBuyReasons: [
+    {
+      num: "01",
+      title: "Verified Shelby Inventory",
+      description:
+        "Every listing is reviewed for authenticity and quality so you can shop with confidence instead of guessing.",
+    },
+    {
+      num: "02",
+      title: "Real Market Pricing",
+      description:
+        "Compare active listings in one place and quickly identify fair-market opportunities for your target model.",
+    },
+    {
+      num: "03",
+      title: "Direct Seller Contact",
+      description:
+        "Message verified sellers instantly and get answers about history, options, and condition before you commit.",
+    },
+    {
+      num: "04",
+      title: "Collector-Focused Search",
+      description:
+        "Filter by trim, year, transmission, mileage, and location to find the exact Shelby spec you want.",
+    },
+  ] as WhySellReason[],
   ctaTitle: "FIND THE SPEC NOBODY ELSE CAN.",
   ctaSubtitle:
     "Whether you're looking for a track-ready GT350R or a pristine 1960s classic, the Ford Shelby Exchange is your definitive destination.",
@@ -95,7 +124,7 @@ export default async function Home() {
     .select("key, value")
     .eq("section", "homepage")
     .order("updated_at", { ascending: false })
-    .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
+    .in("key", ["hero", "featured_listings", "why_sell", "why_buy", "cta"]);
 
   if (cmsError) {
     console.error("Homepage CMS load failed:", cmsError.message);
@@ -120,6 +149,14 @@ export default async function Home() {
         cmsContent.whySellReasons = Array.isArray(val.reasons) && val.reasons.length > 0
           ? val.reasons
           : cmsContent.whySellReasons;
+      }
+      if (row.key === "why_buy" && row.value) {
+        const val = row.value as { title?: string; subtitle?: string; reasons?: WhySellReason[] };
+        cmsContent.whyBuyTitle = val.title || cmsContent.whyBuyTitle;
+        cmsContent.whyBuySubtitle = val.subtitle || cmsContent.whyBuySubtitle;
+        cmsContent.whyBuyReasons = Array.isArray(val.reasons) && val.reasons.length > 0
+          ? val.reasons
+          : cmsContent.whyBuyReasons;
       }
       if (row.key === "cta" && row.value) {
         const val = row.value as { title?: string; subtitle?: string; image?: string };
@@ -243,6 +280,71 @@ export default async function Home() {
               {cmsContent.hero.ctaText}
             </button>
           </form>
+        </div>
+      </section>
+
+      {/* Why Buy With Shelby Exchange */}
+      <section className="bg-white py-24 border-b border-[#dee1e6]">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-12">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#002D72]/10 rounded-full mb-6">
+              <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">For Buyers</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">{cmsContent.whyBuyTitle}</h2>
+            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">{cmsContent.whyBuySubtitle}</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_2fr] gap-8 lg:gap-12">
+            {/* Left Column - Reasons */}
+            <div className="flex flex-col justify-center space-y-8 lg:order-1">
+              {cmsContent.whyBuyReasons.map((reason, idx) => (
+                <div key={idx} className="group">
+                  <div className="flex items-start gap-4">
+                    <span className="text-[#002D72] font-black text-sm tracking-wider">{reason.num}</span>
+                    <div>
+                      <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
+                      <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Center Column - Blue Timeline */}
+            <div className="hidden lg:flex flex-col items-center justify-center relative py-8 lg:order-2">
+              <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#002D72]/20 -translate-x-1/2" />
+              {[0, 1, 2, 3].map((idx) => (
+                <div key={idx} className="relative flex-1 flex items-center justify-center w-full">
+                  <div className="relative z-10">
+                    <div className="w-4 h-4 bg-[#002D72] rounded-full shadow-lg shadow-[#002D72]/30 animate-pulse" />
+                    <div className="absolute inset-0 w-4 h-4 bg-[#002D72] rounded-full animate-ping opacity-75" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right Column - Images */}
+            <div className="space-y-6 lg:order-3">
+              {[
+                { img: '/images/1967-ford-shelby-gt500-super-snake.avif', alt: 'Classic Shelby GT500' },
+                { img: '/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg', alt: 'Modern GT500' },
+                { img: '/images/2019-ford-mustang-shelby-gt-s-lead2-1566224220.avif', alt: 'Shelby GT500 Rear' },
+                { img: '/images/2026_supersnaker_gallery_06-938430.jpg', alt: 'Super Snake Detail' },
+              ].map((item, idx) => (
+                <div key={idx} className="relative h-40 rounded-2xl overflow-hidden group">
+                  <img src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={item.alt} />
+                  <div className="absolute inset-0 bg-gradient-to-l from-black/30 to-transparent" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-16 text-center">
+            <Link href="/listings" className="inline-flex items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
+              Start Buying Today
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
         </div>
       </section>
 

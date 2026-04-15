@@ -19,7 +19,7 @@ export async function GET() {
     .select("key, value")
     .eq("section", "homepage")
     .order("updated_at", { ascending: false })
-    .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
+    .in("key", ["hero", "featured_listings", "why_sell", "why_buy", "cta"]);
   
   // Get most recent value for each key
   const content: Record<string, any> = {};
