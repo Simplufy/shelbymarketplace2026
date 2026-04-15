@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { trackKlaviyoEvent } from "@/lib/klaviyo/server";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
+import ScrollReveal from "@/components/animations/ScrollReveal";
 
 export const revalidate = 0;
 
@@ -252,8 +253,8 @@ export default async function Home() {
       <section className="relative h-[70vh] min-h-[560px] bg-[#0F172A] overflow-hidden">
         <img src={cmsContent.hero.heroImage} className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
         <div className="absolute inset-0 bg-black/40" />
-        
-        <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 h-full flex flex-col justify-center">
+        <ScrollReveal>
+          <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 h-full flex flex-col justify-center">
           <div className="inline-flex items-center px-4 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-4 self-start">
             <span className="text-xs font-bold text-white uppercase tracking-wider">{cmsContent.hero.badge}</span>
           </div>
@@ -280,77 +281,14 @@ export default async function Home() {
               {cmsContent.hero.ctaText}
             </button>
           </form>
-        </div>
-      </section>
-
-      {/* Why Buy With Shelby Exchange */}
-      <section className="bg-white py-24 border-b border-[#dee1e6]">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-12">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#002D72]/10 rounded-full mb-6">
-              <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">For Buyers</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">{cmsContent.whyBuyTitle}</h2>
-            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">{cmsContent.whyBuySubtitle}</p>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_2fr] gap-8 lg:gap-12">
-            {/* Left Column - Reasons */}
-            <div className="flex flex-col justify-center space-y-8 lg:order-1">
-              {cmsContent.whyBuyReasons.map((reason, idx) => (
-                <div key={idx} className="group">
-                  <div className="flex items-start gap-4">
-                    <span className="text-[#002D72] font-black text-sm tracking-wider">{reason.num}</span>
-                    <div>
-                      <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
-                      <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Center Column - Blue Timeline */}
-            <div className="hidden lg:flex flex-col items-center justify-center relative py-8 lg:order-2">
-              <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#002D72]/20 -translate-x-1/2" />
-              {[0, 1, 2, 3].map((idx) => (
-                <div key={idx} className="relative flex-1 flex items-center justify-center w-full">
-                  <div className="relative z-10">
-                    <div className="w-4 h-4 bg-[#002D72] rounded-full shadow-lg shadow-[#002D72]/30 animate-pulse" />
-                    <div className="absolute inset-0 w-4 h-4 bg-[#002D72] rounded-full animate-ping opacity-75" />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Right Column - Images */}
-            <div className="space-y-6 lg:order-3">
-              {[
-                { img: '/images/1967-ford-shelby-gt500-super-snake.avif', alt: 'Classic Shelby GT500' },
-                { img: '/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg', alt: 'Modern GT500' },
-                { img: '/images/2019-ford-mustang-shelby-gt-s-lead2-1566224220.avif', alt: 'Shelby GT500 Rear' },
-                { img: '/images/2026_supersnaker_gallery_06-938430.jpg', alt: 'Super Snake Detail' },
-              ].map((item, idx) => (
-                <div key={idx} className="relative h-40 rounded-2xl overflow-hidden group">
-                  <img src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={item.alt} />
-                  <div className="absolute inset-0 bg-gradient-to-l from-black/30 to-transparent" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-16 text-center">
-            <Link href="/listings" className="inline-flex items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
-              Start Buying Today
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* Quick Discovery */}
       <section className="bg-[#fafafb] border-b border-[#dee1e6] py-8">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-12 flex flex-col md:flex-row items-center gap-8">
+        <ScrollReveal>
+          <div className="max-w-[1440px] mx-auto px-4 md:px-12 flex flex-col md:flex-row items-center gap-8">
           <span className="text-[10px] font-black uppercase tracking-[2px] text-[#565d6d] whitespace-nowrap">Quick Discovery</span>
           <div className="flex gap-3 overflow-x-auto hide-scrollbar w-full pb-2 md:pb-0">
             {['GT500', 'GT350 & GT350R', 'Super Snake', 'Cobra Jet', 'Classic Shelby (1965-70)', 'Performance Trucks'].map((tag) => (
@@ -359,12 +297,14 @@ export default async function Home() {
               </Link>
             ))}
           </div>
-        </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* Featured Listings */}
       <section className="py-20 px-4 md:px-12 max-w-[1440px] mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <ScrollReveal>
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
           <div>
             <h2 className="text-3xl md:text-[30px] font-extrabold tracking-tight mb-2">Featured Shelby Listings</h2>
             <p className="text-[#565d6d] text-lg">Curated high-performance icons from verified dealers nationwide.</p>
@@ -372,7 +312,8 @@ export default async function Home() {
           <Link href="/listings" className="flex items-center gap-4 px-6 py-2.5 border border-[#dee1e6] rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
             Explore All Featured <ArrowRight className="w-4 h-4" />
           </Link>
-        </div>
+          </div>
+        </ScrollReveal>
 
         {featuredListings && featuredListings.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -427,7 +368,8 @@ export default async function Home() {
 
       {/* Why Sell With Shelby Exchange */}
       <section className="bg-white py-24 border-y border-[#dee1e6]">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-12">
+        <ScrollReveal>
+          <div className="max-w-[1440px] mx-auto px-4 md:px-12">
           {/* Header */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
@@ -490,12 +432,81 @@ export default async function Home() {
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
-        </div>
+          </div>
+        </ScrollReveal>
+      </section>
+
+      {/* Why Buy With Shelby Exchange */}
+      <section className="bg-white py-24 border-b border-[#dee1e6]">
+        <ScrollReveal>
+          <div className="max-w-[1440px] mx-auto px-4 md:px-12">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#002D72]/10 rounded-full mb-6">
+                <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">For Buyers</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">{cmsContent.whyBuyTitle}</h2>
+              <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">{cmsContent.whyBuySubtitle}</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_2fr] gap-8 lg:gap-12">
+              {/* Left Column - Reasons */}
+              <div className="flex flex-col justify-center space-y-8 lg:order-1">
+                {cmsContent.whyBuyReasons.map((reason, idx) => (
+                  <div key={idx} className="group">
+                    <div className="flex items-start gap-4">
+                      <span className="text-[#002D72] font-black text-sm tracking-wider">{reason.num}</span>
+                      <div>
+                        <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
+                        <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Center Column - Blue Timeline */}
+              <div className="hidden lg:flex flex-col items-center justify-center relative py-8 lg:order-2">
+                <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#002D72]/20 -translate-x-1/2" />
+                {[0, 1, 2, 3].map((idx) => (
+                  <div key={idx} className="relative flex-1 flex items-center justify-center w-full">
+                    <div className="relative z-10">
+                      <div className="w-4 h-4 bg-[#002D72] rounded-full shadow-lg shadow-[#002D72]/30 animate-pulse" />
+                      <div className="absolute inset-0 w-4 h-4 bg-[#002D72] rounded-full animate-ping opacity-75" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Right Column - Images */}
+              <div className="space-y-6 lg:order-3">
+                {[
+                  { img: '/images/1967-ford-shelby-gt500-super-snake.avif', alt: 'Classic Shelby GT500' },
+                  { img: '/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg', alt: 'Modern GT500' },
+                  { img: '/images/2019-ford-mustang-shelby-gt-s-lead2-1566224220.avif', alt: 'Shelby GT500 Rear' },
+                  { img: '/images/2026_supersnaker_gallery_06-938430.jpg', alt: 'Super Snake Detail' },
+                ].map((item, idx) => (
+                  <div key={idx} className="relative h-40 rounded-2xl overflow-hidden group">
+                    <img src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={item.alt} />
+                    <div className="absolute inset-0 bg-gradient-to-l from-black/30 to-transparent" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-16 text-center">
+              <Link href="/listings" className="inline-flex items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
+                Start Buying Today
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* Performance Reports */}
       <section className="py-24 px-4 md:px-12 max-w-[1440px] mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <ScrollReveal>
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
           <div>
             <h2 className="text-3xl md:text-[30px] font-extrabold tracking-tight mb-2">Performance Reports</h2>
             <p className="text-[#565d6d] text-lg">The latest in Shelby history, auction news, and engineering deep-dives.</p>
@@ -503,7 +514,8 @@ export default async function Home() {
           <Link href="/news" className="flex items-center gap-4 px-6 py-2.5 border border-[#dee1e6] rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
             Read All Stories <ArrowRight className="w-4 h-4" />
           </Link>
-        </div>
+          </div>
+        </ScrollReveal>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-7">
             <div className="relative h-[430px] rounded-3xl overflow-hidden mb-8 shadow-lg">
@@ -520,7 +532,7 @@ export default async function Home() {
             </div>
           </div>
           <div className="lg:col-span-5 flex flex-col gap-8">
-            {newsItems && newsItems.map((item) => (
+            {newsItems && newsItems.slice(0, 2).map((item) => (
               <Link key={item.id} href={`/news/${item.slug}`} className="flex gap-6 group cursor-pointer">
                 <div className="w-32 h-32 rounded-2xl overflow-hidden shrink-0 shadow-sm"><img src={item.featured_image || '/images/logo.png'} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt={item.title} /></div>
                 <div className="flex flex-col justify-center">
@@ -542,15 +554,18 @@ export default async function Home() {
 
       {/* CTA Section */}
       <section className="py-12 px-4 md:px-12 max-w-[1440px] mx-auto w-full">
-        <KlaviyoInlineForm
-          title="Get Weekly Shelby Deals & Listings"
-          description="Be first to hear about hot listings, price drops, and collector opportunities."
-          source="homepage_inline"
-        />
+        <ScrollReveal>
+          <KlaviyoInlineForm
+            title="Get Weekly Shelby Deals & Listings"
+            description="Be first to hear about hot listings, price drops, and collector opportunities."
+            source="homepage_inline"
+          />
+        </ScrollReveal>
       </section>
 
       <section className="relative bg-[#001530] py-32 overflow-hidden">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
+        <ScrollReveal>
+          <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
           <div>
             <div className="flex items-center gap-4 mb-12">
               <div className="w-12 h-12 bg-[#E31837] rounded-full flex items-center justify-center"><span className="text-white font-bold text-xl">S</span></div>
@@ -574,7 +589,8 @@ export default async function Home() {
               <div className="absolute inset-0 bg-[#002D72]/20 mix-blend-overlay" />
             </div>
           </div>
-        </div>
+          </div>
+        </ScrollReveal>
       </section>
     </div>
   );
