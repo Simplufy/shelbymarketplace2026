@@ -453,25 +453,7 @@ export default async function Home() {
 <div className="space-y-8 lg:space-y-0">
               {cmsContent.whyBuyReasons.map((reason, idx) => (
                 <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center">
-                  {/* Reason - first on mobile */}
-                  <div className="lg:order-1 group">
-                    <div className="flex items-start gap-4">
-                      <span className="text-[#002D72] font-black text-sm tracking-wider">{reason.num}</span>
-                      <div>
-                        <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
-                        <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Center Timeline - desktop only */}
-                  <div className="hidden lg:flex lg:order-2 lg:relative lg:h-40 lg:items-center">
-                    <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#002D72]/20 -translate-x-1/2" />
-                    <div className="relative z-10 mx-auto">
-                      <div className="w-4 h-4 bg-[#002D72] rounded-full shadow-lg shadow-[#002D72]/30 animate-pulse" />
-                      <div className="absolute inset-0 w-4 h-4 bg-[#002D72] rounded-full animate-ping opacity-75" />
-                    </div>
-                  </div>
-                  {/* Image - second on mobile */}
+                  {/* Image - first on mobile */}
                   <div className="relative h-40 rounded-2xl overflow-hidden group lg:order-3">
                     <img 
                       src={[
@@ -484,6 +466,24 @@ export default async function Home() {
                       alt={reason.title} 
                     />
                     <div className="absolute inset-0 bg-gradient-to-l from-black/30 to-transparent" />
+                  </div>
+                  {/* Center Timeline - desktop only */}
+                  <div className="hidden lg:flex lg:order-2 lg:relative lg:h-40 lg:items-center">
+                    <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#002D72]/20 -translate-x-1/2" />
+                    <div className="relative z-10 mx-auto">
+                      <div className="w-4 h-4 bg-[#002D72] rounded-full shadow-lg shadow-[#002D72]/30 animate-pulse" />
+                      <div className="absolute inset-0 w-4 h-4 bg-[#002D72] rounded-full animate-ping opacity-75" />
+                    </div>
+                  </div>
+                  {/* Reason - second on mobile */}
+                  <div className="lg:order-1 group">
+                    <div className="flex items-start gap-4">
+                      <span className="text-[#002D72] font-black text-sm tracking-wider">{reason.num}</span>
+                      <div>
+                        <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
+                        <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
