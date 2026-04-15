@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Globe, Search, Heart, Menu, X, User, LogOut, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +14,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const searchPlaceholder = useSearchPlaceholder();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -53,7 +55,7 @@ export default function Header() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-[#dee1e6] shadow-sm">
+      <header key={pathname} className="sticky top-0 z-50 bg-white border-b border-[#dee1e6] shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 shrink-0">
             <Link href="/" className="flex items-center gap-2">
