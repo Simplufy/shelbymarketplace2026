@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { 
   ArrowLeft, CheckCircle, XCircle, Calendar, MapPin, User, 
-  DollarSign, Gauge, Car, FileText, Image as ImageIcon,
+  Car, FileText, Image as ImageIcon,
   Loader2, Package, Phone, Mail, Check
 } from 'lucide-react';
 
@@ -44,7 +44,6 @@ interface ListingDetail {
 
 export default function AdminListingDetail() {
   const params = useParams();
-  const router = useRouter();
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);

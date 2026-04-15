@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Globe, Search, ChevronDown, Heart, Menu, X, User, LogOut, Loader2 } from "lucide-react";
+import { Globe, Search, Heart, Menu, X, User, LogOut, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchPlaceholder } from "@/hooks/useSearchPlaceholder";

@@ -5,7 +5,7 @@ import { UploadCloud, Plus, Trash2, X, Loader2 } from "lucide-react";
 import { useStorage } from "@/hooks/useStorage";
 
 export default function Step2Details({ initialData, onNext, onBack }: any) {
-  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialData });
+  const { register, handleSubmit } = useForm({ defaultValues: initialData });
   const [serviceRecords, setServiceRecords] = useState([
     { date: "", type: "", description: "", mileage: "" }
   ]);
@@ -41,7 +41,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
       // Create a temporary ID for the upload
       const tempId = `temp-${Date.now()}`;
       
-      const result = await uploadListingImage(file, tempId, i === 0);
+      const result = await uploadListingImage(file, tempId);
       
       if (result) {
         setUploadedImages(prev => [...prev, result]);

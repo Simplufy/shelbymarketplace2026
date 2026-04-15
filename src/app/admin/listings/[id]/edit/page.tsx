@@ -236,7 +236,7 @@ export default function AdminEditListing() {
       // Add new images
       const newImages = uploadedImages.filter(img => img.isNew);
       if (newImages.length > 0) {
-        const imageRecords = newImages.map((img, index) => ({
+        const imageRecords = newImages.map((img) => ({
           listing_id: listingId,
           url: img.url,
           storage_path: img.storagePath,

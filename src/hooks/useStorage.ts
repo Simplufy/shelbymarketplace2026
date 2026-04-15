@@ -13,8 +13,7 @@ export function useStorage() {
 
   const uploadListingImage = async (
     file: File,
-    listingId: string,
-    isPrimary: boolean = false
+    listingId: string
   ): Promise<UploadResult | null> => {
     try {
       setIsUploading(true)
@@ -47,7 +46,7 @@ export function useStorage() {
         url: data.url,
         storagePath: data.pathname,
       }
-    } catch (error) {
+    } catch {
       return null
     } finally {
       setIsUploading(false)
@@ -61,7 +60,7 @@ export function useStorage() {
     const results: UploadResult[] = []
 
     for (let i = 0; i < files.length; i++) {
-      const result = await uploadListingImage(files[i], listingId, i === 0)
+      const result = await uploadListingImage(files[i], listingId)
       if (result) {
         results.push(result)
       }

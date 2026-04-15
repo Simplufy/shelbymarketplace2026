@@ -13,7 +13,6 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useListings } from "@/hooks/useListings";
 import { useFavorites, useProfile } from "@/hooks/useFavorites";
-import { useStorage } from "@/hooks/useStorage";
 
 interface TabButtonProps {
   active: boolean;
@@ -114,7 +113,6 @@ export default function ProfilePage() {
   const { listings: myListings, isLoading: listingsLoading } = useListings({ userId: user?.id });
   const { favorites, isLoading: favoritesLoading, removeFavorite } = useFavorites();
   const { updateProfile, isUpdating } = useProfile();
-  const { uploadListingImage } = useStorage();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const router = useRouter();
 

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { 
   ArrowLeft, Image as ImageIcon, Type, FileText, Save, Loader2, 
-  Link as LinkIcon, Bold, Italic, List, Eye, AlertCircle, CheckCircle
+  Link as LinkIcon, Bold, Italic, List, Eye
 } from 'lucide-react';
 
 export default function NewArticle() {
@@ -79,7 +79,7 @@ export default function NewArticle() {
 
     setSaving(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('news_articles')
         .insert({
           title: title.trim(),

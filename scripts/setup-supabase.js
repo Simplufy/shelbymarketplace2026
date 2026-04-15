@@ -449,7 +449,7 @@ async function setupStorage() {
   try {
     // Create listing-images bucket
     console.log('1️⃣  Creating listing-images bucket...');
-    const { data: bucket1, error: error1 } = await supabase.storage.createBucket('listing-images', {
+    const { error: error1 } = await supabase.storage.createBucket('listing-images', {
       public: true,
       allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
       fileSizeLimit: 10485760 // 10MB
@@ -461,7 +461,7 @@ async function setupStorage() {
 
     // Create avatar-images bucket
     console.log('2️⃣  Creating avatar-images bucket...');
-    const { data: bucket2, error: error2 } = await supabase.storage.createBucket('avatar-images', {
+    const { error: error2 } = await supabase.storage.createBucket('avatar-images', {
       public: true,
       allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
       fileSizeLimit: 5242880 // 5MB
@@ -473,7 +473,7 @@ async function setupStorage() {
 
     // Create dealer-documents bucket (private)
     console.log('3️⃣  Creating dealer-documents bucket...');
-    const { data: bucket3, error: error3 } = await supabase.storage.createBucket('dealer-documents', {
+    const { error: error3 } = await supabase.storage.createBucket('dealer-documents', {
       public: false,
       allowedMimeTypes: ['application/pdf', 'image/png', 'image/jpeg'],
       fileSizeLimit: 10485760 // 10MB

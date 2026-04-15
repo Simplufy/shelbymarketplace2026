@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Search, Filter, MoreHorizontal, Mail, Shield, 
-  CheckCircle, XCircle, User, Crown, Store, UserX,
-  ChevronDown, Download, Loader2
+  Search, MoreHorizontal, Mail,
+  CheckCircle, User, Download, Loader2
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/supabase/database.types";
@@ -104,15 +103,6 @@ export default function UsersManager() {
     const matchesStatus = statusFilter === "all" || user.status === statusFilter;
     return matchesSearch && matchesRole && matchesStatus;
   });
-
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "ADMIN": return <Shield className="w-4 h-4" />;
-      case "DEALER": return <Store className="w-4 h-4" />;
-      case "SELLER": return <User className="w-4 h-4" />;
-      default: return <User className="w-4 h-4" />;
-    }
-  };
 
   const getRoleColor = (role: string) => {
     switch (role) {

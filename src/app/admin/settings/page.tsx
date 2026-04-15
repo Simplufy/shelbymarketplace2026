@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Settings, Globe, Mail, CreditCard, Shield, Palette,
+  Globe, CreditCard, Shield, Palette,
   Save, CheckCircle, AlertCircle, Loader2, ExternalLink, RefreshCw
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -119,7 +119,7 @@ export default function SettingsPage() {
       if (saved) {
         try {
           setSettings(JSON.parse(saved));
-        } catch (e) {
+        } catch {
           console.error("Failed to parse saved settings");
         }
       }

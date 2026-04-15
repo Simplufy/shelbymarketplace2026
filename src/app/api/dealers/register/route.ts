@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
       website,
       phone,
       location,
-      documents,
       subscription_tier,
     } = await req.json();
 

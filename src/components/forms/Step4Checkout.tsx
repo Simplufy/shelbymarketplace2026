@@ -1,5 +1,5 @@
 "use client";
-import { CheckCircle2, Lock, CreditCard, Loader2, Sparkles } from "lucide-react";
+import { Lock, CreditCard, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 const ADDON_CATALOG = [

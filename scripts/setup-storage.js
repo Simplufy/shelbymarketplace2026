@@ -31,7 +31,7 @@ async function setupStorage() {
     
     if (!dealerDocsExists) {
       console.log('Creating dealer-documents bucket...');
-      const { data, error } = await supabase.storage.createBucket('dealer-documents', {
+      const { error } = await supabase.storage.createBucket('dealer-documents', {
         public: true,
         fileSizeLimit: 10485760, // 10MB
         allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'],

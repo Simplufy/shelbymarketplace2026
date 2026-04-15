@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Plus, Search, Edit2, Trash2, Eye, Calendar, Clock, 
-  Filter, CheckCircle, XCircle, MoreHorizontal, ExternalLink,
+  Plus, Search, Edit2, Trash2, Eye, Calendar, Clock,
   Loader2
 } from "lucide-react";
 import Link from "next/link";

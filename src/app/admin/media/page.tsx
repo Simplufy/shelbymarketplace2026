@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { 
   Upload, Image as ImageIcon, Search, Trash2, Copy, Check, 
-  Grid, List, X, Folder, ChevronRight, Download, Eye, Loader2, AlertCircle
+  Grid, List, X, Folder, Eye, Loader2, AlertCircle
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -15,12 +15,6 @@ interface MediaFile {
   created_at: string;
   type: string;
   path: string;
-}
-
-interface StorageFolder {
-  id: string;
-  name: string;
-  count: number;
 }
 
 export default function MediaLibrary() {

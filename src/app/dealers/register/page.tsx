@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Check, UploadCloud, Shield, TrendingUp, Users, CheckCircle2, Building2, Globe, Phone, MapPin, ArrowLeft, ArrowRight, Loader2, FileText } from "lucide-react";
+import { Check, UploadCloud, CheckCircle2, Building2, Globe, Phone, MapPin, ArrowLeft, ArrowRight, Loader2, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const SUBSCRIPTIONS = [

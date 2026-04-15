@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { 
   AlertTriangle,
-  CheckCircle, Eye, Image as ImageIcon, TrendingUp, Users, DollarSign, 
-  Package, ArrowUpRight, MoreHorizontal, Search, Filter, ChevronDown, Edit, Trash2,
-  Layout, Type, Palette, Loader2, Car, MapPin, Calendar
+  CheckCircle, Eye, Image as ImageIcon, Users, DollarSign,
+  Package, ArrowUpRight, Trash2,
+  Layout, Type, Palette, Loader2, Car, Calendar
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";

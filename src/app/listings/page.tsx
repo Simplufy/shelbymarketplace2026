@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { Search, MapPin, ShieldCheck, X, SlidersHorizontal, Loader2 } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { CompareButton } from "@/components/CompareButton";
-import { createClient } from "@/lib/supabase/client";
 
 interface Listing {
   id: string;
@@ -53,8 +52,6 @@ function ListingsContent() {
   const [priceMax, setPriceMax] = useState(500000);
   const [sortBy, setSortBy] = useState("newest");
   const [showFilters, setShowFilters] = useState(false);
-
-  const supabase = createClient();
 
   useEffect(() => {
     fetchListings();

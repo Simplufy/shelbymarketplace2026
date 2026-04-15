@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Cookie, Settings } from "lucide-react";
+import { ArrowLeft, Cookie } from "lucide-react";
 
 export const metadata = {
   title: "Cookie Policy | Shelby Exchange",

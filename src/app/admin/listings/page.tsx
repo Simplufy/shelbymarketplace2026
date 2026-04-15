@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Search, Filter, CheckCircle, XCircle, Eye, Edit2, Trash2,
-  Car, DollarSign, User, MapPin, Calendar, Package,
+  Search, CheckCircle, XCircle, Eye, Edit2, Trash2,
+  Car, MapPin, Calendar, Package,
   Loader2
 } from "lucide-react";
 import Link from "next/link";

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Shield, TrendingUp, Users, ArrowRight, Check, Star, Zap, Award } from "lucide-react";
+import { Shield, TrendingUp, Users, ArrowRight, Check, Award } from "lucide-react";
 
 const SUBSCRIPTIONS = [
   { id: "ENTHUSIAST", name: "Enthusiast Dealer", price: 400, desc: "Perfect for specialty dealers moving low volume of Shelby vehicles.", features: ["Up to 10 active listings/mo", "Bypass one-time listing fees", "Admin prioritized review", "Dealer Profile Verification badge"] },

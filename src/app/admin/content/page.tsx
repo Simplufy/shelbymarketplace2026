@@ -6,7 +6,6 @@ import {
   CheckCircle, AlertCircle, Search, Loader2
 } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 // Types for CMS content
@@ -34,11 +33,6 @@ type SiteContent = {
   ctaTitle: string;
   ctaSubtitle: string;
   ctaImage: string;
-};
-
-type ContentRow = {
-  key: "hero" | "featured_listings" | "why_sell" | "cta";
-  value: unknown;
 };
 
 // Default content matching current homepage
@@ -92,7 +86,6 @@ export default function ContentManager() {
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingCta, setUploadingCta] = useState(false);
   
-  const supabase = createClient();
   const { user: authUser } = useAuth();
 
   const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {

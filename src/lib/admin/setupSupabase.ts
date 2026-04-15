@@ -21,7 +21,7 @@ export async function setupSupabaseStorage() {
 
     // 2. Create listings bucket if it doesn't exist
     if (!existingBuckets.includes('listings')) {
-      const { data, error } = await supabase.storage.createBucket('listings', {
+      const { error } = await supabase.storage.createBucket('listings', {
         public: true,
         fileSizeLimit: 10485760, // 10MB
         allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
@@ -38,7 +38,7 @@ export async function setupSupabaseStorage() {
 
     // 3. Create site-images bucket if it doesn't exist
     if (!existingBuckets.includes('site-images')) {
-      const { data, error } = await supabase.storage.createBucket('site-images', {
+      const { error } = await supabase.storage.createBucket('site-images', {
         public: true,
         fileSizeLimit: 10485760, // 10MB
         allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif']

@@ -1,7 +1,7 @@
 "use client";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Check, CheckCircle2 } from "lucide-react";
 import Step1VIN from "@/components/forms/Step1VIN";
 import Step2Details from "@/components/forms/Step2Details";
 import Step3Packages from "@/components/forms/Step3Packages";

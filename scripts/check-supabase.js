@@ -3,7 +3,7 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = 'https://stpliwgecckyjknkqenl.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cGxpd2dlY2NreWprbmtxZW5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDk1MzgsImV4cCI6MjA5MTE4NTUzOH0.UhrPZIhrWJ0psBUldP6ly-jZ-oYTjY8ohZ2jsuTTtgU';
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+createClient(supabaseUrl, supabaseKey);
 
 // Note: The anon key cannot create tables or run DDL
 // You need to run this SQL manually in the Supabase Dashboard SQL Editor

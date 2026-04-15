@@ -187,9 +187,6 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // Verify authentication for admin notifications
-    const { data: { user } } = await supabase.auth.getUser();
-    
     const body = await req.json();
     const { type, data } = body;
 
