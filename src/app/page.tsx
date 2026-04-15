@@ -390,7 +390,7 @@ export default async function Home() {
           {/* Alternating Reasons/Images on mobile, 3-col on desktop */}
           <div className="space-y-8 lg:space-y-0">
             {cmsContent.whySellReasons.map((reason, idx) => (
-              <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center">
+              <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center gap-4 lg:gap-0">
                 {/* Image - first on mobile for odd indices */}
                 <div className={`relative h-40 rounded-2xl overflow-hidden group ${idx % 2 === 1 ? 'lg:order-3' : 'lg:order-1'}`}>
                   <img 
@@ -452,7 +452,7 @@ export default async function Home() {
 
 <div className="space-y-8 lg:space-y-0">
               {cmsContent.whyBuyReasons.map((reason, idx) => (
-                <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center">
+                <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center gap-4 lg:gap-0">
                   {/* Image - first on mobile */}
                   <div className="relative h-40 rounded-2xl overflow-hidden group lg:order-3">
                     <img 
