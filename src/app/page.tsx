@@ -387,12 +387,11 @@ export default async function Home() {
             <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">{cmsContent.whySellSubtitle}</p>
           </div>
 
-          {/* Alternating Reasons/Images on mobile, 3-col on desktop */}
+          {/* Image & Reason alternating, with gap for mobile */}
           <div className="space-y-8 lg:space-y-0">
             {cmsContent.whySellReasons.map((reason, idx) => (
-              <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center gap-4 lg:gap-0">
-                {/* Image - first on mobile for odd indices */}
-                <div className={`relative h-40 rounded-2xl overflow-hidden group ${idx % 2 === 1 ? 'lg:order-3' : 'lg:order-1'}`}>
+              <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center">
+                <div className="relative h-40 rounded-2xl overflow-hidden group">
                   <img 
                     src={[
                       '/images/Shelby-GT500-for-Sale-2022-Ford-Mustang-Shelby-GT500-Front.jpg',
@@ -405,16 +404,18 @@ export default async function Home() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
                 </div>
-                {/* Center Timeline - desktop only */}
-                <div className="hidden lg:flex lg:order-2 lg:relative lg:h-40 lg:items-center">
+                <div className="hidden lg:flex flex-col items-center justify-center relative py-8">
                   <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#E31837]/20 -translate-x-1/2" />
-                  <div className="relative z-10 mx-auto">
-                    <div className="w-4 h-4 bg-[#E31837] rounded-full shadow-lg shadow-[#E31837]/30 animate-pulse" />
-                    <div className="absolute inset-0 w-4 h-4 bg-[#E31837] rounded-full animate-ping opacity-75" />
-                  </div>
+                  {[0, 1, 2, 3].map((i) => (
+                    <div key={i} className="relative flex-1 flex items-center justify-center w-full">
+                      <div className="relative z-10">
+                        <div className="w-4 h-4 bg-[#E31837] rounded-full shadow-lg shadow-[#E31837]/30 animate-pulse" />
+                        <div className="absolute inset-0 w-4 h-4 bg-[#E31837] rounded-full animate-ping opacity-75" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {/* Reason - second on mobile for odd indices */}
-                <div className={`group ${idx % 2 === 1 ? 'lg:order-3' : 'lg:order-3'}`}>
+                <div className="group">
                   <div className="flex items-start gap-4">
                     <span className="text-[#E31837] font-black text-sm tracking-wider">{reason.num}</span>
                     <div>
@@ -452,9 +453,8 @@ export default async function Home() {
 
 <div className="space-y-8 lg:space-y-0">
               {cmsContent.whyBuyReasons.map((reason, idx) => (
-                <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center gap-4 lg:gap-0">
-                  {/* Image - first on mobile */}
-                  <div className="relative h-40 rounded-2xl overflow-hidden group lg:order-3">
+                <div key={idx} className="lg:grid lg:grid-cols-[2fr_1fr_2fr] lg:gap-8 lg:items-center">
+                  <div className="relative h-40 rounded-2xl overflow-hidden group">
                     <img 
                       src={[
                         '/images/1967-ford-shelby-gt500-super-snake.avif',
@@ -467,16 +467,18 @@ export default async function Home() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-l from-black/30 to-transparent" />
                   </div>
-                  {/* Center Timeline - desktop only */}
-                  <div className="hidden lg:flex lg:order-2 lg:relative lg:h-40 lg:items-center">
+                  <div className="hidden lg:flex flex-col items-center justify-center relative py-8">
                     <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#002D72]/20 -translate-x-1/2" />
-                    <div className="relative z-10 mx-auto">
-                      <div className="w-4 h-4 bg-[#002D72] rounded-full shadow-lg shadow-[#002D72]/30 animate-pulse" />
-                      <div className="absolute inset-0 w-4 h-4 bg-[#002D72] rounded-full animate-ping opacity-75" />
-                    </div>
+                    {[0, 1, 2, 3].map((i) => (
+                      <div key={i} className="relative flex-1 flex items-center justify-center w-full">
+                        <div className="relative z-10">
+                          <div className="w-4 h-4 bg-[#002D72] rounded-full shadow-lg shadow-[#002D72]/30 animate-pulse" />
+                          <div className="absolute inset-0 w-4 h-4 bg-[#002D72] rounded-full animate-ping opacity-75" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  {/* Reason - second on mobile */}
-                  <div className="lg:order-1 group">
+                  <div className="group">
                     <div className="flex items-start gap-4">
                       <span className="text-[#002D72] font-black text-sm tracking-wider">{reason.num}</span>
                       <div>
@@ -592,7 +594,9 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/listings" className="px-12 py-5 bg-[#002D72] text-white font-black rounded-2xl shadow-2xl shadow-[#002D72]/30 hover:bg-[#001D4A] transition-all text-center">Browse All Inventory</Link>
               <Link href="/sell" className="px-12 py-5 bg-white text-[#323743] font-black rounded-2xl border border-white/20 hover:bg-gray-100 transition-all text-center">Sell Your Shelby</Link>
-</div>
+            </div>
+          </div>
+          </div>
         </ScrollReveal>
       </section>
     </div>
