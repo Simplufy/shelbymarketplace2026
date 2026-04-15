@@ -1,5 +1,5 @@
 "use client";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check, CheckCircle2 } from "lucide-react";
 import Step1VIN from "@/components/forms/Step1VIN";
@@ -41,6 +41,7 @@ function SellForm() {
   const [formData, setFormData] = useState<any>({});
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
+  const wizardRef = useRef<HTMLDivElement | null>(null);
 
   const nextStep = (data: any) => {
     setFormData({ ...formData, ...data });
@@ -48,6 +49,12 @@ function SellForm() {
   };
 
   const steps = ["Vehicle Details", "Photos & Specs", "Select Package", "Checkout"];
+
+  useEffect(() => {
+    if (wizardRef.current) {
+      wizardRef.current.scrollIntoView({ behavior: "auto", block: "start" });
+    }
+  }, [step, success]);
 
   // If payment was successful, show success view
   if (success === 'true') {
@@ -63,7 +70,7 @@ function SellForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafb] py-12">
+    <div ref={wizardRef} className="min-h-screen bg-[#fafafb] py-12">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1 bg-[#E31837]/10 border border-[#E31837]/20 rounded-full mb-6">

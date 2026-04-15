@@ -27,24 +27,69 @@ export function useFavorites() {
         return
       }
 
-      const { data, error: fetchError } = await supabase
+      const { data: savedRows, error: savedError } = await supabase
         .from('saved_listings')
-        .select(`
-          listing:listings(
-            *,
-            images:listing_images(*),
-            profile:profiles(*)
-          )
-        `)
+        .select('listing_id, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (fetchError) {
-        throw fetchError
+      if (savedError) {
+        throw savedError
       }
 
-      // Transform data
-      const transformedData = data?.map((item: any) => item.listing) || []
+      const listingIds = (savedRows || []).map((row: any) => row.listing_id)
+
+      if (listingIds.length === 0) {
+        setFavorites([])
+        return
+      }
+
+      const { data: listings, error: listingError } = await supabase
+        .from('listings')
+        .select('*')
+        .in('id', listingIds)
+
+      if (listingError) {
+        throw listingError
+      }
+
+      const { data: images } = await supabase
+        .from('listing_images')
+        .select('*')
+        .in('listing_id', listingIds)
+
+      const sellerIds = [...new Set((listings || []).map((l: any) => l.user_id).filter(Boolean))]
+      let profileByUser = new Map<string, any>()
+
+      if (sellerIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', sellerIds)
+
+        profileByUser = new Map((profiles || []).map((p: any) => [p.id, p]))
+      }
+
+      const imagesByListing = new Map<string, any[]>()
+      ;(images || []).forEach((img: any) => {
+        const arr = imagesByListing.get(img.listing_id) || []
+        arr.push(img)
+        imagesByListing.set(img.listing_id, arr)
+      })
+
+      const listingById = new Map((listings || []).map((l: any) => [l.id, l]))
+      const transformedData = listingIds
+        .map((id: string) => {
+          const listing = listingById.get(id)
+          if (!listing) return null
+          return {
+            ...listing,
+            images: imagesByListing.get(id) || [],
+            profile: profileByUser.get(listing.user_id) || null,
+          }
+        })
+        .filter(Boolean) as FavoriteListing[]
+
       setFavorites(transformedData)
     } catch (err) {
       setError(err as Error)
@@ -73,6 +118,9 @@ export function useFavorites() {
       }
 
       await fetchFavorites()
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('favorites:changed'))
+      }
       return { error: null }
     } catch (err) {
       return { error: err as Error }
@@ -98,6 +146,9 @@ export function useFavorites() {
       }
 
       await fetchFavorites()
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('favorites:changed'))
+      }
       return { error: null }
     } catch (err) {
       return { error: err as Error }
@@ -126,6 +177,20 @@ export function useFavorites() {
 
   useEffect(() => {
     fetchFavorites()
+  }, [fetchFavorites])
+
+  useEffect(() => {
+    const refreshFavorites = () => {
+      fetchFavorites()
+    }
+
+    window.addEventListener('favorites:changed', refreshFavorites)
+    window.addEventListener('focus', refreshFavorites)
+
+    return () => {
+      window.removeEventListener('favorites:changed', refreshFavorites)
+      window.removeEventListener('focus', refreshFavorites)
+    }
   }, [fetchFavorites])
 
   return {

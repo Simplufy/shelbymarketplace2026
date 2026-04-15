@@ -538,7 +538,7 @@ export default async function Home() {
                 <div className="flex items-center gap-4">
                   <span className="text-xs font-bold text-[#565d6d] uppercase tracking-widest">{new Date(mainArticle.published_at || mainArticle.created_at).toLocaleDateString()}</span>
                   <div className="w-1 h-1 bg-[#dee1e6] rounded-full" />
-                  <Link href="/news" className="flex items-center gap-2 text-xs font-extrabold text-[#002D72] uppercase tracking-widest hover:underline">Read Story <ArrowRight className="w-3 h-3" /></Link>
+                  <Link href={`/news/${mainArticle.slug || mainArticle.id}`} className="flex items-center gap-2 text-xs font-extrabold text-[#002D72] uppercase tracking-widest hover:underline">Read Story <ArrowRight className="w-3 h-3" /></Link>
                 </div>
               </>
             ) : (
@@ -550,7 +550,7 @@ export default async function Home() {
           </div>
           <div className="lg:col-span-5 flex flex-col gap-8">
             {sideArticles.map((item: any) => (
-              <Link key={item.id} href="/news" className="flex gap-6 group cursor-pointer">
+              <Link key={item.id} href={`/news/${item.slug || item.id}`} className="flex gap-6 group cursor-pointer">
                 <div className="w-32 h-32 rounded-2xl overflow-hidden shrink-0 shadow-sm"><img src={item.image_url || '/images/logo.png'} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt={item.title} /></div>
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-2">

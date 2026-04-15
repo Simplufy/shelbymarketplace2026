@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/global/Header";
 import Footer from "@/components/global/Footer";
+import RouteScrollManager from "@/components/global/RouteScrollManager";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CompareProvider } from "@/contexts/CompareContext";
 import { CompareBar } from "@/components/CompareBar";
@@ -96,6 +97,7 @@ export default function RootLayout({
         />
         <AuthProvider>
           <CompareProvider>
+            <RouteScrollManager />
             <Header />
             <main className="flex-1 flex flex-col">
               {children}
