@@ -1,6 +1,7 @@
 "use client";
 import { Lock, CreditCard, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const ADDON_CATALOG = [
   {
@@ -56,6 +57,7 @@ const ADDON_CATALOG = [
 ] as const;
 
 export default function Step4Checkout({ formData, onBack }: any) {
+  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Record<string, boolean>>(() => {
@@ -101,12 +103,18 @@ export default function Step4Checkout({ formData, onBack }: any) {
     setError(null);
 
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       // Create checkout session
       const response = await fetch('/api/stripe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
+        credentials: 'include',
         body: JSON.stringify({
           package_tier: formData.package_tier,
           selected_addons: selectedAddonItems.map((addon) => addon.id),

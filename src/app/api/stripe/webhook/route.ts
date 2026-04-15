@@ -37,8 +37,16 @@ export async function POST(req: NextRequest) {
     
     try {
       // Get metadata from the session
-      const { package_tier, vehicle_info, selected_addons } = session.metadata || {};
-      const vehicleData = JSON.parse(vehicle_info || '{}');
+      const metadata = session.metadata || {};
+      const { package_tier, selected_addons } = metadata;
+      const chunkCount = Number(metadata.vehicle_chunks || 0);
+      let vehicleInfoPayload = metadata.vehicle_info || '';
+
+      if (chunkCount > 0) {
+        vehicleInfoPayload = Array.from({ length: chunkCount }, (_, idx) => metadata[`vehicle_chunk_${idx}`] || '').join('');
+      }
+
+      const vehicleData = JSON.parse(vehicleInfoPayload || '{}');
       const selectedAddonIds: string[] = JSON.parse(selected_addons || '[]');
 
       const featuredByPackage = package_tier === 'HOMEPAGE' || package_tier === 'HOMEPAGE_PLUS_ADS';

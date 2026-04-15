@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+const chunkString = (value: string, chunkSize: number) => {
+  const chunks: string[] = [];
+  for (let i = 0; i < value.length; i += chunkSize) {
+    chunks.push(value.slice(i, i + chunkSize));
+  }
+  return chunks;
+};
 
 export async function POST(req: NextRequest) {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -26,8 +35,24 @@ export async function POST(req: NextRequest) {
     
     // Get current user
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const { data: authData } = await supabase.auth.getUser();
+    let user = authData.user;
+
+    if (!user) {
+      const authHeader = req.headers.get('authorization');
+      const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (token && supabaseUrl && supabaseAnonKey) {
+        const tokenClient = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        });
+        const { data: tokenUserData } = await tokenClient.auth.getUser(token);
+        user = tokenUserData.user;
+      }
+    }
+
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -100,6 +125,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const serializedVehicleInfo = JSON.stringify(vehicle_info || {});
+    const vehicleChunks = chunkString(serializedVehicleInfo, 450);
+    const metadata: Record<string, string> = {
+      package_tier,
+      selected_addons: JSON.stringify(selectedAddonIds),
+      vehicle_chunks: String(vehicleChunks.length),
+    };
+
+    vehicleChunks.forEach((chunk, idx) => {
+      metadata[`vehicle_chunk_${idx}`] = chunk;
+    });
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -108,11 +145,7 @@ export async function POST(req: NextRequest) {
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/sell?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/sell?canceled=true`,
       client_reference_id: user.id,
-      metadata: {
-        package_tier,
-        selected_addons: JSON.stringify(selectedAddonIds),
-        vehicle_info: JSON.stringify(vehicle_info),
-      },
+      metadata,
     });
 
     return NextResponse.json({ sessionId: session.id, url: session.url });

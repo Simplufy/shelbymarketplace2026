@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Globe, Search, Heart, Menu, X, User, LogOut, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchPlaceholder } from "@/hooks/useSearchPlaceholder";
 
@@ -13,7 +14,12 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const searchPlaceholder = useSearchPlaceholder();
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,14 +154,14 @@ export default function Header() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden bg-white border-t border-[#f3f4f6] px-4 py-6 space-y-4">
-            <Link href="/listings" className="block text-sm font-bold text-[#002D72] uppercase tracking-wider">Browse Inventory</Link>
-            <Link href="/news" className="block text-sm font-medium text-[#565d6d]">News & Reviews</Link>
-            <Link href="/dealers" className="block text-sm font-medium text-[#565d6d]">Dealers</Link>
-            <Link href="/about" className="block text-sm font-medium text-[#565d6d]">About</Link>
-            <Link href="/sell" className="block text-sm font-medium text-[#565d6d]">Sell A Shelby</Link>
+            <Link href="/listings" onClick={() => setIsMenuOpen(false)} className="block text-sm font-bold text-[#002D72] uppercase tracking-wider">Browse Inventory</Link>
+            <Link href="/news" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">News & Reviews</Link>
+            <Link href="/dealers" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Dealers</Link>
+            <Link href="/about" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">About</Link>
+            <Link href="/sell" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Sell A Shelby</Link>
             {user ? (
               <>
-                <Link href="/profile" className="block text-sm font-medium text-[#565d6d]">My Profile</Link>
+                <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">My Profile</Link>
                 <button 
                   onClick={handleSignOut}
                   className="block w-full py-3 border border-[#E31837] text-[#E31837] text-sm font-bold rounded-md text-center"
@@ -165,8 +171,8 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Link href="/login" className="block text-sm font-medium text-[#565d6d]">Sign In</Link>
-                <Link href="/register" className="block w-full py-3 bg-[#002D72] text-white text-sm font-bold rounded-md text-center">Create Account</Link>
+                <Link href="/login" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Sign In</Link>
+                <Link href="/register" onClick={() => setIsMenuOpen(false)} className="block w-full py-3 bg-[#002D72] text-white text-sm font-bold rounded-md text-center">Create Account</Link>
               </>
             )}
           </div>
