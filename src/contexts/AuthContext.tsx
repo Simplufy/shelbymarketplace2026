@@ -23,6 +23,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
 
+  const withTimeout = async <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> => {
+    return Promise.race([
+      Promise.resolve(promise),
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`${label} timed out`)), ms)
+      ),
+    ])
+  }
+
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
@@ -59,11 +68,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
+      const result = (await withTimeout(
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single(),
+        10000,
+        'Profile refresh'
+      )) as any
+
+      const { data, error } = result
 
       if (error) {
         console.error('Error fetching profile:', error)

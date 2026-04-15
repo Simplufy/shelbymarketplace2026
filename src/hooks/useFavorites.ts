@@ -144,6 +144,15 @@ export function useProfile() {
   const [updateError, setUpdateError] = useState<Error | null>(null)
   const supabase = createClient()
 
+  const withTimeout = async <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> => {
+    return Promise.race([
+      Promise.resolve(promise),
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`${label} timed out. Please try again.`)), ms)
+      ),
+    ])
+  }
+
   const updateProfile = async (updates: {
     first_name?: string
     last_name?: string
@@ -155,16 +164,32 @@ export function useProfile() {
       setIsUpdating(true)
       setUpdateError(null)
 
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await withTimeout(
+        supabase.auth.getUser(),
+        10000,
+        'Auth check'
+      )
       
       if (!user) {
         return { error: new Error('Must be logged in') }
       }
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
+      const sanitizedUpdates = {
+        ...updates,
+        first_name: updates.first_name?.trim(),
+        last_name: updates.last_name?.trim(),
+        phone: updates.phone?.trim(),
+        location: updates.location?.trim(),
+      }
+
+      const { error } = await withTimeout(
+        supabase
+          .from('profiles')
+          .update(sanitizedUpdates)
+          .eq('id', user.id),
+        12000,
+        'Profile save'
+      )
 
       if (error) {
         return { error }

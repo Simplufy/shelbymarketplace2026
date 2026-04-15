@@ -133,15 +133,23 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
-    const { error } = await updateProfile({
-      first_name: editForm.first_name,
-      last_name: editForm.last_name,
-      phone: editForm.phone,
-      location: editForm.user_location,
-    });
-    if (!error) {
+    try {
+      const { error } = await updateProfile({
+        first_name: editForm.first_name,
+        last_name: editForm.last_name,
+        phone: editForm.phone,
+        location: editForm.user_location,
+      });
+
+      if (error) {
+        alert(error.message || 'Failed to save profile changes');
+        return;
+      }
+
       await refreshProfile();
       setIsEditing(false);
+    } catch (error: any) {
+      alert(error?.message || 'Failed to save profile changes');
     }
   };
 
