@@ -93,63 +93,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
-      console.log('Signing up user:', email)
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
-          // Disable email confirmation for now (optional)
-          // emailRedirectTo: `${window.location.origin}/auth/callback`
-        },
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, firstName, lastName }),
       })
 
-      if (error) {
-        console.error('Signup error:', error)
-        return { error }
-      }
+      const result = await response.json()
 
-      console.log('Signup response:', data)
-
-      // Create profile
-      if (data.user) {
-        console.log('Creating profile for user:', data.user.id)
-        const { error: profileError } = await supabase.from('profiles').insert({
-          id: data.user.id,
-          email: data.user.email!,
-          first_name: firstName,
-          last_name: lastName,
-          role: 'BUYER',
-        })
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError)
-        } else {
-          console.log('Profile created successfully')
-        }
-
-        // Sync to Klaviyo list for lifecycle automation
-        try {
-          await fetch('/api/klaviyo/subscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email,
-              firstName,
-              lastName,
-              source: 'account_signup',
-              properties: {
-                role: 'BUYER',
-              },
-            }),
-          })
-        } catch (syncError) {
-          console.error('Klaviyo sync failed:', syncError)
-        }
+      if (!response.ok) {
+        return { error: new Error(result.error || 'Signup failed') }
       }
 
       return { error: null }

@@ -123,7 +123,7 @@ export default function AdminListings() {
       const listing = listings.find((l) => l.id === id);
       if (listing) {
         void trackClientEvent({
-          event: "Listing approved/published",
+          event: "Listing approved",
           profile: { external_id: listing.user_id, email: listing.seller_email },
           properties: {
             listing_id: listing.id,
@@ -211,7 +211,7 @@ export default function AdminListings() {
       if (error) throw error;
       for (const listing of listings.filter((l) => selectedListings.includes(l.id))) {
         void trackClientEvent({
-          event: "Listing approved/published",
+          event: "Listing approved",
           profile: { external_id: listing.user_id, email: listing.seller_email },
           properties: {
             listing_id: listing.id,

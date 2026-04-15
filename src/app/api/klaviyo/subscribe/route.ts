@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { subscribeKlaviyoEmail, trackKlaviyoEvent } from "@/lib/klaviyo/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const rate = checkRateLimit(req, "klaviyo-subscribe", { windowMs: 10 * 60 * 1000, max: 30 });
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many subscription attempts" }, { status: 429 });
+  }
+
   try {
     const body = await req.json();
     const { email, firstName, lastName, source, properties } = body;
@@ -27,6 +33,11 @@ export async function POST(req: NextRequest) {
         profile: { email, first_name: firstName, last_name: lastName },
         properties: {
           source: source || "website",
+          vehicle_name: null,
+          price: null,
+          image: null,
+          url: null,
+          location: null,
           ...(properties || {}),
         },
       });

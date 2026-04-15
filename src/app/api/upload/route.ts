@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const rate = checkRateLimit(req, "uploads", { windowMs: 60 * 1000, max: 30 });
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many uploads. Please wait and try again." }, { status: 429 });
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;

@@ -252,6 +252,13 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- Performance indexes for growth
+CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
+CREATE INDEX IF NOT EXISTS idx_listings_price ON listings(price);
+CREATE INDEX IF NOT EXISTS idx_listings_model ON listings(model);
+CREATE INDEX IF NOT EXISTS idx_listings_status_price ON listings(status, price);
+CREATE INDEX IF NOT EXISTS idx_listings_status_created_at ON listings(status, created_at DESC);
+
 -- Insert sample news articles
 INSERT INTO news_articles (title, excerpt, content, category, featured, read_time, published_at)
 VALUES 

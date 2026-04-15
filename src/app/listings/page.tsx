@@ -52,6 +52,9 @@ function ListingsContent() {
   const [priceMax, setPriceMax] = useState(500000);
   const [sortBy, setSortBy] = useState("newest");
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 24;
 
   useEffect(() => {
     fetchListings();
@@ -60,15 +63,29 @@ function ListingsContent() {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      // Use server API to avoid client-side Supabase issues
-      const res = await fetch('/api/debug-listings');
+      const cacheKey = 'shelby_listings_cache_v1';
+      const cachedRaw = typeof window !== 'undefined' ? sessionStorage.getItem(cacheKey) : null;
+      if (cachedRaw) {
+        try {
+          const cached = JSON.parse(cachedRaw);
+          if (Array.isArray(cached.data) && Date.now() - cached.ts < 120000) {
+            setListings(cached.data);
+            setLoading(false);
+          }
+        } catch {
+          // Ignore invalid cache payload
+        }
+      }
+
+      const res = await fetch('/api/listings?page=1&pageSize=1000');
       const result = await res.json();
 
-      console.log('API Response:', result);
-      
-      // Filter to ACTIVE
-      const activeListings = (result.data || []).filter((l: any) => l.status === 'ACTIVE');
+      const activeListings = result.data || [];
       setListings(activeListings);
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: activeListings }));
+      }
       
       if (result.error) {
         console.error('API error:', result.error);
@@ -81,6 +98,10 @@ function ListingsContent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedModels, selectedYears, selectedTrans, selectedDrivetrains, selectedMileage, priceMin, priceMax, sortBy]);
 
   const toggleFilter = (arr: string[], val: string, setter: (v: string[]) => void) => {
     setter(arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val]);
@@ -139,6 +160,10 @@ function ListingsContent() {
     if (sortBy === "miles-low") result.sort((a, b) => a.mileage - b.mileage);
     return result;
   }, [listings, selectedModels, selectedYears, selectedTrans, selectedDrivetrains, selectedMileage, priceMin, priceMax, sortBy, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedListings = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
 
   const clearAll = () => { 
     setSelectedModels([]); 
@@ -330,7 +355,7 @@ function ListingsContent() {
 
         {/* Car Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filtered.map(car => (
+          {paginatedListings.map(car => (
             <Link key={car.id} href={`/listings/${car.id}`} className="bg-white rounded-xl border border-[#dee1e6] overflow-hidden flex flex-col card-shadow">
               <div className="relative aspect-[1.6] bg-[#f3f4f6]">
                 <img 
@@ -393,12 +418,34 @@ function ListingsContent() {
           ))}
         </div>
 
-        {filtered.length === 0 && (
+         {filtered.length === 0 && (
           <div className="text-center py-20">
             <Search className="w-16 h-16 mx-auto mb-4 text-[#dee1e6]" />
             <h3 className="text-xl font-bold mb-2">No vehicles found</h3>
             <p className="text-[#565d6d] mb-6">Try adjusting your filters to see more results.</p>
             <button onClick={clearAll} className="px-6 py-3 bg-[#002D72] text-white font-bold rounded-lg">Clear All Filters</button>
+          </div>
+        )}
+
+        {filtered.length > ITEMS_PER_PAGE && (
+          <div className="mt-10 flex items-center justify-center gap-3">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="h-10 px-4 rounded-lg border border-[#dee1e6] text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-[#565d6d] font-medium">
+              Page {safePage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+              className="h-10 px-4 rounded-lg border border-[#dee1e6] text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
           </div>
         )}
       </div>

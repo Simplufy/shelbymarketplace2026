@@ -322,6 +322,10 @@ CREATE TRIGGER on_auth_user_created
 -- 20. CREATE INDEXES FOR BETTER PERFORMANCE
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
+CREATE INDEX IF NOT EXISTS idx_listings_price ON listings(price);
+CREATE INDEX IF NOT EXISTS idx_listings_model ON listings(model);
+CREATE INDEX IF NOT EXISTS idx_listings_status_price ON listings(status, price);
+CREATE INDEX IF NOT EXISTS idx_listings_status_created_at ON listings(status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_listings_user_id ON listings(user_id);
 CREATE INDEX IF NOT EXISTS idx_listings_is_featured ON listings(is_featured);
 CREATE INDEX IF NOT EXISTS idx_listing_images_listing_id ON listing_images(listing_id);

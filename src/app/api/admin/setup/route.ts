@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/admin/requireAdmin';
 
 export async function POST() {
   try {
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
+
     // Check environment variables at runtime
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey =

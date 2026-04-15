@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import Stripe from 'stripe';
+import { requireAdmin } from '@/lib/admin/requireAdmin';
 
 export async function GET() {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   const key = process.env.STRIPE_SECRET_KEY;
   
   console.log('Testing Stripe with key prefix:', key?.substring(0, 15));

@@ -54,6 +54,7 @@ export default function VehicleDetailPage() {
   const [sending, setSending] = useState(false);
   const [contactSent, setContactSent] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [leadWallEnabled, setLeadWallEnabled] = useState(true);
   
   const supabase = createClient();
   const listingId = params.id as string;
@@ -85,6 +86,24 @@ export default function VehicleDetailPage() {
       },
     });
   }, [listing, user?.email, user?.id]);
+
+  useEffect(() => {
+    const loadLeadWallSetting = async () => {
+      try {
+        const res = await fetch('/api/settings/public?keys=lead_wall_enabled');
+        if (!res.ok) return;
+        const payload = await res.json();
+        const value = payload?.data?.lead_wall_enabled;
+        if (typeof value === 'boolean') {
+          setLeadWallEnabled(value);
+        }
+      } catch {
+        // Keep secure default on network errors
+      }
+    };
+
+    void loadLeadWallSetting();
+  }, []);
 
   const fetchListing = async () => {
     try {
@@ -171,21 +190,23 @@ export default function VehicleDetailPage() {
     
     setSending(true);
     try {
-      // Store inquiry in database
-      const { error } = await supabase
-        .from('listing_inquiries')
-        .insert({
+      const response = await fetch('/api/listing-inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           listing_id: listingId,
           seller_id: listing.user_id,
-          buyer_name: contactForm.name,
-          buyer_email: contactForm.email,
-          buyer_phone: contactForm.phone || null,
+          name: contactForm.name,
+          email: contactForm.email,
+          phone: contactForm.phone,
           message: contactForm.message,
-          status: 'pending',
-          created_at: new Date().toISOString()
-        });
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || 'Failed to send inquiry');
+      }
 
       setContactSent(true);
       setTimeout(() => {
@@ -469,7 +490,7 @@ export default function VehicleDetailPage() {
                   <button 
                     onClick={() => {
                       void trackClientEvent({
-                        event: "Contact seller click",
+                        event: "Contact seller",
                         profile: {
                           email: user?.email,
                           external_id: user?.id,
@@ -488,7 +509,7 @@ export default function VehicleDetailPage() {
                         },
                       });
 
-                      if (!user) {
+                      if (leadWallEnabled && !user) {
                         router.push(`/login?redirect=/listings/${listingId}`);
                         return;
                       }
@@ -496,10 +517,10 @@ export default function VehicleDetailPage() {
                     }}
                     className="w-full h-12 bg-[#002D72] text-white font-bold rounded-md flex items-center justify-center gap-3 hover:bg-[#001D4A] transition-colors"
                   >
-                    <MessageSquare className="w-5 h-5" /> {user ? "Email Seller" : "Create Account to Contact Seller"}
+                    <MessageSquare className="w-5 h-5" /> {leadWallEnabled && !user ? "Create Account to Contact Seller" : "Email Seller"}
                   </button>
                   {car.seller_phone && (
-                    user ? (
+                    !leadWallEnabled || user ? (
                       <a 
                         href={`tel:${car.seller_phone}`}
                         className="w-full h-12 bg-white border border-[#dee1e6] font-semibold rounded-md flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
@@ -516,12 +537,17 @@ export default function VehicleDetailPage() {
                     )
                   )}
                 </div>
-                {!user ? (
+                {leadWallEnabled && !user ? (
                   <div className="mb-6 p-4 rounded-lg border border-[#E31837]/20 bg-[#E31837]/5">
                     <p className="text-sm font-semibold text-[#171a1f]">Lead Wall</p>
                     <p className="text-xs text-[#565d6d] mt-1">Create a free account to unlock seller contact details and get priority alerts.</p>
                   </div>
                 ) : null}
+                <div className="mb-6 p-4 rounded-lg border border-[#dee1e6] bg-[#fafafb]">
+                  <p className="text-xs text-[#565d6d] leading-relaxed">
+                    Ford ShelbyForSale.com is a marketplace platform that connects buyers and sellers. We do not own, inspect, or sell any vehicles listed on this site. All transactions occur directly between buyer and seller.
+                  </p>
+                </div>
                 <div className="pt-6 border-t border-[#f3f4f6] space-y-3">
                   <div className="flex items-center gap-2 text-xs text-[#565d6d]">
                     <MapPin className="w-3 h-3" /> {car.location || 'Location not specified'}

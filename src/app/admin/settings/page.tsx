@@ -16,6 +16,7 @@ interface SiteSettingsData {
   accentColor: string;
   enableRegistration: boolean;
   requireApproval: boolean;
+  leadWallEnabled: boolean;
   listingFee: string;
   featuredFee: string;
   homepageFee: string;
@@ -32,6 +33,7 @@ const defaultSettings: SiteSettingsData = {
   accentColor: "#E31837",
   enableRegistration: true,
   requireApproval: true,
+  leadWallEnabled: true,
   listingFee: "99",
   featuredFee: "149",
   homepageFee: "299",
@@ -98,6 +100,9 @@ export default function SettingsPage() {
             case "require_approval":
               loadedSettings.requireApproval = Boolean(value);
               break;
+            case "lead_wall_enabled":
+              loadedSettings.leadWallEnabled = Boolean(value);
+              break;
             case "listing_fee":
               loadedSettings.listingFee = String(value);
               break;
@@ -146,6 +151,7 @@ export default function SettingsPage() {
         { key: "accent_color", value: settings.accentColor },
         { key: "enable_registration", value: settings.enableRegistration },
         { key: "require_approval", value: settings.requireApproval },
+        { key: "lead_wall_enabled", value: settings.leadWallEnabled },
         { key: "listing_fee", value: settings.listingFee },
         { key: "featured_fee", value: settings.featuredFee },
         { key: "homepage_fee", value: settings.homepageFee }
@@ -516,6 +522,22 @@ export default function SettingsPage() {
                     type="checkbox"
                     checked={settings.requireApproval}
                     onChange={(e) => updateSetting("requireApproval", e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#002D72]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#002D72]"></div>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                <div>
+                  <h3 className="font-bold text-gray-900">Enable Lead Capture Wall</h3>
+                  <p className="text-sm text-gray-500">Require sign-in before showing seller contact details</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.leadWallEnabled}
+                    onChange={(e) => updateSetting("leadWallEnabled", e.target.checked)}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#002D72]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#002D72]"></div>

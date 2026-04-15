@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
           is_featured: featuredByPackage || featuredByAddon,
           transmission: vehicleData.transmission || 'Automatic',
           drivetrain: vehicleData.drivetrain || 'RWD',
+          engine: vehicleData.engine || null,
         })
         .select()
         .single();

@@ -111,7 +111,7 @@ export default function AdminDashboard() {
       const listing = listings.find((l) => l.id === id);
       if (listing) {
         void trackClientEvent({
-          event: "Listing approved/published",
+          event: "Listing approved",
           profile: { external_id: listing.user_id },
           properties: {
             listing_id: listing.id,

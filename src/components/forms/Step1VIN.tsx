@@ -18,6 +18,7 @@ export default function Step1VIN({ initialData, onNext }: any) {
     if (data.make) setValue("make", data.make);
     if (data.model) setValue("model", data.model);
     if (data.trim) setValue("trim", data.trim);
+    if (data.engine) setValue("engine", data.engine);
     setLoading(false);
   };
 
@@ -58,6 +59,10 @@ export default function Step1VIN({ initialData, onNext }: any) {
         <div>
           <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Trim (Optional)</label>
           <input type="text" {...register("trim")} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none transition-shadow text-sm" placeholder="e.g. GT350R" />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Engine</label>
+          <input type="text" {...register("engine")} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none transition-shadow text-sm" placeholder="Auto-filled from VIN" />
         </div>
       </div>
 

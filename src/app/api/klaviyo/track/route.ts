@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { subscribeKlaviyoEmail, trackKlaviyoEvent } from "@/lib/klaviyo/server";
 
+const EVENT_ALIASES: Record<string, string> = {
+  "Viewed Listing": "Viewed listing",
+  "Contact Seller Click": "Contact seller",
+  "Contact seller click": "Contact seller",
+  "Listing approved/published": "Listing approved",
+  "Listing Approved/Published": "Listing approved",
+};
+
+function normalizeProperties(properties: Record<string, unknown> = {}) {
+  return {
+    vehicle_name: properties.vehicle_name ?? properties.vehicleName ?? null,
+    price: properties.price ?? properties.new_price ?? null,
+    image: properties.image ?? properties.image_url ?? null,
+    url: properties.url ?? null,
+    location: properties.location ?? null,
+    ...properties,
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -10,15 +29,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing event" }, { status: 400 });
     }
 
+    const canonicalEvent = EVENT_ALIASES[event] || event;
+    const normalizedProperties = normalizeProperties(properties || {});
+
     const result = await trackKlaviyoEvent({
-      metricName: event,
+      metricName: canonicalEvent,
       profile: profile || {},
-      properties: properties || {},
+      properties: normalizedProperties,
     });
 
     const email = profile?.email as string | undefined;
     if (email) {
-      if (event === "Viewed listing" || event === "Viewed Listing") {
+      if (canonicalEvent === "Viewed listing") {
         await subscribeKlaviyoEmail({
           email,
           firstName: profile?.first_name,
@@ -26,12 +48,12 @@ export async function POST(req: NextRequest) {
           source: "listing_view",
           properties: {
             buyer_intent: true,
-            ...(properties || {}),
+            ...normalizedProperties,
           },
         });
       }
 
-      if (event === "Contact seller click" || event === "Contact Seller Click") {
+      if (canonicalEvent === "Contact seller") {
         await subscribeKlaviyoEmail({
           email,
           firstName: profile?.first_name,
@@ -39,28 +61,20 @@ export async function POST(req: NextRequest) {
           source: "high_intent_contact",
           properties: {
             high_intent: true,
-            ...(properties || {}),
+            ...normalizedProperties,
           },
         });
       }
 
-      if (
-        event === "New listing created" ||
-        event === "New Listing Created" ||
-        event === "Listing approved/published" ||
-        event === "Listing Approved/Published"
-      ) {
+      if (canonicalEvent === "New listing created" || canonicalEvent === "Listing approved") {
         await subscribeKlaviyoEmail({
           email,
           firstName: profile?.first_name,
           lastName: profile?.last_name,
-          source:
-            event === "New listing created" || event === "New Listing Created"
-              ? "seller_listing_submit"
-              : "listing_published",
+          source: canonicalEvent === "New listing created" ? "seller_listing_submit" : "listing_published",
           properties: {
             seller_activity: true,
-            ...(properties || {}),
+            ...normalizedProperties,
           },
         });
       }
