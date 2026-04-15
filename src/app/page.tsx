@@ -3,6 +3,7 @@ import {
   Search, Heart, ArrowRight, Calendar, Gauge, Zap, ExternalLink
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { trackKlaviyoEvent } from "@/lib/klaviyo/server";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
 
@@ -78,14 +79,27 @@ export default async function Home() {
   // Fetch featured listings from database
   const supabase = await createClient();
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const cmsReader =
+    supabaseUrl && serviceKey
+      ? createAdminClient(supabaseUrl, serviceKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        })
+      : supabase;
+
   // Load CMS-managed homepage content
   const cmsContent = { ...defaultCmsContent };
-  const { data: cmsRows } = await supabase
+  const { data: cmsRows, error: cmsError } = await cmsReader
     .from("site_content")
     .select("key, value")
     .eq("section", "homepage")
     .order("updated_at", { ascending: false })
     .in("key", ["hero", "featured_listings", "why_sell", "cta"]);
+
+  if (cmsError) {
+    console.error("Homepage CMS load failed:", cmsError.message);
+  }
 
   if (cmsRows && cmsRows.length > 0) {
     const seenKeys = new Set<string>();
