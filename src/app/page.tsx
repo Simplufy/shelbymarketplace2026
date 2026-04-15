@@ -568,33 +568,31 @@ export default async function Home() {
         </ScrollReveal>
       </section>
 
-      <section className="relative bg-[#001530] py-32 overflow-hidden">
+<section className="relative bg-[#001530] py-32 overflow-hidden">
         <ScrollReveal>
-          <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
-          <div>
-            <div className="flex items-center gap-4 mb-12">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
+          <div className="relative group order-1 lg:order-2">
+            <div className="absolute -inset-1 bg-white/10 rounded-[32px] blur-xl group-hover:bg-[#E31837]/20 transition-all duration-500" />
+            <div className="relative h-[300px] lg:h-[480px] rounded-3xl overflow-hidden border-4 border-white/10 shadow-2xl">
+              <img src={cmsContent.ctaImage} className="w-full h-full object-cover" alt="Dream Shelby" />
+              <div className="absolute inset-0 bg-[#002D72]/20 mix-blend-overlay" />
+            </div>
+          </div>
+          <div className="order-2 lg:order-1">
+            <div className="flex items-center gap-4 mb-6 lg:mb-12">
               <div className="w-12 h-12 bg-[#E31837] rounded-full flex items-center justify-center"><span className="text-white font-bold text-xl">S</span></div>
               <span className="text-sm font-black text-white/60 uppercase tracking-[4px]">Ready to Ride?</span>
             </div>
-            <h2 className="text-white font-outfit font-black text-3xl sm:text-5xl md:text-6xl leading-[0.95] uppercase tracking-tighter mb-10 break-words">
+            <h2 className="text-white font-outfit font-black text-3xl sm:text-5xl md:text-6xl leading-[0.95] uppercase tracking-tighter mb-6 lg:mb-10 break-words">
               {cmsContent.ctaTitle}
             </h2>
-            <p className="text-[#9CA3AF] font-outfit text-xl max-w-lg mb-12 leading-relaxed">
+            <p className="text-[#9CA3AF] font-outfit text-xl max-w-lg mb-8 lg:mb-12 leading-relaxed">
               {cmsContent.ctaSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/listings" className="px-12 py-5 bg-[#002D72] text-white font-black rounded-2xl shadow-2xl shadow-[#002D72]/30 hover:bg-[#001D4A] transition-all text-center">Browse All Inventory</Link>
               <Link href="/sell" className="px-12 py-5 bg-white text-[#323743] font-black rounded-2xl border border-white/20 hover:bg-gray-100 transition-all text-center">Sell Your Shelby</Link>
-            </div>
-          </div>
-          <div className="relative group">
-            <div className="absolute -inset-1 bg-white/10 rounded-[32px] blur-xl group-hover:bg-[#E31837]/20 transition-all duration-500" />
-            <div className="relative h-[480px] rounded-3xl overflow-hidden border-4 border-white/10 shadow-2xl">
-              <img src={cmsContent.ctaImage} className="w-full h-full object-cover" alt="Dream Shelby" />
-              <div className="absolute inset-0 bg-[#002D72]/20 mix-blend-overlay" />
-            </div>
-          </div>
-          </div>
+</div>
         </ScrollReveal>
       </section>
     </div>
