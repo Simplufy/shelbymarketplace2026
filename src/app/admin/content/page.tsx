@@ -200,23 +200,17 @@ export default function ContentManager() {
 
   const loadListings = async () => {
     try {
-      const { data, error } = await supabase
-        .from("listings")
-        .select("id, year, make, model, price, primary_image_url")
-        .eq("status", "ACTIVE")
-        .order("created_at", { ascending: false })
-        .limit(20);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const res = await fetch("/api/admin/active-listings", { signal: controller.signal });
+      clearTimeout(timeout);
 
-      if (error) throw error;
-
-      if (data) {
-        setListings(data.map(l => ({
-          id: l.id,
-          title: `${l.year} ${l.make} ${l.model}`,
-          price: l.price,
-          image: l.primary_image_url || "/images/logo.png"
-        })));
+      const result = await res.json();
+      if (!res.ok || result.error) {
+        throw new Error(result.error || "Failed to load active listings");
       }
+
+      setListings(result.data || []);
     } catch (error) {
       console.error("Error loading listings:", error);
     }

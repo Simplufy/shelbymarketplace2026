@@ -47,40 +47,24 @@ export default function AdminDashboard() {
   const loadListings = async () => {
     setLoading(true);
     try {
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
-      );
-      
-      const queryPromise = supabase
-        .from("listings")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
 
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+      const res = await fetch("/api/admin/dashboard", { signal: controller.signal });
+      clearTimeout(timeout);
 
-      if (error) throw error;
-
-      if (data) {
-        const listingsWithDetails: ListingWithDetails[] = data.map((listing: any) => ({
-          ...listing,
-          seller_name: "Private Seller",
-          seller_type: "private",
-          dealership_name: null,
-          primary_image_url: null,
-          date_display: getTimeAgo(listing.created_at)
-        }));
-        setListings(listingsWithDetails);
-        
-        // Calculate stats
-        setStats({
-          total: listingsWithDetails.length,
-          pending: listingsWithDetails.filter(l => l.status === "PENDING").length,
-          active: listingsWithDetails.filter(l => l.status === "ACTIVE").length,
-          featured: listingsWithDetails.filter(l => l.is_featured).length
-        });
+      const result = await res.json();
+      if (!res.ok || result.error) {
+        throw new Error(result.error || "Failed to load dashboard");
       }
+
+      const listingsWithDetails: ListingWithDetails[] = (result.data || []).map((listing: any) => ({
+        ...listing,
+        date_display: getTimeAgo(listing.created_at),
+      }));
+
+      setListings(listingsWithDetails);
+      setStats(result.stats || { total: 0, pending: 0, active: 0, featured: 0 });
     } catch (error: any) {
       console.error("Error loading listings:", error);
       // Set empty state on error to prevent infinite loading
