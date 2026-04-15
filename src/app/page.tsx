@@ -235,9 +235,17 @@ export default async function Home() {
   const { data: newsItems } = await supabase
     .from('news_articles')
     .select('*')
-    .eq('status', 'PUBLISHED')
+    .in('status', ['published', 'PUBLISHED'])
     .order('published_at', { ascending: false })
     .limit(3);
+
+  const latestNews = [...(newsItems || [])].sort((a: any, b: any) => {
+    const aTime = new Date(a.published_at || a.created_at || 0).getTime();
+    const bTime = new Date(b.published_at || b.created_at || 0).getTime();
+    return bTime - aTime;
+  });
+  const mainArticle = latestNews[0] || null;
+  const sideArticles = latestNews.slice(1, 3);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -253,8 +261,8 @@ export default async function Home() {
       <section className="relative h-[70vh] min-h-[560px] bg-[#0F172A] overflow-hidden">
         <img src={cmsContent.hero.heroImage} className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
         <div className="absolute inset-0 bg-black/40" />
-        <ScrollReveal>
-          <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 h-full flex flex-col justify-center">
+        <ScrollReveal className="h-full">
+          <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 h-full pt-20 md:pt-24 pb-6 flex flex-col justify-center">
           <div className="inline-flex items-center px-4 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-4 self-start">
             <span className="text-xs font-bold text-white uppercase tracking-wider">{cmsContent.hero.badge}</span>
           </div>
@@ -518,23 +526,32 @@ export default async function Home() {
         </ScrollReveal>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-7">
-            <div className="relative h-[430px] rounded-3xl overflow-hidden mb-8 shadow-lg">
-              <img src="/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg" className="w-full h-full object-cover" alt="Main Story" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute top-6 left-6"><span className="px-5 py-1.5 bg-white text-[10px] font-black rounded-full uppercase">Review</span></div>
-            </div>
-            <h3 className="text-2xl md:text-4xl font-black tracking-tighter mb-4 leading-tight break-words">The Evolution of the Shelby Super Snake: 800+ HP for the Street</h3>
-            <p className="text-[#565d6d] text-lg mb-6 leading-relaxed">Carroll Shelby&apos;s legacy continues with the boldest Super Snake yet. We go under the hood of the new S650-based monster.</p>
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-bold text-[#565d6d] uppercase tracking-widest">March 24, 2024</span>
-              <div className="w-1 h-1 bg-[#dee1e6] rounded-full" />
-              <Link href="/news" className="flex items-center gap-2 text-xs font-extrabold text-[#002D72] uppercase tracking-widest hover:underline">Read Story <ArrowRight className="w-3 h-3" /></Link>
-            </div>
+            {mainArticle ? (
+              <>
+                <div className="relative h-[430px] rounded-3xl overflow-hidden mb-8 shadow-lg">
+                  <img src={mainArticle.image_url || '/images/logo.png'} className="w-full h-full object-cover" alt={mainArticle.title} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute top-6 left-6"><span className="px-5 py-1.5 bg-white text-[10px] font-black rounded-full uppercase">{mainArticle.category || 'News'}</span></div>
+                </div>
+                <h3 className="text-2xl md:text-4xl font-black tracking-tighter mb-4 leading-tight break-words">{mainArticle.title}</h3>
+                <p className="text-[#565d6d] text-lg mb-6 leading-relaxed">{mainArticle.excerpt || 'Read the latest Shelby insights and market updates.'}</p>
+                <div className="flex items-center gap-4">
+                  <span className="text-xs font-bold text-[#565d6d] uppercase tracking-widest">{new Date(mainArticle.published_at || mainArticle.created_at).toLocaleDateString()}</span>
+                  <div className="w-1 h-1 bg-[#dee1e6] rounded-full" />
+                  <Link href="/news" className="flex items-center gap-2 text-xs font-extrabold text-[#002D72] uppercase tracking-widest hover:underline">Read Story <ArrowRight className="w-3 h-3" /></Link>
+                </div>
+              </>
+            ) : (
+              <div className="rounded-3xl border border-[#dee1e6] p-8 bg-gray-50">
+                <h3 className="text-2xl font-black tracking-tight mb-2">Performance reports are coming soon</h3>
+                <p className="text-[#565d6d]">Publish an article in Admin → News to feature it here.</p>
+              </div>
+            )}
           </div>
           <div className="lg:col-span-5 flex flex-col gap-8">
-            {newsItems && newsItems.slice(0, 2).map((item) => (
-              <Link key={item.id} href={`/news/${item.slug}`} className="flex gap-6 group cursor-pointer">
-                <div className="w-32 h-32 rounded-2xl overflow-hidden shrink-0 shadow-sm"><img src={item.featured_image || '/images/logo.png'} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt={item.title} /></div>
+            {sideArticles.map((item: any) => (
+              <Link key={item.id} href="/news" className="flex gap-6 group cursor-pointer">
+                <div className="w-32 h-32 rounded-2xl overflow-hidden shrink-0 shadow-sm"><img src={item.image_url || '/images/logo.png'} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt={item.title} /></div>
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-[9px] font-black text-[#E31837] uppercase tracking-widest">{item.category}</span>
