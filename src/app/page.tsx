@@ -232,18 +232,20 @@ export default async function Home() {
     console.error("Failed to send inventory events:", err);
   }
 
-  const { data: newsItems } = await supabase
+  const { data: rawNewsItems } = await cmsReader
     .from('news_articles')
     .select('*')
-    .in('status', ['published', 'PUBLISHED'])
-    .order('published_at', { ascending: false })
-    .limit(3);
+    .order('created_at', { ascending: false })
+    .limit(20);
 
-  const latestNews = [...(newsItems || [])].sort((a: any, b: any) => {
+  const latestNews = [...(rawNewsItems || [])]
+    .filter((item: any) => String(item.status || '').toLowerCase() === 'published')
+    .sort((a: any, b: any) => {
     const aTime = new Date(a.published_at || a.created_at || 0).getTime();
     const bTime = new Date(b.published_at || b.created_at || 0).getTime();
     return bTime - aTime;
-  });
+  })
+    .slice(0, 3);
   const mainArticle = latestNews[0] || null;
   const sideArticles = latestNews.slice(1, 3);
 
@@ -261,8 +263,7 @@ export default async function Home() {
       <section className="relative h-[70vh] min-h-[560px] bg-[#0F172A] overflow-hidden">
         <img src={cmsContent.hero.heroImage} className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
         <div className="absolute inset-0 bg-black/40" />
-        <ScrollReveal className="h-full">
-          <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 h-full pt-20 md:pt-24 pb-6 flex flex-col justify-center">
+        <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 h-full pt-24 md:pt-28 pb-6 flex flex-col justify-center">
           <div className="inline-flex items-center px-4 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-4 self-start">
             <span className="text-xs font-bold text-white uppercase tracking-wider">{cmsContent.hero.badge}</span>
           </div>
@@ -289,8 +290,7 @@ export default async function Home() {
               {cmsContent.hero.ctaText}
             </button>
           </form>
-          </div>
-        </ScrollReveal>
+        </div>
       </section>
 
       {/* Quick Discovery */}
