@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Plus, Search, Edit2, Trash2, Eye, Calendar, Clock,
+  Plus, Search, Edit2, Trash2, Eye, Calendar, Clock, Star,
   Loader2
 } from "lucide-react";
 import Link from "next/link";
@@ -95,6 +95,26 @@ export default function NewsManager() {
     } catch (error) {
       console.error("Error updating article:", error);
       alert("Failed to update article");
+    }
+  };
+
+  const handleSetFeatured = async (id: string) => {
+    try {
+      await supabase
+        .from("news_articles")
+        .update({ featured: false })
+        .eq("featured", true);
+
+      const { error } = await supabase
+        .from("news_articles")
+        .update({ featured: true })
+        .eq("id", id);
+
+      if (error) throw error;
+      await loadArticles();
+    } catch (error) {
+      console.error("Error setting featured article:", error);
+      alert("Failed to set featured article");
     }
   };
 
@@ -340,6 +360,17 @@ export default function NewsManager() {
                     >
                       <Edit2 className="w-4 h-4" />
                     </Link>
+                    <button
+                      onClick={() => handleSetFeatured(article.id)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        article.featured
+                          ? "text-[#E31837] bg-red-50"
+                          : "text-gray-400 hover:text-[#E31837] hover:bg-red-50"
+                      }`}
+                      title={article.featured ? "Featured article" : "Set as featured"}
+                    >
+                      <Star className={`w-4 h-4 ${article.featured ? "fill-current" : ""}`} />
+                    </button>
                     <button
                       onClick={() => handleDelete(article.id)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
