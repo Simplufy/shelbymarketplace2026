@@ -7,6 +7,99 @@ type ArticlePageProps = {
   params: Promise<{ slug: string }>;
 };
 
+function parseMarkdownLine(line: string, key: number) {
+  const trimmed = line.trim();
+
+  if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+    const text = trimmed.slice(2);
+    return (
+      <li key={key} className="mb-2 ml-4 list-disc">
+        {parseInlineMarkdown(text)}
+      </li>
+    );
+  }
+
+  if (trimmed.startsWith("### ")) {
+    return (
+      <h3 key={key} className="text-xl font-bold mt-6 mb-3">
+        {parseInlineMarkdown(trimmed.slice(4))}
+      </h3>
+    );
+  }
+
+  if (trimmed.startsWith("## ")) {
+    return (
+      <h2 key={key} className="text-2xl font-bold mt-8 mb-4">
+        {parseInlineMarkdown(trimmed.slice(3))}
+      </h2>
+    );
+  }
+
+  if (trimmed.startsWith("# ")) {
+    return (
+      <h1 key={key} className="text-3xl font-black mt-8 mb-4">
+        {parseInlineMarkdown(trimmed.slice(2))}
+      </h1>
+    );
+  }
+
+  return (
+    <p key={key} className="mb-6">
+      {parseInlineMarkdown(trimmed)}
+    </p>
+  );
+}
+
+function parseInlineMarkdown(text: string) {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+
+  while (remaining.length > 0) {
+    const boldMatch = remaining.match(/\*\*(.+?)\*\*/);
+    const italicMatch = remaining.match(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/);
+    const linkMatch = remaining.match(/\[(.+?)\]\((.+?)\)/);
+
+    type Match = { type: string; index: number; length: number; content: string; extra?: string };
+    let firstMatch: Match | null = null;
+
+    if (boldMatch) {
+      firstMatch = { type: "bold", index: boldMatch.index!, length: boldMatch[0].length, content: boldMatch[1] };
+    }
+    if (italicMatch && (!firstMatch || italicMatch.index! < firstMatch.index)) {
+      firstMatch = { type: "italic", index: italicMatch.index!, length: italicMatch[0].length, content: italicMatch[1] };
+    }
+    if (linkMatch && (!firstMatch || linkMatch.index! < firstMatch.index)) {
+      firstMatch = { type: "link", index: linkMatch.index!, length: linkMatch[0].length, content: linkMatch[1], extra: linkMatch[2] };
+    }
+
+    if (!firstMatch) {
+      parts.push(remaining);
+      break;
+    }
+
+    if (firstMatch.index > 0) {
+      parts.push(remaining.slice(0, firstMatch.index));
+    }
+
+    if (firstMatch.type === "bold") {
+      parts.push(<strong key={key++}>{firstMatch.content}</strong>);
+    } else if (firstMatch.type === "italic") {
+      parts.push(<em key={key++}>{firstMatch.content}</em>);
+    } else if (firstMatch.type === "link") {
+      parts.push(
+        <a key={key++} href={firstMatch.extra} target="_blank" rel="noopener noreferrer" className="text-[#002D72] underline">
+          {firstMatch.content}
+        </a>
+      );
+    }
+
+    remaining = remaining.slice(firstMatch.index + firstMatch.length);
+  }
+
+  return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : parts;
+}
+
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
   const supabase = await createClient();
@@ -60,10 +153,46 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     );
   }
 
-  const contentBlocks = String(article.content || "")
-    .split("\n")
-    .map((block) => block.trim())
-    .filter(Boolean);
+  const contentLines = String(article.content || "").split("\n");
+
+  const renderedContent: React.ReactNode[] = [];
+  let inList = false;
+  let listItems: React.ReactNode[] = [];
+  let listKey = 0;
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      renderedContent.push(
+        <ul key={`list-${listKey++}`} className="list-disc ml-6 mb-6 space-y-2">
+          {listItems}
+        </ul>
+      );
+      listItems = [];
+      inList = false;
+    }
+  };
+
+  contentLines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushList();
+      return;
+    }
+
+    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      inList = true;
+      const text = trimmed.slice(2);
+      listItems.push(
+        <li key={`item-${idx}`} className="ml-2">
+          {parseInlineMarkdown(text)}
+        </li>
+      );
+    } else {
+      flushList();
+      renderedContent.push(parseMarkdownLine(line, idx));
+    }
+  });
+  flushList();
 
   const { data: relatedRows } = await reader
     .from("news_articles")
@@ -103,12 +232,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
 
           <div className="prose prose-lg max-w-none prose-p:text-[#202631] prose-p:leading-8">
-            {contentBlocks.length > 0 ? (
-              contentBlocks.map((block, idx) => (
-                <p key={idx} className="mb-6 whitespace-pre-wrap">
-                  {block}
-                </p>
-              ))
+            {renderedContent.length > 0 ? (
+              renderedContent
             ) : (
               <p className="text-[#565d6d]">No article body available.</p>
             )}
