@@ -45,8 +45,9 @@ function LoginForm() {
     }
 
     console.log('Login successful');
-    router.push(redirect);
-    router.refresh();
+    setTimeout(() => {
+      window.location.assign(redirect);
+    }, 150);
   };
 
   return (
