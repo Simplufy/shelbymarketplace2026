@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -21,6 +21,7 @@ export default function EditArticlePage() {
   const router = useRouter();
   const supabase = createClient();
   const articleId = params.id as string;
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const [title, setTitle] = useState('');
   const [excerpt, setExcerpt] = useState('');
@@ -59,6 +60,47 @@ export default function EditArticlePage() {
     setLoading(false);
   };
 
+  const wrapSelection = (before: string, after: string, placeholder: string) => {
+    const textarea = contentRef.current;
+    if (!textarea) {
+      setContent(prev => prev + before + placeholder + after);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    const textToWrap = selectedText || placeholder;
+    const newValue = content.substring(0, start) + before + textToWrap + after + content.substring(end);
+    setContent(newValue);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const cursorStart = start + before.length;
+      const cursorEnd = cursorStart + textToWrap.length;
+      textarea.setSelectionRange(selectedText ? cursorEnd : cursorStart, selectedText ? cursorEnd : cursorEnd);
+    });
+  };
+
+  const insertAtCursor = (text: string) => {
+    const textarea = contentRef.current;
+    if (!textarea) {
+      setContent(prev => prev + text);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newValue = content.substring(0, start) + text + content.substring(end);
+    setContent(newValue);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newPos = start + text.length;
+      textarea.setSelectionRange(newPos, newPos);
+    });
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -82,10 +124,14 @@ export default function EditArticlePage() {
   };
 
   const insertLink = () => {
+    const textarea = contentRef.current;
+    const selectedText = textarea ? content.substring(textarea.selectionStart, textarea.selectionEnd) : '';
+
     const url = prompt('Enter URL:');
     if (!url) return;
-    const linkText = prompt('Enter link text (optional):') || url;
-    setContent((prev) => prev + `[${linkText}](${url})`);
+
+    const linkText = selectedText || prompt('Enter link text (optional):') || url;
+    insertAtCursor(`[${linkText}](${url})`);
   };
 
   const handleSave = async (status: 'draft' | 'published') => {
@@ -167,13 +213,14 @@ export default function EditArticlePage() {
               <div className="flex items-center justify-between mb-4">
                 <label className="text-sm font-bold text-gray-700">Content (Markdown)</label>
                 <div className="flex gap-2">
-                  <button onClick={() => setContent((prev) => prev + '**bold text**')} className="p-2 hover:bg-gray-100 rounded"><Bold className="w-4 h-4" /></button>
-                  <button onClick={() => setContent((prev) => prev + '*italic text*')} className="p-2 hover:bg-gray-100 rounded"><Italic className="w-4 h-4" /></button>
-                  <button onClick={() => setContent((prev) => prev + '\n- List item')} className="p-2 hover:bg-gray-100 rounded"><List className="w-4 h-4" /></button>
+                  <button onClick={() => wrapSelection('**', '**', 'bold text')} className="p-2 hover:bg-gray-100 rounded"><Bold className="w-4 h-4" /></button>
+                  <button onClick={() => wrapSelection('*', '*', 'italic text')} className="p-2 hover:bg-gray-100 rounded"><Italic className="w-4 h-4" /></button>
+                  <button onClick={() => insertAtCursor('\n- List item')} className="p-2 hover:bg-gray-100 rounded"><List className="w-4 h-4" /></button>
                   <button onClick={insertLink} className="p-2 hover:bg-gray-100 rounded"><LinkIcon className="w-4 h-4" /></button>
                 </div>
               </div>
               <textarea
+                ref={contentRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={14}

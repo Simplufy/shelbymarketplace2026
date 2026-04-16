@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -12,6 +12,7 @@ import {
 export default function NewArticle() {
   const router = useRouter();
   const supabase = createClient();
+  const contentRef = useRef<HTMLTextAreaElement>(null);
   
   const [title, setTitle] = useState('');
   const [excerpt, setExcerpt] = useState('');
@@ -28,6 +29,47 @@ export default function NewArticle() {
   const getCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
+  };
+
+  const wrapSelection = (before: string, after: string, placeholder: string) => {
+    const textarea = contentRef.current;
+    if (!textarea) {
+      setContent(prev => prev + before + placeholder + after);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    const textToWrap = selectedText || placeholder;
+    const newValue = content.substring(0, start) + before + textToWrap + after + content.substring(end);
+    setContent(newValue);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const cursorStart = start + before.length;
+      const cursorEnd = cursorStart + textToWrap.length;
+      textarea.setSelectionRange(selectedText ? cursorEnd : cursorStart, selectedText ? cursorEnd : cursorEnd);
+    });
+  };
+
+  const insertAtCursor = (text: string) => {
+    const textarea = contentRef.current;
+    if (!textarea) {
+      setContent(prev => prev + text);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newValue = content.substring(0, start) + text + content.substring(end);
+    setContent(newValue);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newPos = start + text.length;
+      textarea.setSelectionRange(newPos, newPos);
+    });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,12 +100,15 @@ export default function NewArticle() {
   };
 
   const insertLink = () => {
+    const textarea = contentRef.current;
+    const selectedText = textarea ? content.substring(textarea.selectionStart, textarea.selectionEnd) : '';
+
     const url = prompt('Enter URL:');
-    if (url) {
-      const linkText = prompt('Enter link text (optional - leave blank to use URL):') || url;
-      const linkMarkdown = `[${linkText}](${url})`;
-      setContent(prev => prev + linkMarkdown);
-    }
+    if (!url) return;
+
+    const linkText = selectedText || prompt('Enter link text (optional - leave blank to use URL):') || url;
+    const linkMarkdown = `[${linkText}](${url})`;
+    insertAtCursor(linkMarkdown);
   };
 
   const handleSave = async (status: 'draft' | 'published') => {
@@ -187,7 +232,7 @@ export default function NewArticle() {
             <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg mb-3">
               <button
                 type="button"
-                onClick={() => setContent(prev => prev + '**bold text**')}
+                onClick={() => wrapSelection('**', '**', 'bold text')}
                 className="p-2 hover:bg-gray-200 rounded font-bold"
                 title="Bold"
               >
@@ -195,7 +240,7 @@ export default function NewArticle() {
               </button>
               <button
                 type="button"
-                onClick={() => setContent(prev => prev + '*italic text*')}
+                onClick={() => wrapSelection('*', '*', 'italic text')}
                 className="p-2 hover:bg-gray-200 rounded italic"
                 title="Italic"
               >
@@ -203,7 +248,7 @@ export default function NewArticle() {
               </button>
               <button
                 type="button"
-                onClick={() => setContent(prev => prev + '\n- List item\n- List item\n- List item')}
+                onClick={() => insertAtCursor('\n- List item')}
                 className="p-2 hover:bg-gray-200 rounded"
                 title="Bullet List"
               >
@@ -222,6 +267,7 @@ export default function NewArticle() {
             </div>
 
             <textarea
+              ref={contentRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your article content here...\n\nUse markdown formatting:\n**bold** for bold text\n*italic* for italic text\n[link text](https://example.com) for links"
