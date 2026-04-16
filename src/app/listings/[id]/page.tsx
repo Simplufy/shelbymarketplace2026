@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { ChevronRight, Share2, Calendar, Gauge, Zap, Palette, ShieldCheck, Copy, Check, Star, MapPin, Phone, MessageSquare, Loader2, Printer } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareModal } from "@/components/ShareModal";
-import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackClientEvent } from "@/lib/klaviyo/client";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
@@ -56,7 +55,6 @@ export default function VehicleDetailPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [leadWallEnabled, setLeadWallEnabled] = useState(true);
   
-  const supabase = createClient();
   const listingId = params.id as string;
 
   useEffect(() => {
@@ -108,66 +106,19 @@ export default function VehicleDetailPage() {
   const fetchListing = async () => {
     try {
       setLoading(true);
-      
-      // Get listing details
-      const { data: listingData, error: listingError } = await supabase
-        .from('listings')
-        .select('*')
-        .eq('id', listingId)
-        .single();
+      setError(null);
 
-      if (listingError) throw listingError;
-      if (!listingData) {
-        setError('Listing not found');
-        return;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      const response = await fetch(`/api/listings/${listingId}`, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      const payload = await response.json();
+      if (!response.ok || !payload?.data) {
+        throw new Error(payload?.error || 'Failed to load listing');
       }
 
-      // Get images
-      const { data: imagesData } = await supabase
-        .from('listing_images')
-        .select('url, is_primary')
-        .eq('listing_id', listingId)
-        .order('order_index', { ascending: true });
-
-      // Get features
-      const { data: featuresData } = await supabase
-        .from('listing_features')
-        .select('feature')
-        .eq('listing_id', listingId);
-
-      // Get seller profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, email, phone, avatar_url')
-        .eq('id', listingData.user_id)
-        .single();
-
-      // Get dealer info if applicable
-      let dealershipName = null;
-      let sellerRating = null;
-      if (profileData) {
-        const { data: dealerData } = await supabase
-          .from('dealer_profiles')
-          .select('dealership_name, rating')
-          .eq('user_id', listingData.user_id)
-          .single();
-        dealershipName = dealerData?.dealership_name;
-        sellerRating = dealerData?.rating;
-      }
-
-      setListing({
-        ...listingData,
-        seller_name: profileData 
-          ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Private Seller'
-          : 'Private Seller',
-        seller_email: profileData?.email || '',
-        seller_phone: profileData?.phone,
-        seller_avatar: profileData?.avatar_url,
-        dealership_name: dealershipName,
-        seller_rating: sellerRating,
-        images: imagesData || [],
-        features: featuresData?.map(f => f.feature) || []
-      });
+      setListing(payload.data as ListingDetail);
     } catch (err: unknown) {
       console.error('Error fetching listing:', err);
       setError(err instanceof Error ? err.message : "Failed to load listing");
