@@ -357,7 +357,7 @@ function ListingsContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {paginatedListings.map(car => (
             <Link key={car.id} href={`/listings/${car.id}`} className="bg-white rounded-xl border border-[#dee1e6] overflow-hidden flex flex-col card-shadow">
-              <div className="relative aspect-[1.6] bg-[#f3f4f6]">
+              <div className="relative h-56 bg-[#f3f4f6]">
                 <img 
                   src={car.primary_image_url || '/images/logo.png'} 
                   className="w-full h-full object-cover" 
