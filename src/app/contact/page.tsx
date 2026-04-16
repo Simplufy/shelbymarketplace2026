@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Mail, Phone, Loader2, Send } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { ArrowLeft, Mail, Loader2, Send } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const REASONS = [
@@ -18,9 +16,7 @@ const REASONS = [
 ];
 
 export default function ContactPage() {
-  const router = useRouter();
   const { user, profile } = useAuth();
-  const supabase = createClient();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -49,18 +45,23 @@ export default function ContactPage() {
 
     setSending(true);
     try {
-      const { error } = await supabase.from("contact_submissions").insert({
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.trim().toLowerCase(),
-        phone: phone.trim() || null,
-        reason,
-        message: message.trim(),
-        user_id: user?.id || null,
-        created_at: new Date().toISOString(),
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.trim() || null,
+          reason,
+          message: message.trim(),
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || "Failed to send message");
+      }
 
       setSent(true);
     } catch (err: any) {
