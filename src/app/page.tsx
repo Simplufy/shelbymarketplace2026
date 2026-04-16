@@ -76,25 +76,25 @@ const defaultCmsContent = {
       num: "01",
       title: "Verified Shelby Inventory",
       description:
-        "Every listing is reviewed for authenticity and quality so you can shop with confidence instead of guessing.",
+        "Every listing undergoes our rigorous authenticity review before going live. You can browse with confidence knowing each vehicle has been vetted, so you never waste time on questionable listings or misrepresented builds.",
     },
     {
       num: "02",
       title: "Real Market Pricing",
       description:
-        "Compare active listings in one place and quickly identify fair-market opportunities for your target model.",
+        "Compare active Shelby listings side by side and quickly identify fair-market value for your target model. No guesswork, no inflated dealer markups—just transparent pricing from real sellers in the market right now.",
     },
     {
       num: "03",
       title: "Direct Seller Contact",
       description:
-        "Message verified sellers instantly and get answers about history, options, and condition before you commit.",
+        "Message verified sellers instantly and get detailed answers about vehicle history, options, and condition before you commit. No middleman, no delays—just direct communication with the person who knows the car best.",
     },
     {
       num: "04",
       title: "Collector-Focused Search",
       description:
-        "Filter by trim, year, transmission, mileage, and location to find the exact Shelby spec you want.",
+        "Filter by trim, year, transmission, drivetrain, mileage, and location to find the exact Shelby spec you want. Our search tools are built by enthusiasts, for enthusiasts, so every filter matters to real buyers.",
     },
   ] as WhySellReason[],
   ctaTitle: "FIND THE SPEC NOBODY ELSE CAN.",
