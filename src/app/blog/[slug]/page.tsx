@@ -194,15 +194,21 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   });
   flushList();
 
-  const { data: relatedRows, error: relatedError } = await reader
+  const { data: allPublished, error: relatedError } = await reader
     .from("news_articles")
     .select("id, slug, title, image_url, published_at, created_at")
     .eq("status", "published")
-    .neq("id", article.id)
     .order("published_at", { ascending: false })
-    .limit(8);
+    .limit(20);
 
-  console.log("Related articles query:", { count: relatedRows?.length, error: relatedError?.message });
+  const relatedRows = (allPublished || []).filter((a: any) => a.id !== article.id).slice(0, 8);
+
+  console.log("Related articles debug:", { 
+    allCount: allPublished?.length, 
+    relatedCount: relatedRows.length, 
+    error: relatedError?.message,
+    hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY 
+  });
 
   return (
     <div className="min-h-screen bg-white">
