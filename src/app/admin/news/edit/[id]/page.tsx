@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import {
   ArrowLeft,
   Image as ImageIcon,
@@ -19,7 +18,6 @@ import {
 export default function EditArticlePage() {
   const params = useParams();
   const router = useRouter();
-  const supabase = createClient();
   const articleId = params.id as string;
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
@@ -39,14 +37,14 @@ export default function EditArticlePage() {
   const loadArticle = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('news_articles')
-        .select('*')
-        .eq('id', articleId)
-        .single();
+      const response = await fetch(`/api/articles?id=${articleId}`);
+      const payload = await response.json();
 
-      if (error) throw error;
+      if (!response.ok || !payload?.data) {
+        throw new Error(payload?.error || 'Article not found');
+      }
 
+      const data = payload.data;
       setTitle(data.title || '');
       setExcerpt(data.excerpt || '');
       setContent(data.content || '');
@@ -142,22 +140,24 @@ export default function EditArticlePage() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('news_articles')
-        .update({
-          title: title.trim(),
-          excerpt: excerpt.trim() || `${content.slice(0, 200)}...`,
-          content: content.trim(),
+      const response = await fetch('/api/articles', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: articleId,
+          title,
+          excerpt,
+          content,
           category,
           image_url: featuredImage,
           status,
-          read_time: `${Math.ceil(content.split(' ').length / 200)} min read`,
-          published_at: status === 'published' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', articleId);
+        }),
+      });
 
-      if (error) throw error;
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to update article');
+      }
 
       alert('Article updated successfully!');
       router.push('/admin/news');

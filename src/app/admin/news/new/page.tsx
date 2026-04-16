@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { 
   ArrowLeft, Image as ImageIcon, Type, FileText, Save, Loader2, 
   Link as LinkIcon, Bold, Italic, List, Eye
@@ -11,7 +10,6 @@ import {
 
 export default function NewArticle() {
   const router = useRouter();
-  const supabase = createClient();
   const contentRef = useRef<HTMLTextAreaElement>(null);
   
   const [title, setTitle] = useState('');
@@ -21,15 +19,6 @@ export default function NewArticle() {
   const [featuredImage, setFeaturedImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [user, setUser] = useState<{id: string} | null>(null);
-  useEffect(() => {
-    getCurrentUser();
-  }, []);
-
-  const getCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
 
   const wrapSelection = (before: string, after: string, placeholder: string) => {
     const textarea = contentRef.current;
@@ -117,33 +106,30 @@ export default function NewArticle() {
       return;
     }
 
-    if (!user) {
-      alert('You must be logged in to create an article');
-      return;
-    }
-
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('news_articles')
-        .insert({
+      const response = await fetch('/api/news-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           title: title.trim(),
           excerpt: excerpt.trim() || content.slice(0, 200) + '...',
           content: content.trim(),
           category,
           image_url: featuredImage,
-          author_id: user.id,
           status,
           featured: false,
           read_time: `${Math.ceil(content.split(' ').length / 200)} min read`,
           published_at: status === 'published' ? new Date().toISOString() : null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+        }),
+      });
 
-      if (error) throw error;
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to save article');
+      }
 
       alert(`Article ${status === 'published' ? 'published' : 'saved as draft'} successfully!`);
       router.push('/admin/news');
