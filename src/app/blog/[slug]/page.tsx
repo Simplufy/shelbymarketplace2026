@@ -194,13 +194,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   });
   flushList();
 
-  const { data: relatedRows } = await reader
+  const { data: relatedRows, error: relatedError } = await reader
     .from("news_articles")
     .select("id, slug, title, image_url, published_at, created_at")
     .eq("status", "published")
     .neq("id", article.id)
     .order("published_at", { ascending: false })
     .limit(8);
+
+  console.log("Related articles query:", { count: relatedRows?.length, error: relatedError?.message });
 
   return (
     <div className="min-h-screen bg-white">
