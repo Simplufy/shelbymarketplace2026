@@ -196,7 +196,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   const { data: allPublished, error: relatedError } = await reader
     .from("news_articles")
-    .select("id, slug, title, image_url, published_at, created_at")
+    .select("id, title, image_url, published_at, created_at")
     .eq("status", "published")
     .order("published_at", { ascending: false })
     .limit(20);
