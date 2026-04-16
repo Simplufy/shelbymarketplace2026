@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { Heart, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useFavorites } from '@/hooks/useFavorites'
@@ -12,20 +12,14 @@ interface FavoriteButtonProps {
 }
 
 export function FavoriteButton({ listingId, className = '', showLabel = false }: FavoriteButtonProps) {
-  const [isFavorited, setIsFavorited] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useAuth()
-  const { addFavorite, removeFavorite, isFavorite } = useFavorites()
+  const { favorites, addFavorite, removeFavorite } = useFavorites()
 
-  useEffect(() => {
-    const checkFavorite = async () => {
-      if (user) {
-        const favorited = await isFavorite(listingId)
-        setIsFavorited(favorited)
-      }
-    }
-    checkFavorite()
-  }, [user, listingId, isFavorite])
+  const isFavorited = useMemo(
+    () => favorites.some((item) => item.id === listingId),
+    [favorites, listingId]
+  )
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -42,14 +36,10 @@ export function FavoriteButton({ listingId, className = '', showLabel = false }:
     
     if (isFavorited) {
       const { error } = await removeFavorite(listingId)
-      if (!error) {
-        setIsFavorited(false)
-      }
+      if (error) console.error('Failed to remove favorite:', error)
     } else {
       const { error } = await addFavorite(listingId)
-      if (!error) {
-        setIsFavorited(true)
-      }
+      if (error) console.error('Failed to add favorite:', error)
     }
     
     setIsLoading(false)

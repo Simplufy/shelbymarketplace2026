@@ -347,7 +347,7 @@ export default function NewsManager() {
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Link
-                      href={`/news/${article.id}`}
+                      href={`/blog/${article.id}`}
                       className="p-2 text-gray-400 hover:text-[#002D72] hover:bg-blue-50 rounded-lg transition-colors"
                       title="View"
                     >

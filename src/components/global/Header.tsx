@@ -134,8 +134,8 @@ export default function Header() {
             </Link>
             <div className="flex items-center h-full gap-8">
               {[
-                { label: 'Featured', href: '/' },
-                { label: 'News & Reviews', href: '/news' },
+                { label: 'Featured', href: '/featured' },
+                { label: 'Articles', href: '/blog' },
                 { label: 'Dealers', href: '/dealers' },
                 { label: 'About', href: '/about' },
               ].map((item) => (
@@ -152,7 +152,7 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden bg-white border-t border-[#f3f4f6] px-4 py-6 space-y-4">
             <Link href="/listings" onClick={() => setIsMenuOpen(false)} className="block text-sm font-bold text-[#002D72] uppercase tracking-wider">Browse Inventory</Link>
-            <Link href="/news" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">News & Reviews</Link>
+            <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Articles</Link>
             <Link href="/dealers" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Dealers</Link>
             <Link href="/about" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">About</Link>
             <Link href="/sell" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Sell A Shelby</Link>

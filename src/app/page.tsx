@@ -362,9 +362,9 @@ export default async function Home() {
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
           <div>
             <h2 className="text-3xl md:text-[30px] font-extrabold tracking-tight mb-2">Featured Shelby Listings</h2>
-            <p className="text-[#565d6d] text-lg">Curated high-performance icons from verified dealers nationwide.</p>
+            <p className="text-[#565d6d] text-lg">Vetted high-performance Shelby vehicles from Dealers and Private Sellers nationwide.</p>
           </div>
-          <Link href="/listings" className="flex items-center gap-4 px-6 py-2.5 border border-[#dee1e6] rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
+          <Link href="/featured" className="flex items-center gap-4 px-6 py-2.5 border border-[#dee1e6] rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
             Explore All Featured <ArrowRight className="w-4 h-4" />
           </Link>
           </div>
@@ -517,7 +517,7 @@ export default async function Home() {
       </section>
 
       {/* Why Buy With Shelby Exchange */}
-      <section className="bg-white py-24 border-b border-[#dee1e6]">
+      <section className="bg-white py-24 border-y border-[#dee1e6]">
         <ScrollReveal>
           <div className="max-w-[1440px] mx-auto px-4 md:px-12">
             <div className="text-center mb-16">
@@ -617,7 +617,7 @@ export default async function Home() {
             <h2 className="text-3xl md:text-[30px] font-extrabold tracking-tight mb-2">Performance Reports</h2>
             <p className="text-[#565d6d] text-lg">The latest in Shelby history, auction news, and engineering deep-dives.</p>
           </div>
-          <Link href="/news" className="flex items-center gap-4 px-6 py-2.5 border border-[#dee1e6] rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
+          <Link href="/blog" className="flex items-center gap-4 px-6 py-2.5 border border-[#dee1e6] rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
             Read All Stories <ArrowRight className="w-4 h-4" />
           </Link>
           </div>
@@ -636,7 +636,7 @@ export default async function Home() {
                 <div className="flex items-center gap-4">
                   <span className="text-xs font-bold text-[#565d6d] uppercase tracking-widest">{new Date(mainArticle.published_at || mainArticle.created_at).toLocaleDateString()}</span>
                   <div className="w-1 h-1 bg-[#dee1e6] rounded-full" />
-                  <Link href={`/news/${mainArticle.slug || mainArticle.id}`} className="flex items-center gap-2 text-xs font-extrabold text-[#002D72] uppercase tracking-widest hover:underline">Read Story <ArrowRight className="w-3 h-3" /></Link>
+                  <Link href={`/blog/${mainArticle.slug || mainArticle.id}`} className="flex items-center gap-2 text-xs font-extrabold text-[#002D72] uppercase tracking-widest hover:underline">Read Story <ArrowRight className="w-3 h-3" /></Link>
                 </div>
               </>
             ) : (
@@ -648,7 +648,7 @@ export default async function Home() {
           </div>
           <div className="lg:col-span-5 flex flex-col gap-8">
             {sideArticles.map((item: any) => (
-              <Link key={item.id} href={`/news/${item.slug || item.id}`} className="flex gap-6 group cursor-pointer">
+              <Link key={item.id} href={`/blog/${item.slug || item.id}`} className="flex gap-6 group cursor-pointer">
                 <div className="w-32 h-32 rounded-2xl overflow-hidden shrink-0 shadow-sm"><img src={item.image_url || '/images/logo.png'} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt={item.title} /></div>
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-2">

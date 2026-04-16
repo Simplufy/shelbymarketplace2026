@@ -34,7 +34,14 @@ export function useFavorites() {
         throw new Error(payload?.error || 'Failed to fetch favorites')
       }
 
-      setFavorites((payload?.data || []) as FavoriteListing[])
+      const nextFavorites = (payload?.data || []) as FavoriteListing[]
+      setFavorites(nextFavorites)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(
+          'favorites_cache_v1',
+          JSON.stringify({ ts: Date.now(), ids: nextFavorites.map((item) => item.id) })
+        )
+      }
     } catch (err) {
       setError(err as Error)
     } finally {
@@ -136,6 +143,18 @@ export function useFavorites() {
       window.removeEventListener('focus', refreshFavorites)
     }
   }, [fetchFavorites])
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      fetchFavorites()
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [fetchFavorites, supabase.auth])
 
   return {
     favorites,

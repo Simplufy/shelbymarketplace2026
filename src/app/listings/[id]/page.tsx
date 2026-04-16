@@ -39,6 +39,17 @@ interface ListingDetail {
   features: string[];
 }
 
+type RelatedListing = {
+  id: string;
+  year: number;
+  make: string;
+  model: string;
+  trim: string | null;
+  price: number;
+  mileage: number;
+  primary_image_url: string | null;
+};
+
 export default function VehicleDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -54,6 +65,7 @@ export default function VehicleDetailPage() {
   const [contactSent, setContactSent] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [leadWallEnabled, setLeadWallEnabled] = useState(true);
+  const [relatedListings, setRelatedListings] = useState<RelatedListing[]>([]);
   
   const listingId = params.id as string;
 
@@ -102,6 +114,29 @@ export default function VehicleDetailPage() {
 
     void loadLeadWallSetting();
   }, []);
+
+  useEffect(() => {
+    const loadRelatedListings = async () => {
+      try {
+        const response = await fetch('/api/listings?page=1&pageSize=60', { cache: 'no-store' });
+        if (!response.ok) return;
+        const payload = await response.json();
+        const rows = (payload?.data || []) as RelatedListing[];
+        const filtered = rows.filter((item) => item.id !== listingId);
+        const prioritized = listing
+          ? [
+              ...filtered.filter((item) => item.model === listing.model),
+              ...filtered.filter((item) => item.model !== listing.model),
+            ]
+          : filtered;
+        setRelatedListings(prioritized.slice(0, 6));
+      } catch {
+        // Ignore recommendation load failures
+      }
+    };
+
+    void loadRelatedListings();
+  }, [listingId, listing?.model]);
 
   const fetchListing = async () => {
     try {
@@ -411,6 +446,27 @@ export default function VehicleDetailPage() {
                 </button>
               </div>
             </div>
+
+            {/* Mobile Related Listings */}
+            {relatedListings.length > 0 ? (
+              <section className="lg:hidden">
+                <h2 className="text-2xl font-outfit font-bold mb-4">Other listings you may like</h2>
+                <div className="space-y-3">
+                  {relatedListings.map((item) => (
+                    <Link key={item.id} href={`/listings/${item.id}`} className="flex gap-3 p-3 border border-[#dee1e6] rounded-xl hover:border-[#002D72]/30 transition-colors">
+                      <div className="w-24 h-20 rounded-lg overflow-hidden shrink-0">
+                        <img src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold leading-tight">{item.year} {item.make} {item.model} {item.trim || ''}</p>
+                        <p className="text-xs text-[#565d6d] mt-1">{item.mileage.toLocaleString()} miles</p>
+                        <p className="text-sm font-black text-[#E31837] mt-1">${item.price.toLocaleString()}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
 
           {/* Right Sidebar */}
@@ -505,6 +561,26 @@ export default function VehicleDetailPage() {
                   </div>
                 </div>
               </div>
+
+              {relatedListings.length > 0 ? (
+                <div className="hidden lg:block bg-white rounded-lg shadow-soft border border-[#dee1e6] p-5">
+                  <h3 className="text-lg font-outfit font-bold mb-4">Other listings you may like</h3>
+                  <div className="space-y-3">
+                    {relatedListings.map((item) => (
+                      <Link key={item.id} href={`/listings/${item.id}`} className="flex gap-3 p-2 rounded-lg hover:bg-[#fafafb] transition-colors">
+                        <div className="w-20 h-16 rounded-md overflow-hidden shrink-0">
+                          <img src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold leading-tight line-clamp-2">{item.year} {item.make} {item.model}</p>
+                          <p className="text-xs text-[#565d6d] mt-0.5">{item.mileage.toLocaleString()} mi</p>
+                          <p className="text-sm font-black text-[#E31837] mt-0.5">${item.price.toLocaleString()}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
