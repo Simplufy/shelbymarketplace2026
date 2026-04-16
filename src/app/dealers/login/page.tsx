@@ -29,10 +29,10 @@ export default function DealerLoginPage() {
           <div className="mt-16 grid grid-cols-2 gap-6">
             <div className="bg-white/5 border border-white/10 rounded-xl p-5">
               <div className="text-2xl font-black text-white mb-1">2,400+</div>
-              <div className="text-xs text-white/50 uppercase tracking-wider font-bold">Active Buyers</div>
+              <div className="text-xs text-white/50 uppercase tracking-wider font-bold">Accounts Created</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-              <div className="text-2xl font-black text-[#E31837] mb-1">$14M+</div>
+              <div className="text-2xl font-black text-[#E31837] mb-1">$1M+</div>
               <div className="text-xs text-white/50 uppercase tracking-wider font-bold">Monthly Volume</div>
             </div>
           </div>

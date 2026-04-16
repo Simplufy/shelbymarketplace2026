@@ -14,8 +14,8 @@ export default function DealersPage() {
       {/* Hero */}
       <section className="relative bg-[#002D72] py-24 overflow-hidden">
         <div className="absolute inset-0">
-          <img src="/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg" alt="" className="w-full h-full object-cover opacity-40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#000D2A] via-[#001D4A]/80 to-[#002D72]/60" />
+          <img src="/images/ford-mustang-shelby-gt500-goodwood-17012019.jpg" alt="" className="w-full h-full object-cover opacity-30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/60" />
         </div>
         <ScrollReveal>
           <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 text-center">
@@ -27,7 +27,7 @@ export default function DealersPage() {
             Shelby Exchange<br /><span className="text-[#E31837]">Dealer Network</span>
           </h1>
           <p className="text-white/60 text-xl max-w-2xl mx-auto mb-12">
-            Join the most exclusive network of high-performance Ford Shelby dealers. Expand your reach to thousands of qualified buyers daily.
+            The high-performance Shelby vehicle market. Expand your reach to thousands of qualified buyers daily.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/dealers/register" className="px-10 py-4 bg-[#E31837] text-white font-black rounded-xl shadow-lg hover:bg-[#c41530] transition-colors">
@@ -79,8 +79,8 @@ export default function DealersPage() {
         <ScrollReveal>
           <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { value: "2,400+", label: "Active Buyers" },
-            { value: "$14M+", label: "Monthly Volume" },
+            { value: "2,400+", label: "Accounts Created" },
+            { value: "$1M+", label: "Monthly Volume" },
             { value: "98%", label: "Seller Satisfaction" },
             { value: "48hr", label: "Avg. Lead Response" },
           ].map(stat => (
