@@ -7,6 +7,8 @@ type ContentSection = {
   value: unknown;
 };
 
+const mirrorSettingKey = (key: ContentSection["key"]) => `homepage_${key}`;
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerClient();
@@ -81,6 +83,38 @@ export async function POST(req: NextRequest) {
           });
 
         if (insertError) throw insertError;
+      }
+
+      const mirrorKey = mirrorSettingKey(section.key);
+      const { data: existingSettingRows, error: settingSelectError } = await writer
+        .from("site_settings")
+        .select("id")
+        .eq("key", mirrorKey);
+
+      if (settingSelectError) throw settingSelectError;
+
+      if (existingSettingRows && existingSettingRows.length > 0) {
+        const { error: settingUpdateError } = await writer
+          .from("site_settings")
+          .update({
+            value: section.value,
+            updated_at: new Date().toISOString(),
+            updated_by: user.id,
+          })
+          .eq("key", mirrorKey);
+
+        if (settingUpdateError) throw settingUpdateError;
+      } else {
+        const { error: settingInsertError } = await writer
+          .from("site_settings")
+          .insert({
+            key: mirrorKey,
+            value: section.value,
+            updated_at: new Date().toISOString(),
+            updated_by: user.id,
+          });
+
+        if (settingInsertError) throw settingInsertError;
       }
     }
 

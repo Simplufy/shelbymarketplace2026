@@ -33,6 +33,27 @@ export async function GET() {
       }
     }
   }
+
+  if (Object.keys(content).length === 0) {
+    const { data: mirroredRows } = await supabase
+      .from("site_settings")
+      .select("key, value")
+      .in("key", [
+        "homepage_hero",
+        "homepage_featured_listings",
+        "homepage_why_sell",
+        "homepage_why_buy",
+        "homepage_cta",
+      ]);
+
+    for (const row of mirroredRows || []) {
+      if (row.key === "homepage_hero") content.hero = row.value;
+      if (row.key === "homepage_featured_listings") content.featured_listings = row.value;
+      if (row.key === "homepage_why_sell") content.why_sell = row.value;
+      if (row.key === "homepage_why_buy") content.why_buy = row.value;
+      if (row.key === "homepage_cta") content.cta = row.value;
+    }
+  }
   
   return NextResponse.json({ data: content, error: error?.message });
 }

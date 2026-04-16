@@ -169,7 +169,51 @@ export default async function Home() {
         cmsContent.ctaImage = val.image || cmsContent.ctaImage;
       }
     }
-}
+  }
+
+  if (!cmsRows || cmsRows.length === 0) {
+    const { data: mirroredRows } = await supabase
+      .from("site_settings")
+      .select("key, value")
+      .in("key", [
+        "homepage_hero",
+        "homepage_featured_listings",
+        "homepage_why_sell",
+        "homepage_why_buy",
+        "homepage_cta",
+      ]);
+
+    for (const row of mirroredRows || []) {
+      if (row.key === "homepage_hero" && row.value) {
+        cmsContent.hero = { ...cmsContent.hero, ...(row.value as Record<string, string>) };
+      }
+      if (row.key === "homepage_featured_listings" && Array.isArray(row.value)) {
+        cmsContent.featuredListingIds = row.value as string[];
+      }
+      if (row.key === "homepage_why_sell" && row.value) {
+        const val = row.value as { title?: string; subtitle?: string; reasons?: WhySellReason[] };
+        cmsContent.whySellTitle = val.title || cmsContent.whySellTitle;
+        cmsContent.whySellSubtitle = val.subtitle || cmsContent.whySellSubtitle;
+        cmsContent.whySellReasons = Array.isArray(val.reasons) && val.reasons.length > 0
+          ? val.reasons
+          : cmsContent.whySellReasons;
+      }
+      if (row.key === "homepage_why_buy" && row.value) {
+        const val = row.value as { title?: string; subtitle?: string; reasons?: WhySellReason[] };
+        cmsContent.whyBuyTitle = val.title || cmsContent.whyBuyTitle;
+        cmsContent.whyBuySubtitle = val.subtitle || cmsContent.whyBuySubtitle;
+        cmsContent.whyBuyReasons = Array.isArray(val.reasons) && val.reasons.length > 0
+          ? val.reasons
+          : cmsContent.whyBuyReasons;
+      }
+      if (row.key === "homepage_cta" && row.value) {
+        const val = row.value as { title?: string; subtitle?: string; image?: string };
+        cmsContent.ctaTitle = val.title || cmsContent.ctaTitle;
+        cmsContent.ctaSubtitle = val.subtitle || cmsContent.ctaSubtitle;
+        cmsContent.ctaImage = val.image || cmsContent.ctaImage;
+      }
+    }
+  }
   
   let featuredListings: ActiveListing[] = [];
   
