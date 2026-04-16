@@ -115,7 +115,7 @@ export default function Footer() {
             <li><Link href="/terms" className="hover:text-[#002D72]">Terms of Service</Link></li>
             <li><Link href="/privacy" className="hover:text-[#002D72]">Privacy Policy</Link></li>
             <li><Link href="/cookies" className="hover:text-[#002D72]">Cookie Policy</Link></li>
-            <li><a href="mailto:support@shelbyexchange.com" className="hover:text-[#002D72]">Contact Us</a></li>
+            <li><Link href="/contact" className="hover:text-[#002D72]">Contact Us</Link></li>
           </ul>
         </div>
 

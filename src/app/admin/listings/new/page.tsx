@@ -10,7 +10,9 @@ import {
   UploadCloud, 
   X, 
   Loader2,
-  Save
+  Save,
+  Plus,
+  Wrench
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -24,12 +26,17 @@ const PACKAGES = [
   { id: "HOMEPAGE_PLUS_ADS", name: "Homepage + Google Ads", price: 0 },
 ];
 
+type ServiceRecord = { date: string; type: string; description: string; mileage: string };
+
 export default function AdminCreateListing() {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>([
+    { date: "", type: "", description: "", mileage: "" }
+  ]);
 
   const [formData, setFormData] = useState({
     vin: "",
@@ -90,6 +97,20 @@ export default function AdminCreateListing() {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const addServiceRecord = () => {
+    setServiceRecords([...serviceRecords, { date: "", type: "", description: "", mileage: "" }]);
+  };
+
+  const removeServiceRecord = (index: number) => {
+    setServiceRecords(serviceRecords.filter((_, i) => i !== index));
+  };
+
+  const updateServiceRecord = (index: number, field: keyof ServiceRecord, value: string) => {
+    const updated = [...serviceRecords];
+    updated[index][field] = value;
+    setServiceRecords(updated);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -121,6 +142,7 @@ export default function AdminCreateListing() {
         status: "ACTIVE",
         is_featured: formData.is_featured || false,
         engine: formData.engine || "",
+        service_history: JSON.stringify(serviceRecords.filter(r => r.date || r.type || r.description)),
       };
       
       console.log('Inserting listing:', insertData);
@@ -460,6 +482,42 @@ export default function AdminCreateListing() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Service History */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+            <Wrench className="w-5 h-5 text-[#002D72]" />
+            Service History
+          </h2>
+
+          <div className="space-y-4">
+            {serviceRecords.map((record, index) => (
+              <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                    <input type="date" value={record.date} onChange={(e) => updateServiceRecord(index, "date", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Service Type</label>
+                    <input type="text" value={record.type} onChange={(e) => updateServiceRecord(index, "type", e.target.value)} placeholder="Oil change, brake service..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Mileage</label>
+                    <input type="number" value={record.mileage} onChange={(e) => updateServiceRecord(index, "mileage", e.target.value)} placeholder="25000" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <input type="text" value={record.description} onChange={(e) => updateServiceRecord(index, "description", e.target.value)} placeholder="Notes..." className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                    {serviceRecords.length > 1 && (
+                      <button type="button" onClick={() => removeServiceRecord(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><X className="w-4 h-4" /></button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button type="button" onClick={addServiceRecord} className="flex items-center gap-2 text-sm font-medium text-[#002D72] hover:text-[#001D4A]"><Plus className="w-4 h-4" /> Add Service Record</button>
+          </div>
         </div>
 
         {/* Admin Settings */}
