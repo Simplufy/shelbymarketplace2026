@@ -13,6 +13,7 @@ export default function Header() {
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const isHomepage = pathname === "/";
 
   const handleSignOut = async () => {
     setIsMenuOpen(false);
@@ -32,6 +33,15 @@ export default function Header() {
 
   return (
     <>
+      {/* Top Banner - Homepage Only */}
+      {isHomepage && (
+        <div className="bg-[#E31837] py-2 px-4 text-center">
+          <p className="text-white text-[11px] sm:text-sm font-bold tracking-wide leading-tight">
+            New Listings Added Weekly | Join 100+ Shelby Buyers Today
+          </p>
+        </div>
+      )}
+
       {/* Top Bar */}
       <div className="bg-[#f3f4f6]/30 py-2 px-5 md:px-8 border-b border-[#dee1e6]">
         <div className="max-w-[1440px] mx-auto flex justify-between items-center gap-4 text-[11px] font-medium text-[#565d6d]">
@@ -58,7 +68,7 @@ export default function Header() {
               <img 
                 src="/images/logo.png" 
                 alt="Shelby Exchange" 
-                className="h-14 w-auto object-contain"
+                className="h-[70px] w-auto object-contain"
               />
             </Link>
           </div>
@@ -67,8 +77,10 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/listings" className="text-sm font-bold text-[#002D72] uppercase tracking-wider hover:text-[#E31837] transition-colors">Browse Inventory</Link>
             <div className="w-px h-5 bg-[#dee1e6]" />
+            <a href="/#how-it-works" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">How It Works</a>
             <Link href="/featured" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Featured</Link>
-            <Link href="/blog" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Articles</Link>
+            <Link href="/blog" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Articles</a>
+            <a href="/#testimonials" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Testimonials</a>
             <Link href="/dealers" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Dealers</Link>
             <Link href="/about" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">About</Link>
           </nav>
@@ -124,8 +136,10 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden bg-white border-t border-[#f3f4f6] px-5 py-6 space-y-4">
             <Link href="/listings" onClick={() => setIsMenuOpen(false)} className="block text-sm font-bold text-[#002D72] uppercase tracking-wider">Browse Inventory</Link>
+            <a href="/#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">How It Works</a>
             <Link href="/featured" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Featured</Link>
             <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Articles</Link>
+            <a href="/#testimonials" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Testimonials</a>
             <Link href="/dealers" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Dealers</Link>
             <Link href="/about" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">About</Link>
             <Link href="/sell" onClick={() => setIsMenuOpen(false)} className="block w-full py-3 bg-[#E31837] text-white text-sm font-bold rounded-md text-center">Sell Your Shelby</Link>

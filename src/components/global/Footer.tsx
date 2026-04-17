@@ -55,7 +55,7 @@ export default function Footer() {
             <img 
               src="/images/logo.png" 
               alt="Shelby Exchange" 
-              className="h-16 w-auto object-contain"
+              className="h-20 w-auto object-contain"
             />
           </div>
           <p className="text-[#565d6d] text-sm leading-relaxed mb-8 max-w-sm">
@@ -160,8 +160,11 @@ export default function Footer() {
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-12 pt-8 border-t border-[#f3f4f6]">
         <div className="mb-6">
-          <p className="text-xs text-gray-500 leading-relaxed max-w-4xl opacity-75">
+          <p className="text-xs text-gray-500 leading-relaxed max-w-4xl opacity-75 mb-3">
             Ford ShelbyForSale.com is a marketplace platform that connects buyers and sellers. We do not own, inspect, or sell any vehicles listed on this site. All transactions occur directly between buyer and seller.
+          </p>
+          <p className="text-xs text-gray-500 leading-relaxed max-w-4xl opacity-75">
+            Shelby Exchange is an independent marketplace. We are not affiliated with or endorsed by Shelby American.
           </p>
         </div>
         
