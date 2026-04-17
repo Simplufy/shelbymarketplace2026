@@ -76,35 +76,35 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Asking Price ($)</label>
-          <input type="number" {...register("price", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-[var(--color-shelby-red)] text-sm" placeholder="105000" />
+          <label className="block text-[10px] md:text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 md:mb-1.5">Asking Price ($)</label>
+          <input type="number" {...register("price", { required: true })} className="w-full px-3 md:px-4 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-[var(--color-shelby-red)] text-xs md:text-sm" placeholder="105000" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Mileage</label>
-          <input type="number" {...register("mileage", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-sm" placeholder="2500" />
+          <label className="block text-[10px] md:text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 md:mb-1.5">Mileage</label>
+          <input type="number" {...register("mileage", { required: true })} className="w-full px-3 md:px-4 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none font-bold text-xs md:text-sm" placeholder="2500" />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Location</label>
-        <input type="text" {...register("location", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm" placeholder="e.g. Las Vegas, NV" />
+        <label className="block text-[10px] md:text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 md:mb-1.5">Location</label>
+        <input type="text" {...register("location", { required: true })} className="w-full px-3 md:px-4 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-xs md:text-sm" placeholder="e.g. Las Vegas, NV" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Transmission *</label>
-          <select {...register("transmission", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm">
+          <label className="block text-[10px] md:text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 md:mb-1.5">Transmission *</label>
+          <select {...register("transmission", { required: true })} className="w-full px-3 md:px-4 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-xs md:text-sm">
             <option value="">Select transmission...</option>
             <option value="Manual">Manual</option>
             <option value="Automatic">Automatic</option>
           </select>
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Drivetrain *</label>
-          <select {...register("drivetrain", { required: true })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm">
+          <label className="block text-[10px] md:text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 md:mb-1.5">Drivetrain *</label>
+          <select {...register("drivetrain", { required: true })} className="w-full px-3 md:px-4 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-xs md:text-sm">
             <option value="">Select drivetrain...</option>
             <option value="RWD">Rear-Wheel Drive (RWD)</option>
             <option value="AWD">All-Wheel Drive (AWD)</option>
@@ -114,36 +114,36 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Vehicle Description</label>
-        <textarea {...register("description", { required: true })} rows={4} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none resize-none text-sm" placeholder="Describe your Shelby's condition, modifications, history..." />
+        <label className="block text-[10px] md:text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 md:mb-1.5">Vehicle Description</label>
+        <textarea {...register("description", { required: true })} rows={3} className="w-full px-3 md:px-4 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none resize-none text-xs md:text-sm" placeholder="Describe your Shelby's condition, modifications, history..." />
       </div>
 
       {/* Vehicle History Section */}
-      <div className="pt-4 border-t border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Vehicle History & Service Records</h3>
-          <span className="text-xs text-gray-500">Buyers love detailed history</span>
+      <div className="pt-3 md:pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-3 md:mb-4">
+          <h3 className="text-xs md:text-sm font-bold text-gray-900 uppercase tracking-wide">Vehicle History & Service Records</h3>
+          <span className="text-[10px] md:text-xs text-gray-500">Buyers love detailed history</span>
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {serviceRecords.map((record, index) => (
-            <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div key={index} className="bg-gray-50 p-3 md:p-4 rounded-lg border border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Date</label>
+                  <label className="block text-[9px] md:text-[10px] font-bold text-gray-600 uppercase mb-1">Date</label>
                   <input 
                     type="date" 
                     value={record.date}
                     onChange={(e) => updateServiceRecord(index, "date", e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-xs"
+                    className="w-full px-2 md:px-3 py-1.5 md:py-2 bg-white border border-gray-200 rounded text-[10px] md:text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Type</label>
+                  <label className="block text-[9px] md:text-[10px] font-bold text-gray-600 uppercase mb-1">Type</label>
                   <select 
                     value={record.type}
                     onChange={(e) => updateServiceRecord(index, "type", e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-xs"
+                    className="w-full px-2 md:px-3 py-1.5 md:py-2 bg-white border border-gray-200 rounded text-[10px] md:text-xs"
                   >
                     <option value="">Select...</option>
                     <option value="Service">Service</option>
@@ -154,33 +154,33 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Mileage</label>
+                  <label className="block text-[9px] md:text-[10px] font-bold text-gray-600 uppercase mb-1">Mileage</label>
                   <input 
                     type="number" 
                     value={record.mileage}
                     onChange={(e) => updateServiceRecord(index, "mileage", e.target.value)}
                     placeholder="e.g. 5000"
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-xs"
+                    className="w-full px-2 md:px-3 py-1.5 md:py-2 bg-white border border-gray-200 rounded text-[10px] md:text-xs"
                   />
                 </div>
-                <div className="flex items-end gap-2">
+                <div className="flex items-end gap-1 md:gap-2">
                   <div className="flex-1">
-                    <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Description</label>
+                    <label className="block text-[9px] md:text-[10px] font-bold text-gray-600 uppercase mb-1">Description</label>
                     <input 
                       type="text" 
                       value={record.description}
                       onChange={(e) => updateServiceRecord(index, "description", e.target.value)}
-                      placeholder="e.g. Oil change, tire rotation"
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-xs"
+                      placeholder="e.g. Oil change"
+                      className="w-full px-2 md:px-3 py-1.5 md:py-2 bg-white border border-gray-200 rounded text-[10px] md:text-xs"
                     />
                   </div>
                   {serviceRecords.length > 1 && (
                     <button 
                       type="button"
                       onClick={() => removeServiceRecord(index)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
+                      className="p-1.5 md:p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                     </button>
                   )}
                 </div>
@@ -192,15 +192,15 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
         <button 
           type="button"
           onClick={addServiceRecord}
-          className="mt-3 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--color-shelby-blue)] border border-[var(--color-shelby-blue)] rounded-lg hover:bg-blue-50 transition-colors"
+          className="mt-2 md:mt-3 flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium text-[var(--color-shelby-blue)] border border-[var(--color-shelby-blue)] rounded-lg hover:bg-blue-50 transition-colors"
         >
-          <Plus className="w-4 h-4" /> Add Another Service Record
+          <Plus className="w-3 h-3 md:w-4 md:h-4" /> Add Record
         </button>
       </div>
 
       {/* Image Upload Section */}
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
+        <label className="block text-[10px] md:text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 md:mb-1.5">
           Photos ({uploadedImages.length}/20)
         </label>
         
@@ -217,18 +217,18 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
             />
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all cursor-pointer group"
+              className="border-2 border-dashed border-gray-300 rounded-xl p-4 md:p-6 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all cursor-pointer group"
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="w-12 h-12 mb-3 text-[var(--color-shelby-blue)] animate-spin" />
-                  <p className="font-bold text-gray-800 text-sm mb-1">Uploading...</p>
+                  <Loader2 className="w-8 h-8 md:w-12 md:h-12 mb-2 md:mb-3 text-[var(--color-shelby-blue)] animate-spin" />
+                  <p className="font-bold text-gray-800 text-xs md:text-sm mb-1">Uploading...</p>
                 </>
               ) : (
                 <>
-                  <UploadCloud className="w-12 h-12 mb-3 text-[var(--color-shelby-blue)] opacity-70 group-hover:opacity-100 transition-opacity group-hover:scale-110" />
-                  <p className="font-bold text-gray-800 text-sm mb-1 text-center break-words">Click to upload or drag & drop</p>
-                  <p className="text-xs font-medium text-gray-500 text-center">High-res JPEG, PNG (max 10MB each)</p>
+                  <UploadCloud className="w-8 h-8 md:w-12 md:h-12 mb-2 md:mb-3 text-[var(--color-shelby-blue)] opacity-70 group-hover:opacity-100 transition-opacity group-hover:scale-110" />
+                  <p className="font-bold text-gray-800 text-xs md:text-sm mb-1 text-center break-words">Click to upload or drag & drop</p>
+                  <p className="text-[10px] md:text-xs font-medium text-gray-500 text-center">High-res JPEG, PNG (max 10MB each)</p>
                 </>
               )}
             </div>
@@ -237,7 +237,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
 
         {/* Preview Grid */}
         {uploadedImages.length > 0 && (
-          <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+          <div className="mt-3 md:mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
             {uploadedImages.map((image, index) => (
               <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 group cursor-pointer" onClick={() => setPrimary(index)}>
                 <img 
@@ -247,8 +247,8 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
                 />
                 <div className="absolute top-1 left-1 flex gap-1">
                   {index === primaryImageIndex && (
-                    <div className="px-2 py-0.5 bg-[var(--color-shelby-blue)] text-white text-[10px] font-bold rounded flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> Primary
+                    <div className="px-1.5 md:px-2 py-0.5 bg-[var(--color-shelby-blue)] text-white text-[8px] md:text-[10px] font-bold rounded flex items-center gap-0.5 md:gap-1">
+                      <Star className="w-2 h-2 md:w-3 md:h-3 fill-yellow-400 text-yellow-400" /> Primary
                     </div>
                   )}
                 </div>
@@ -257,7 +257,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
                   onClick={(e) => { e.stopPropagation(); removeImage(index); }}
                   className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 </button>
               </div>
             ))}
@@ -267,27 +267,27 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
 
       {/* Listing Tags */}
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
+        <label className="block text-[10px] md:text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 md:mb-1.5">
           Listing Tags (Optional)
         </label>
         {listingTags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2">
+          <div className="flex flex-wrap gap-1.5 md:gap-2 mb-2">
             {listingTags.map((tag, idx) => (
-              <span key={idx} className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full ${tag.type === 'Just Listed' ? 'bg-[#002D72] text-white' : tag.type === 'Rare Spec' ? 'bg-purple-600 text-white' : 'bg-[#E31837] text-white'}`}>
+              <span key={idx} className={`inline-flex items-center gap-1 px-2 md:px-3 py-0.5 md:py-1 text-[10px] md:text-xs font-bold rounded-full ${tag.type === 'Just Listed' ? 'bg-[#002D72] text-white' : tag.type === 'Rare Spec' ? 'bg-purple-600 text-white' : 'bg-[#E31837] text-white'}`}>
                 {tag.type === '1 of #__' && tag.number ? `1 of ${tag.number}` : tag.type}
-                <button type="button" onClick={() => setListingTags(listingTags.filter((_, i) => i !== idx))} className="ml-1 hover:opacity-70"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => setListingTags(listingTags.filter((_, i) => i !== idx))} className="ml-0.5 md:ml-1 hover:opacity-70"><X className="w-2.5 h-2.5 md:w-3 md:h-3" /></button>
               </span>
             ))}
           </div>
         )}
-        <div className="flex gap-2">
-          <select id="user-tag-type" className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm">
+        <div className="flex gap-1.5 md:gap-2">
+          <select id="user-tag-type" className="flex-1 px-3 md:px-4 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-xs md:text-sm">
             <option value="">Select tag...</option>
             <option value="Just Listed">Just Listed</option>
             <option value="Rare Spec">Rare Spec</option>
             <option value="1 of #__">1 of #__</option>
           </select>
-          <input id="user-tag-number" type="number" placeholder="#" className="w-20 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm" min="1" />
+          <input id="user-tag-number" type="number" placeholder="#" className="w-16 md:w-20 px-2 md:px-3 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-xs md:text-sm" min="1" />
           <button type="button" onClick={() => {
             const typeEl = document.getElementById('user-tag-type') as HTMLSelectElement;
             const numEl = document.getElementById('user-tag-number') as HTMLInputElement;
@@ -297,22 +297,22 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
             setListingTags([...listingTags, newTag]);
             typeEl.value = '';
             numEl.value = '';
-          }} className="px-4 py-2.5 bg-[var(--color-shelby-blue)] text-white text-sm font-bold rounded-lg hover:bg-[#001D40] transition-colors">Add</button>
+          }} className="px-3 md:px-4 py-2 md:py-2.5 bg-[var(--color-shelby-blue)] text-white text-xs md:text-sm font-bold rounded-lg hover:bg-[#001D40] transition-colors">Add</button>
         </div>
       </div>
 
-      <div className="bg-gray-50/50 p-4 rounded-xl flex items-start gap-3 border border-gray-200 hover:border-[var(--color-shelby-blue)] hover:bg-blue-50/20 transition-colors">
-        <input type="checkbox" {...register("legal_confirm", { required: true })} className="mt-0.5 w-5 h-5 accent-[var(--color-shelby-blue)] cursor-pointer shrink-0" />
-        <label className="text-sm text-gray-800 font-medium leading-relaxed">
+      <div className="bg-gray-50/50 p-3 md:p-4 rounded-xl flex items-start gap-2 md:gap-3 border border-gray-200 hover:border-[var(--color-shelby-blue)] hover:bg-blue-50/20 transition-colors">
+        <input type="checkbox" {...register("legal_confirm", { required: true })} className="mt-0.5 w-4 h-4 md:w-5 md:h-5 accent-[var(--color-shelby-blue)] cursor-pointer shrink-0" />
+        <label className="text-xs md:text-sm text-gray-800 font-medium leading-relaxed">
           I confirm the listing price includes all fees and I hold the legal title to this vehicle.
         </label>
       </div>
 
-      <div className="flex justify-between pt-6 border-t border-gray-100">
-        <button type="button" onClick={onBack} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-100 rounded-lg transition-colors text-sm">
+      <div className="flex justify-between pt-4 md:pt-6 border-t border-gray-100">
+        <button type="button" onClick={onBack} className="px-4 md:px-6 py-2 md:py-3 text-gray-600 font-bold hover:bg-gray-100 rounded-lg transition-colors text-xs md:text-sm">
           &larr; Back
         </button>
-        <button type="submit" className="px-8 py-3 bg-[var(--color-shelby-blue)] text-white font-bold rounded-lg hover:bg-[#001D40] transition-colors shadow-lg shadow-blue-900/20 active:scale-95 text-sm">
+        <button type="submit" className="px-6 md:px-8 py-2 md:py-3 bg-[var(--color-shelby-blue)] text-white font-bold rounded-lg hover:bg-[#001D40] transition-colors shadow-lg shadow-blue-900/20 active:scale-95 text-xs md:text-sm">
           Choose Package &rarr;
         </button>
       </div>
