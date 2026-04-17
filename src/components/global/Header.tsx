@@ -3,26 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { Globe, Search, Heart, Menu, X, User, LogOut, Loader2 } from "lucide-react";
+import { Globe, Heart, Menu, X, User, LogOut, Loader2, Phone } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSearchPlaceholder } from "@/hooks/useSearchPlaceholder";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const searchPlaceholder = useSearchPlaceholder();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/listings?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
 
   const handleSignOut = async () => {
     setIsMenuOpen(false);
@@ -43,20 +33,26 @@ export default function Header() {
   return (
     <>
       {/* Top Bar */}
-      <div className="bg-[#f3f4f6]/30 py-2 px-4 md:px-8 border-b border-[#dee1e6]">
-        <div className="max-w-[1440px] mx-auto flex justify-end items-center gap-6 text-[11px] font-medium text-[#565d6d]">
-          <button className="flex items-center gap-1 hover:text-[#002D72]">
-            <Globe className="w-3 h-3" />
-            EN/USD
-          </button>
-          <Link href="/dealers/login" className="hover:text-[#002D72]">Dealer Login</Link>
-          <button className="hover:text-[#002D72]">Help</button>
+      <div className="bg-[#f3f4f6]/30 py-2 px-5 md:px-8 border-b border-[#dee1e6]">
+        <div className="max-w-[1440px] mx-auto flex justify-between items-center gap-4 text-[11px] font-medium text-[#565d6d]">
+          <a href="tel:6149177107" className="flex items-center gap-1.5 hover:text-[#E31837] transition-colors font-semibold">
+            <Phone className="w-3 h-3" />
+            614-917-7107
+          </a>
+          <div className="flex items-center gap-4">
+            <button className="flex items-center gap-1 hover:text-[#002D72]">
+              <Globe className="w-3 h-3" />
+              EN/USD
+            </button>
+            <Link href="/dealers/login" className="hover:text-[#002D72]">Dealer Login</Link>
+            <button className="hover:text-[#002D72]">Help</button>
+          </div>
         </div>
       </div>
 
       {/* Header */}
       <header key={pathname} className="sticky top-0 z-50 bg-white border-b border-[#dee1e6] shadow-sm">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-4">
+        <div className="max-w-[1440px] mx-auto px-5 md:px-8 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 shrink-0">
             <Link href="/" className="flex items-center gap-2">
               <img 
@@ -67,25 +63,24 @@ export default function Header() {
             </Link>
           </div>
 
-          <form onSubmit={handleSearch} className="flex-1 max-w-2xl hidden md:flex items-center bg-[#f3f4f6]/50 rounded-lg px-4 py-2 gap-3 border border-transparent focus-within:border-[#002D72] focus-within:bg-white transition-all">
-            <Search className="w-5 h-5 text-[#565d6d]" />
-            <input 
-              type="text" 
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none outline-none w-full text-sm placeholder:text-[#565d6d]"
-            />
-            <div className="h-6 w-px bg-[#dee1e6] mx-2" />
-            <button type="submit" className="flex items-center gap-1 text-xs font-semibold whitespace-nowrap hover:text-[#002D72]">
-              Search
-            </button>
-          </form>
+          {/* Navigation - moved to center where search was */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/listings" className="text-sm font-bold text-[#002D72] uppercase tracking-wider hover:text-[#E31837] transition-colors">Browse Inventory</Link>
+            <div className="w-px h-5 bg-[#dee1e6]" />
+            <Link href="/featured" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Featured</Link>
+            <Link href="/blog" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Articles</Link>
+            <Link href="/dealers" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Dealers</Link>
+            <Link href="/about" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">About</Link>
+          </nav>
 
-          <div className="flex items-center gap-4">
-            <Link href="/sell" className="hidden lg:flex px-4 py-2 border border-[#dee1e6] rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
-              Sell A Shelby
+          <div className="flex items-center gap-3">
+            <Link href="/sell" className="hidden lg:flex items-center gap-2 px-5 py-2.5 bg-[#E31837] text-white text-sm font-bold rounded-md hover:bg-[#c41530] transition-colors shadow-sm">
+              Sell Your Shelby
             </Link>
+            <a href="tel:6149177107" className="hidden lg:flex items-center gap-1.5 text-sm font-bold text-[#E31837] hover:text-[#c41530] transition-colors">
+              <Phone className="w-4 h-4" />
+              614-917-7107
+            </a>
             <div className="h-8 w-px bg-[#dee1e6] hidden lg:block" />
             <button className="p-2 text-[#565d6d] hover:text-[#E31837]">
               <Heart className="w-5 h-5" />
@@ -125,37 +120,19 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Sub-navigation */}
-        <nav className="hidden md:block border-t border-[#f3f4f6]">
-          <div className="max-w-[1440px] mx-auto px-8 flex items-center h-12 gap-8">
-            <Link href="/listings" className="relative h-full flex items-center">
-              <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">Browse Inventory</span>
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#E31837]" />
-            </Link>
-            <div className="flex items-center h-full gap-8">
-              {[
-                { label: 'Featured', href: '/featured' },
-                { label: 'Articles', href: '/blog' },
-                { label: 'Dealers', href: '/dealers' },
-                { label: 'About', href: '/about' },
-              ].map((item) => (
-                <Link key={item.label} href={item.href} className="relative h-full flex items-center text-xs font-bold text-[#565d6d] uppercase tracking-widest group hover:text-[#002D72] transition-colors">
-                  {item.label}
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#002D72] opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        </nav>
-
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-white border-t border-[#f3f4f6] px-4 py-6 space-y-4">
+          <div className="md:hidden bg-white border-t border-[#f3f4f6] px-5 py-6 space-y-4">
             <Link href="/listings" onClick={() => setIsMenuOpen(false)} className="block text-sm font-bold text-[#002D72] uppercase tracking-wider">Browse Inventory</Link>
+            <Link href="/featured" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Featured</Link>
             <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Articles</Link>
             <Link href="/dealers" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Dealers</Link>
             <Link href="/about" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">About</Link>
-            <Link href="/sell" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Sell A Shelby</Link>
+            <Link href="/sell" onClick={() => setIsMenuOpen(false)} className="block w-full py-3 bg-[#E31837] text-white text-sm font-bold rounded-md text-center">Sell Your Shelby</Link>
+            <a href="tel:6149177107" className="flex items-center justify-center gap-2 py-3 border border-[#E31837] text-[#E31837] text-sm font-bold rounded-md">
+              <Phone className="w-4 h-4" />
+              614-917-7107
+            </a>
             {user ? (
               <>
                 <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">My Profile</Link>

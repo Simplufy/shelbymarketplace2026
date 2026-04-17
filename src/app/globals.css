@@ -102,3 +102,10 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* Bolder text on all red buttons sitewide */
+[class*="bg-[#E31837]"],
+[class*="bg-[#c41530]"],
+[class*="bg-shelby-red"] {
+  font-weight: 800 !important;
+}

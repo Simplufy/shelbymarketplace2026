@@ -1,141 +1,299 @@
-"use client";
-import { useState, Suspense, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
-import { Check, CheckCircle2 } from "lucide-react";
-import Step1VIN from "@/components/forms/Step1VIN";
-import Step2Details from "@/components/forms/Step2Details";
-import Step3Packages from "@/components/forms/Step3Packages";
-import Step4Checkout from "@/components/forms/Step4Checkout";
 import Link from "next/link";
+import { ArrowRight, CheckCircle2, Upload, Megaphone, HandCoins, Shield, Users, DollarSign, Clock, Star } from "lucide-react";
 
-function SuccessView() {
+export default function SellLandingPage() {
+  const steps = [
+    {
+      icon: Upload,
+      step: "01",
+      title: "Submit Your Car",
+      description: "Upload photos and details about your Shelby. Our team reviews every listing to ensure quality and authenticity.",
+    },
+    {
+      icon: Megaphone,
+      step: "02",
+      title: "We Promote It",
+      description: "We push your listing to targeted Shelby buyers through our network, social channels, and 100+ email subscribers.",
+    },
+    {
+      icon: HandCoins,
+      step: "03",
+      title: "You Get Offers",
+      description: "Deal directly with serious buyers. No dealer games, no lowball tactics - just real offers from real enthusiasts.",
+    },
+  ];
+
+  const benefits = [
+    {
+      icon: Users,
+      title: "Nationwide Reach",
+      description: "Your listing reaches Shelby buyers across all 50 states, not just local traffic.",
+    },
+    {
+      icon: Shield,
+      title: "Verified Buyers",
+      description: "Every inquiry comes from a verified account. No spam, no tire kickers.",
+    },
+    {
+      icon: DollarSign,
+      title: "No Commission",
+      description: "Zero transaction fees. You keep every dollar from your sale.",
+    },
+    {
+      icon: Clock,
+      title: "Fast Results",
+      description: "Most sellers receive their first offer within 7-14 days of listing.",
+    },
+  ];
+
+  const testimonials = [
+    {
+      name: "Marcus T.",
+      location: "Detroit, MI",
+      text: "Sold my 2020 GT500 in under 2 weeks. Got three serious offers and didn't have to deal with any dealer lowball tactics.",
+      rating: 5,
+    },
+    {
+      name: "David L.",
+      location: "Phoenix, AZ",
+      text: "Listed my Super Snake and had offers within days. No middleman, no hassle. Best experience I've had selling a car.",
+      rating: 5,
+    },
+    {
+      name: "Sarah K.",
+      location: "Austin, TX",
+      text: "As a first-time seller, the process was incredibly smooth. The team helped me price it right and I got top dollar.",
+      rating: 5,
+    },
+  ];
+
+  const pricingTiers = [
+    {
+      name: "Basic Listing",
+      price: "$49",
+      period: "one-time",
+      features: ["30-day listing", "Up to 10 photos", "Standard placement", "Email support"],
+      cta: "Get Started",
+      popular: false,
+    },
+    {
+      name: "Featured Listing",
+      price: "$99",
+      period: "one-time",
+      features: ["30-day listing", "Up to 25 photos", "Featured placement", "Priority support", "Social media promotion"],
+      cta: "Get Started",
+      popular: true,
+    },
+    {
+      name: "Enthusiast Plan",
+      price: "$149",
+      period: "/month",
+      features: ["Unlimited listings", "Unlimited photos", "Featured placement", "Dedicated support", "Social media promotion", "Analytics dashboard"],
+      cta: "Get Started",
+      popular: false,
+    },
+  ];
+
   return (
-    <div className="text-center py-12">
-      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <CheckCircle2 className="w-10 h-10 text-green-600" />
-      </div>
-      <h2 className="font-heading font-extrabold text-3xl text-gray-900 mb-4">Payment Successful!</h2>
-      <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
-        Your listing has been submitted and is currently <strong className="text-orange-600">PENDING</strong> admin review.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Link 
-          href="/" 
-          className="px-8 py-4 bg-[var(--color-shelby-blue)] text-white font-bold rounded-xl shadow-lg hover:bg-[#001D40] transition-all"
-        >
-          Return to Homepage
-        </Link>
-        <Link 
-          href="/profile" 
-          className="px-8 py-4 bg-white border-2 border-gray-200 text-gray-800 font-bold rounded-xl hover:bg-gray-50 transition-all"
-        >
-          View My Listings
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function SellForm() {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<any>({});
-  const searchParams = useSearchParams();
-  const success = searchParams.get('success');
-  const wizardRef = useRef<HTMLDivElement | null>(null);
-
-  const nextStep = (data: any) => {
-    setFormData({ ...formData, ...data });
-    setStep(step + 1);
-  };
-
-  const steps = ["Vehicle Details", "Photos & Specs", "Select Package", "Checkout"];
-
-  useEffect(() => {
-    if (wizardRef.current) {
-      wizardRef.current.scrollIntoView({ behavior: "auto", block: "start" });
-    }
-  }, [step, success]);
-
-  // If payment was successful, show success view
-  if (success === 'true') {
-    return (
-      <div className="min-h-screen bg-[#fafafb] py-12">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="bg-white rounded-2xl shadow-lg border border-[#dee1e6]/50 p-6 md:p-10">
-            <SuccessView />
+    <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
+      {/* Hero Section */}
+      <section className="relative bg-[#0F172A] overflow-hidden">
+        <img src="/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg" className="absolute inset-0 w-full h-full object-cover object-center opacity-40" alt="Hero" />
+        <div className="relative max-w-[1440px] mx-auto px-5 md:px-12 py-24 md:py-32">
+          <div className="inline-flex items-center px-4 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-6">
+            <span className="text-xs font-bold text-white uppercase tracking-wider">Sell With Confidence</span>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={wizardRef} className="min-h-screen bg-[#fafafb] py-12">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1 bg-[#E31837]/10 border border-[#E31837]/20 rounded-full mb-6">
-            <span className="text-[10px] font-bold text-[#E31837] uppercase tracking-widest">List Your Vehicle</span>
-          </div>
-          <h1 className="font-outfit font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter mb-3 break-words">
-            Sell Your Shelby
+          
+          <h1 className="text-white font-black text-3xl sm:text-5xl md:text-6xl lg:text-[64px] leading-tight tracking-tighter mb-4 drop-shadow-2xl break-words italic uppercase max-w-4xl">
+            Sell Your Shelby The Right Way
           </h1>
-          <p className="text-[#565d6d] max-w-lg mx-auto">List your Shelby with thousands of verified buyers. Fast, secure, and backed by trusted escrow services.</p>
-        </div>
+          
+          <p className="text-[#D1D5DB] font-outfit text-lg md:text-xl max-w-2xl mb-8 leading-relaxed">
+            Skip the dealer games and lowball trade-in offers. List your Shelby on the premier marketplace built exclusively for Shelby enthusiasts and reach serious buyers nationwide.
+          </p>
 
-        {/* Stepper */}
-        <div className="flex flex-row items-center justify-between mb-24 max-w-3xl mx-auto">
-          {steps.map((label, idx) => {
-            const num = idx + 1;
-            const isActive = step === num;
-            const isPast = step > num;
-            return (
-              <div key={label} className="flex flex-col items-center relative flex-1">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-lg z-10 transition-colors shadow-sm ${
-                  isActive ? "bg-[#002D72] text-white shadow-lg ring-4 ring-[#002D72]/20" : 
-                  isPast ? "bg-[#E31837] text-white" : "bg-white text-[#565d6d] border-2 border-[#dee1e6]"
-                }`}>
-                  {isPast ? <Check className="w-6 h-6" /> : num}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link href="/sell/wizard" className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-[#E31837] text-white font-bold rounded-xl shadow-lg shadow-[#E31837]/20 hover:bg-[#c41530] transition-colors">
+              Start Your Listing
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <a href="tel:6149177107" className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-white/10 backdrop-blur-md text-white font-bold rounded-xl border border-white/20 hover:bg-white/20 transition-colors">
+              Call Us: 614-917-7107
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Bar */}
+      <section className="bg-white border-b border-[#dee1e6] py-10">
+        <div className="max-w-[1440px] mx-auto px-5 md:px-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="text-center">
+            <span className="block text-3xl md:text-4xl font-black text-[#002D72]">100+</span>
+            <span className="text-xs font-bold text-[#565d6d] uppercase tracking-wider">Active Buyers</span>
+          </div>
+          <div className="text-center">
+            <span className="block text-3xl md:text-4xl font-black text-[#002D72]">$1M+</span>
+            <span className="text-xs font-bold text-[#565d6d] uppercase tracking-wider">Monthly Volume</span>
+          </div>
+          <div className="text-center">
+            <span className="block text-3xl md:text-4xl font-black text-[#002D72]">14</span>
+            <span className="text-xs font-bold text-[#565d6d] uppercase tracking-wider">Avg Days to Sell</span>
+          </div>
+          <div className="text-center">
+            <span className="block text-3xl md:text-4xl font-black text-[#002D72]">0%</span>
+            <span className="text-xs font-bold text-[#565d6d] uppercase tracking-wider">Commission Fees</span>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="bg-[#fafafb] py-20 px-5 md:px-12">
+        <div className="max-w-[1440px] mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
+              <span className="text-xs font-bold text-[#E31837] uppercase tracking-wider">Simple 3-Step Process</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">How It Works</h2>
+            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Selling your Shelby has never been easier. Three simple steps to connect with serious buyers.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+            {steps.map((step, idx) => (
+              <div key={idx} className="relative bg-white rounded-2xl p-8 border border-[#dee1e6] shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-14 h-14 bg-[#E31837]/10 rounded-xl flex items-center justify-center mb-6">
+                  <step.icon className="w-7 h-7 text-[#E31837]" />
                 </div>
-                <span className={`text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-wider mt-6 text-center w-24 sm:w-32 ${
-                  isActive ? "text-[#002D72]" : 
-                  isPast ? "text-[#E31837]" : "text-[#565d6d]"
-                }`}>
-                  {label}
-                </span>
-                
-                {num !== steps.length && (
-                  <div className={`absolute top-6 left-[50%] right-[-50%] h-1.5 transition-colors ${
-                    isPast ? "bg-[#E31837]" : "bg-[#dee1e6]"
-                  }`} />
-                )}
+                <span className="text-[#E31837] font-black text-xs tracking-wider mb-2 block">{step.step}</span>
+                <h3 className="font-outfit font-bold text-xl mb-3">{step.title}</h3>
+                <p className="text-[#565d6d] text-sm leading-relaxed">{step.description}</p>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
 
-        {/* Form Container */}
-        <div className="bg-white rounded-2xl shadow-lg border border-[#dee1e6]/50 p-6 md:p-10">
-          {step === 1 && <Step1VIN initialData={formData} onNext={nextStep} />}
-          {step === 2 && <Step2Details initialData={formData} onNext={nextStep} onBack={() => setStep(1)} />}
-          {step === 3 && <Step3Packages initialData={formData} onNext={nextStep} onBack={() => setStep(2)} />}
-          {step === 4 && <Step4Checkout formData={formData} onBack={() => setStep(3)} />}
+          <div className="mt-12 text-center">
+            <Link href="/sell/wizard" className="inline-flex items-center gap-3 px-10 py-5 bg-[#E31837] text-white font-bold rounded-xl shadow-lg shadow-[#E31837]/20 hover:bg-[#c41530] transition-colors">
+              Start Selling Now
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Why Sell With Us */}
+      <section className="bg-white py-20 px-5 md:px-12">
+        <div className="max-w-[1440px] mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#002D72]/10 rounded-full mb-6">
+              <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">Why Choose Us</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">Built for Shelby Sellers</h2>
+            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">We understand the Shelby market better than anyone. Here&apos;s why sellers choose us.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {benefits.map((benefit, idx) => (
+              <div key={idx} className="text-center">
+                <div className="w-16 h-16 bg-[#002D72]/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <benefit.icon className="w-8 h-8 text-[#002D72]" />
+                </div>
+                <h3 className="font-outfit font-bold text-lg mb-3">{benefit.title}</h3>
+                <p className="text-[#565d6d] text-sm leading-relaxed">{benefit.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="bg-[#fafafb] py-20 px-5 md:px-12 border-y border-[#dee1e6]">
+        <div className="max-w-[1440px] mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#002D72]/10 rounded-full mb-6">
+              <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">Transparent Pricing</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">Listing Packages</h2>
+            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Choose the package that fits your needs. No hidden fees, no transaction commissions.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-8 max-w-5xl mx-auto">
+            {pricingTiers.map((tier, idx) => (
+              <div key={idx} className={`relative rounded-2xl p-8 border ${tier.popular ? 'border-[#E31837] shadow-lg shadow-[#E31837]/10' : 'border-[#dee1e6] shadow-sm'} flex flex-col`}>
+                {tier.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#E31837] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">Most Popular</div>
+                )}
+                <h3 className="font-outfit font-bold text-lg mb-2">{tier.name}</h3>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-4xl font-black">{tier.price}</span>
+                  <span className="text-[#565d6d] text-sm">{tier.period}</span>
+                </div>
+                <ul className="space-y-3 mb-8 flex-1">
+                  {tier.features.map((feature, fIdx) => (
+                    <li key={fIdx} className="flex items-start gap-3 text-sm text-[#565d6d]">
+                      <CheckCircle2 className="w-4 h-4 text-[#E31837] shrink-0 mt-0.5" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/sell/wizard" className={`w-full py-3 rounded-md text-center text-sm font-bold transition-colors ${tier.popular ? 'bg-[#E31837] text-white hover:bg-[#c41530]' : 'bg-[#002D72] text-white hover:bg-[#001D4A]'}`}>
+                  {tier.cta}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="bg-white py-20 px-5 md:px-12">
+        <div className="max-w-[1440px] mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
+              <span className="text-xs font-bold text-[#E31837] uppercase tracking-wider">Testimonials</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">What Sellers Say</h2>
+            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Real stories from real Shelby owners who sold through our platform.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, idx) => (
+              <div key={idx} className="bg-[#fafafb] rounded-2xl p-8 border border-[#dee1e6]">
+                <div className="flex gap-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-[#E31837] text-[#E31837]" />
+                  ))}
+                </div>
+                <p className="text-[#565d6d] text-sm leading-relaxed mb-6">&ldquo;{testimonial.text}&rdquo;</p>
+                <div>
+                  <span className="block text-sm font-bold text-[#171a1f]">{testimonial.name}</span>
+                  <span className="block text-xs text-[#565d6d]">{testimonial.location}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="relative bg-[#001530] py-24 overflow-hidden">
+        <img src="/images/c5f4c-hi-tech-mustang-front.webp" className="absolute inset-0 w-full h-full object-cover opacity-20" alt="CTA Background" />
+        <div className="relative max-w-[1440px] mx-auto px-5 md:px-12 text-center">
+          <h2 className="text-white font-outfit font-black text-3xl sm:text-5xl md:text-6xl leading-[0.95] uppercase tracking-tighter mb-6">
+            Ready to Sell Your Shelby?
+          </h2>
+          <p className="text-[#9CA3AF] font-outfit text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+            Join hundreds of Shelby owners who sold their vehicles faster and for more money through our platform.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/sell/wizard" className="inline-flex items-center justify-center gap-3 px-12 py-5 bg-[#E31837] text-white font-bold rounded-2xl shadow-2xl shadow-[#E31837]/30 hover:bg-[#c41530] transition-all">
+              Start Your Listing
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <a href="tel:6149177107" className="inline-flex items-center justify-center gap-2 px-12 py-5 bg-white/10 backdrop-blur-md text-white font-bold rounded-2xl border border-white/20 hover:bg-white/20 transition-all">
+              Call 614-917-7107
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
-  );
-}
-
-export default function SellPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#fafafb] py-12 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#002D72] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[#565d6d]">Loading...</p>
-        </div>
-      </div>
-    }>
-      <SellForm />
-    </Suspense>
   );
 }

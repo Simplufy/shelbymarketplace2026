@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { 
-  Search, Heart, ArrowRight, Calendar, Gauge, Zap, ExternalLink
+  Search, Heart, ArrowRight, Calendar, Gauge, Zap, ExternalLink, CheckCircle2, Star, Upload, Megaphone, HandCoins
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
@@ -39,7 +39,7 @@ const defaultCmsContent = {
     ctaText: "Search Inventory",
   },
   featuredListingIds: [] as string[],
-  whySellTitle: "Why Sell With Shelby Exchange?",
+  whySellTitle: "Sell Your Shelby Without Dealer Games",
   whySellSubtitle:
     "Join thousands of satisfied sellers who trust our platform to connect with serious Shelby buyers worldwide.",
   whySellReasons: [
@@ -105,8 +105,82 @@ const defaultCmsContent = {
 
 export const dynamic = 'force-dynamic';
 
+const testimonials = [
+  {
+    name: "Marcus T.",
+    location: "Detroit, MI",
+    text: "Sold my 2020 GT500 in under 2 weeks. Got three serious offers and didn't have to deal with any dealer lowball tactics. The process was seamless.",
+    rating: 5,
+  },
+  {
+    name: "Sarah K.",
+    location: "Austin, TX",
+    text: "Found a low-mileage GT350R within 50 miles of me. The listing details were accurate and the seller was transparent. Best car buying experience I've ever had.",
+    rating: 5,
+  },
+  {
+    name: "James R.",
+    location: "Columbus, OH",
+    text: "As a dealer, the subscription model saves me thousands compared to other platforms. The buyers here are serious and already know what they want.",
+    rating: 5,
+  },
+  {
+    name: "David L.",
+    location: "Phoenix, AZ",
+    text: "I was skeptical at first but Shelby Exchange delivered. Listed my Super Snake and had offers within days. No middleman, no hassle.",
+    rating: 5,
+  },
+];
+
+const howItWorksSteps = [
+  {
+    icon: Upload,
+    step: "01",
+    title: "Submit Your Car",
+    description: "Upload photos and details about your Shelby. Our team reviews every listing to ensure quality.",
+  },
+  {
+    icon: Megaphone,
+    step: "02",
+    title: "We Promote It",
+    description: "We push your listing to targeted Shelby buyers through our network, social channels, and email subscribers.",
+  },
+  {
+    icon: HandCoins,
+    step: "03",
+    title: "You Get Offers",
+    description: "Deal directly with serious buyers. No dealer games, no lowball tactics—just real offers from real enthusiasts.",
+  },
+];
+
+const pricingTiers = [
+  {
+    name: "Basic Listing",
+    price: "$49",
+    period: "one-time",
+    features: ["30-day listing", "Up to 10 photos", "Standard placement", "Email support"],
+    cta: "Get Started",
+    popular: false,
+  },
+  {
+    name: "Featured Listing",
+    price: "$99",
+    period: "one-time",
+    features: ["30-day listing", "Up to 25 photos", "Featured placement", "Priority support", "Social media promotion"],
+    cta: "Get Started",
+    popular: true,
+  },
+  {
+    name: "Enthusiast Plan",
+    price: "$149",
+    period: "/month",
+    features: ["Unlimited listings", "Unlimited photos", "Featured placement", "Dedicated support", "Social media promotion", "Analytics dashboard"],
+    cta: "Get Started",
+    popular: false,
+  },
+];
+
 export default async function Home() {
-  // Fetch featured listings from database
   const supabase = await createClient();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -121,7 +195,6 @@ export default async function Home() {
         })
       : supabase;
 
-  // Load CMS-managed homepage content
   const cmsContent = { ...defaultCmsContent };
   const { data: cmsRows, error: cmsError } = await cmsReader
     .from("site_content")
@@ -217,9 +290,7 @@ export default async function Home() {
   
   let featuredListings: ActiveListing[] = [];
   
-  // Featured listings - query directly from database
   try {
-    // First get featured listings
     const { data: listings, error: listErr } = await supabase
       .from("listings")
       .select("*")
@@ -306,11 +377,18 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
+      {/* Top Banner - Homepage Only */}
+      <div className="bg-[#E31837] py-2.5 px-5 text-center sticky top-0 z-[60]">
+        <p className="text-white text-sm font-bold tracking-wide">
+          New Listings Added Weekly | Join 100+ Shelby Buyers Today
+        </p>
+      </div>
+
       {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[560px] bg-[#0F172A] overflow-hidden">
         <img src={cmsContent.hero.heroImage} className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="relative max-w-[1440px] mx-auto px-4 md:px-12 h-full pt-24 md:pt-28 pb-6 flex flex-col justify-center">
+        <div className="relative max-w-[1440px] mx-auto px-5 md:px-12 h-full pt-24 md:pt-28 pb-6 flex flex-col justify-center">
           <div className="inline-flex items-center px-4 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-4 self-start">
             <span className="text-xs font-bold text-white uppercase tracking-wider">{cmsContent.hero.badge}</span>
           </div>
@@ -343,7 +421,7 @@ export default async function Home() {
       {/* Quick Discovery */}
       <section className="bg-[#fafafb] border-b border-[#dee1e6] py-8">
         <ScrollReveal>
-          <div className="max-w-[1440px] mx-auto px-4 md:px-12 flex flex-col md:flex-row items-center gap-8">
+          <div className="max-w-[1440px] mx-auto px-5 md:px-12 flex flex-col md:flex-row items-center gap-8">
           <span className="text-[10px] font-black uppercase tracking-[2px] text-[#565d6d] whitespace-nowrap">Quick Discovery</span>
           <div className="flex gap-3 overflow-x-auto hide-scrollbar w-full pb-2 md:pb-0">
             {['GT500', 'GT350 & GT350R', 'Super Snake', 'Cobra Jet', 'Classic Shelby (1965-70)', 'Performance Trucks'].map((tag) => (
@@ -357,7 +435,7 @@ export default async function Home() {
       </section>
 
       {/* Featured Listings */}
-      <section className="py-20 px-4 md:px-12 max-w-[1440px] mx-auto">
+      <section className="py-20 px-5 md:px-12 max-w-[1440px] mx-auto">
         <ScrollReveal>
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
           <div>
@@ -421,105 +499,192 @@ export default async function Home() {
         )}
       </section>
 
-      {/* Why Sell With Shelby Exchange */}
-      <section className="bg-white py-24 border-y border-[#dee1e6]">
+      {/* How It Works - Simple 3-Step Process */}
+      <section className="bg-[#fafafb] py-20 px-5 md:px-12 border-y border-[#dee1e6]">
         <ScrollReveal>
-          <div className="max-w-[1440px] mx-auto px-4 md:px-12">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
-              <span className="text-xs font-bold text-[#E31837] uppercase tracking-wider">For Sellers</span>
+          <div className="max-w-[1440px] mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
+                <span className="text-xs font-bold text-[#E31837] uppercase tracking-wider">Simple 3-Step Process</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">How It Works</h2>
+              <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Selling your Shelby has never been easier. Three simple steps to connect with serious buyers.</p>
             </div>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">{cmsContent.whySellTitle}</h2>
-            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">{cmsContent.whySellSubtitle}</p>
-          </div>
 
-          <div className="space-y-8 lg:hidden">
-            {cmsContent.whySellReasons.map((reason, idx) => (
-              <div key={idx} className="space-y-4">
-                <div className="relative h-40 rounded-2xl overflow-hidden group">
-                  <img
-                    src={[
-                      '/images/Shelby-GT500-for-Sale-2022-Ford-Mustang-Shelby-GT500-Front.jpg',
-                      '/images/2026_supersnaker_gallery_06-938430.jpg',
-                      '/images/1967-ford-shelby-gt500-super-snake.avif',
-                      '/images/ford-mustang-shelby-gt500-super-snake1-e1526674717750.webp',
-                    ][idx]}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    alt={reason.title}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
-                </div>
-                <div className="group">
-                  <div className="flex items-start gap-4">
-                    <span className="text-[#E31837] font-black text-sm tracking-wider">{reason.num}</span>
-                    <div>
-                      <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
-                      <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+              {howItWorksSteps.map((step, idx) => (
+                <div key={idx} className="relative bg-white rounded-2xl p-8 border border-[#dee1e6] shadow-sm hover:shadow-md transition-shadow">
+                  <div className="w-14 h-14 bg-[#E31837]/10 rounded-xl flex items-center justify-center mb-6">
+                    <step.icon className="w-7 h-7 text-[#E31837]" />
                   </div>
+                  <span className="text-[#E31837] font-black text-xs tracking-wider mb-2 block">{step.step}</span>
+                  <h3 className="font-outfit font-bold text-xl mb-3">{step.title}</h3>
+                  <p className="text-[#565d6d] text-sm leading-relaxed">{step.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-12 text-center">
+              <Link href="/sell" className="inline-flex items-center gap-3 px-10 py-5 bg-[#E31837] text-white font-bold rounded-xl shadow-lg shadow-[#E31837]/20 hover:bg-[#c41530] transition-colors">
+                Start Selling Now
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+        </ScrollReveal>
+      </section>
+
+      {/* Listing Pricing Section */}
+      <section className="bg-white py-20 px-5 md:px-12">
+        <ScrollReveal>
+          <div className="max-w-[1440px] mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#002D72]/10 rounded-full mb-6">
+                <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">Transparent Pricing</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">Listing Packages</h2>
+              <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Choose the package that fits your needs. No hidden fees, no transaction commissions.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-8 max-w-5xl mx-auto">
+              {pricingTiers.map((tier, idx) => (
+                <div key={idx} className={`relative rounded-2xl p-8 border ${tier.popular ? 'border-[#E31837] shadow-lg shadow-[#E31837]/10' : 'border-[#dee1e6] shadow-sm'} flex flex-col`}>
+                  {tier.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#E31837] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">Most Popular</div>
+                  )}
+                  <h3 className="font-outfit font-bold text-lg mb-2">{tier.name}</h3>
+                  <div className="flex items-baseline gap-1 mb-6">
+                    <span className="text-4xl font-black">{tier.price}</span>
+                    <span className="text-[#565d6d] text-sm">{tier.period}</span>
+                  </div>
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {tier.features.map((feature, fIdx) => (
+                      <li key={fIdx} className="flex items-start gap-3 text-sm text-[#565d6d]">
+                        <CheckCircle2 className="w-4 h-4 text-[#E31837] shrink-0 mt-0.5" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/sell" className={`w-full py-3 rounded-md text-center text-sm font-bold transition-colors ${tier.popular ? 'bg-[#E31837] text-white hover:bg-[#c41530]' : 'bg-[#002D72] text-white hover:bg-[#001D4A]'}`}>
+                    {tier.cta}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </ScrollReveal>
+      </section>
+
+      {/* Why Sell - Sell Your Shelby Without Dealer Games */}
+      <section className="bg-white py-24 px-5 md:px-12 border-y border-[#dee1e6]">
+        <ScrollReveal>
+          <div className="max-w-[1440px] mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
+                <span className="text-xs font-bold text-[#E31837] uppercase tracking-wider">For Sellers</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-6">Sell Your Shelby Without Dealer Games</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div className="flex items-center gap-3 justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-[#E31837] shrink-0" />
+                  <span className="text-sm font-bold text-[#171a1f]">Reach Nationwide Buyers</span>
+                </div>
+                <div className="flex items-center gap-3 justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-[#E31837] shrink-0" />
+                  <span className="text-sm font-bold text-[#171a1f]">No Trade-In Loss</span>
+                </div>
+                <div className="flex items-center gap-3 justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-[#E31837] shrink-0" />
+                  <span className="text-sm font-bold text-[#171a1f]">You Control Your Price</span>
                 </div>
               </div>
-            ))}
-          </div>
-
-          <div className="hidden lg:grid lg:grid-cols-[2fr_1fr_2fr] gap-12">
-            <div className="space-y-6">
-              {[
-                { img: '/images/Shelby-GT500-for-Sale-2022-Ford-Mustang-Shelby-GT500-Front.jpg', alt: 'GT500 Sale' },
-                { img: '/images/2026_supersnaker_gallery_06-938430.jpg', alt: 'Super Snake' },
-                { img: '/images/1967-ford-shelby-gt500-super-snake.avif', alt: 'Classic Shelby' },
-                { img: '/images/ford-mustang-shelby-gt500-super-snake1-e1526674717750.webp', alt: 'Modern Shelby' },
-              ].map((item, idx) => (
-                <div key={idx} className="relative h-40 rounded-2xl overflow-hidden group">
-                  <img src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={item.alt} />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
-                </div>
-              ))}
             </div>
 
-            <div className="hidden lg:flex flex-col items-center justify-center relative py-8">
-              <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#E31837]/20 -translate-x-1/2" />
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="relative flex-1 flex items-center justify-center w-full">
-                  <div className="relative z-10">
-                    <div className="w-4 h-4 bg-[#E31837] rounded-full shadow-lg shadow-[#E31837]/30 animate-pulse" />
-                    <div className="absolute inset-0 w-4 h-4 bg-[#E31837] rounded-full animate-ping opacity-75" />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col justify-center space-y-8">
+            <div className="space-y-8 lg:hidden">
               {cmsContent.whySellReasons.map((reason, idx) => (
-                <div key={idx} className="group">
-                  <div className="flex items-start gap-4">
-                    <span className="text-[#E31837] font-black text-sm tracking-wider">{reason.num}</span>
-                    <div>
-                      <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
-                      <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
+                <div key={idx} className="space-y-4">
+                  <div className="relative h-40 rounded-2xl overflow-hidden group">
+                    <img
+                      src={[
+                        '/images/Shelby-GT500-for-Sale-2022-Ford-Mustang-Shelby-GT500-Front.jpg',
+                        '/images/2026_supersnaker_gallery_06-938430.jpg',
+                        '/images/1967-ford-shelby-gt500-super-snake.avif',
+                        '/images/ford-mustang-shelby-gt500-super-snake1-e1526674717750.webp',
+                      ][idx]}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      alt={reason.title}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
+                  </div>
+                  <div className="group">
+                    <div className="flex items-start gap-4">
+                      <span className="text-[#E31837] font-black text-sm tracking-wider">{reason.num}</span>
+                      <div>
+                        <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
+                        <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* CTA */}
-          <div className="mt-16 text-center">
-            <Link href="/sell" className="inline-flex w-full sm:w-auto justify-center items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
-              Start Selling Today
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
+            <div className="hidden lg:grid lg:grid-cols-[2fr_1fr_2fr] gap-12">
+              <div className="space-y-6">
+                {[
+                  { img: '/images/Shelby-GT500-for-Sale-2022-Ford-Mustang-Shelby-GT500-Front.jpg', alt: 'GT500 Sale' },
+                  { img: '/images/2026_supersnaker_gallery_06-938430.jpg', alt: 'Super Snake' },
+                  { img: '/images/1967-ford-shelby-gt500-super-snake.avif', alt: 'Classic Shelby' },
+                  { img: '/images/ford-mustang-shelby-gt500-super-snake1-e1526674717750.webp', alt: 'Modern Shelby' },
+                ].map((item, idx) => (
+                  <div key={idx} className="relative h-40 rounded-2xl overflow-hidden group">
+                    <img src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={item.alt} />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden lg:flex flex-col items-center justify-center relative py-8">
+                <div className="absolute inset-y-0 left-1/2 w-0.5 bg-[#E31837]/20 -translate-x-1/2" />
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="relative flex-1 flex items-center justify-center w-full">
+                    <div className="relative z-10">
+                      <div className="w-4 h-4 bg-[#E31837] rounded-full shadow-lg shadow-[#E31837]/30 animate-pulse" />
+                      <div className="absolute inset-0 w-4 h-4 bg-[#E31837] rounded-full animate-ping opacity-75" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col justify-center space-y-8">
+                {cmsContent.whySellReasons.map((reason, idx) => (
+                  <div key={idx} className="group">
+                    <div className="flex items-start gap-4">
+                      <span className="text-[#E31837] font-black text-sm tracking-wider">{reason.num}</span>
+                      <div>
+                        <h3 className="font-outfit font-bold text-xl mb-2 group-hover:text-[#002D72] transition-colors">{reason.title}</h3>
+                        <p className="text-[#565d6d] text-sm leading-relaxed">{reason.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-16 text-center">
+              <Link href="/sell" className="inline-flex w-full sm:w-auto justify-center items-center gap-3 px-10 py-5 bg-[#002D72] text-white font-black rounded-xl shadow-lg shadow-[#002D72]/20 hover:bg-[#001D4A] transition-colors">
+                Start Selling Today
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
         </ScrollReveal>
       </section>
 
       {/* Why Buy With Shelby Exchange */}
-      <section className="bg-white py-24 border-y border-[#dee1e6]">
+      <section className="bg-white py-24 px-5 md:px-12 border-y border-[#dee1e6]">
         <ScrollReveal>
-          <div className="max-w-[1440px] mx-auto px-4 md:px-12">
+          <div className="max-w-[1440px] mx-auto">
             <div className="text-center mb-16">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#002D72]/10 rounded-full mb-6">
                 <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">For Buyers</span>
@@ -610,7 +775,7 @@ export default async function Home() {
       </section>
 
       {/* Performance Reports */}
-      <section className="py-24 px-4 md:px-12 max-w-[1440px] mx-auto">
+      <section className="py-24 px-5 md:px-12 max-w-[1440px] mx-auto">
         <ScrollReveal>
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
           <div>
@@ -667,8 +832,45 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section className="bg-[#fafafb] py-20 px-5 md:px-12 border-y border-[#dee1e6]">
+        <ScrollReveal>
+          <div className="max-w-[1440px] mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
+                <span className="text-xs font-bold text-[#E31837] uppercase tracking-wider">Testimonials</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">What Our Community Says</h2>
+              <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Real stories from real Shelby enthusiasts who bought and sold on our platform.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {testimonials.map((testimonial, idx) => (
+                <div key={idx} className="bg-white rounded-2xl p-6 border border-[#dee1e6] shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-[#E31837] text-[#E31837]" />
+                    ))}
+                  </div>
+                  <p className="text-[#565d6d] text-sm leading-relaxed mb-6 flex-1">&ldquo;{testimonial.text}&rdquo;</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-[#f3f4f6]">
+                    <div className="w-10 h-10 bg-[#002D72]/10 rounded-full flex items-center justify-center">
+                      <span className="text-[#002D72] font-bold text-sm">{testimonial.name[0]}</span>
+                    </div>
+                    <div>
+                      <span className="block text-sm font-bold text-[#171a1f]">{testimonial.name}</span>
+                      <span className="block text-xs text-[#565d6d]">{testimonial.location}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </ScrollReveal>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-12 px-4 md:px-12 max-w-[1440px] mx-auto w-full">
+      <section className="py-12 px-5 md:px-12 max-w-[1440px] mx-auto w-full">
         <ScrollReveal>
           <KlaviyoInlineForm
             title="Get Weekly Shelby Deals & Listings"
@@ -678,9 +880,9 @@ export default async function Home() {
         </ScrollReveal>
       </section>
 
-<section className="relative bg-[#001530] py-32 overflow-hidden">
+      <section className="relative bg-[#001530] py-32 overflow-hidden">
         <ScrollReveal>
-          <div className="max-w-[1440px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
+          <div className="max-w-[1440px] mx-auto px-5 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
           <div className="relative group order-1 lg:order-2">
             <div className="absolute -inset-1 bg-white/10 rounded-[32px] blur-xl group-hover:bg-[#E31837]/20 transition-all duration-500" />
             <div className="relative h-[300px] lg:h-[480px] rounded-3xl overflow-hidden border-4 border-white/10 shadow-2xl">

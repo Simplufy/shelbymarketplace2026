@@ -166,9 +166,18 @@ export default function Footer() {
         </div>
         
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <span className="text-[10px] font-medium text-[#565d6d] uppercase tracking-tight">
-            &copy; {new Date().getFullYear()} Ford Shelby Exchange. All rights reserved.
-          </span>
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <span className="text-[10px] font-medium text-[#565d6d] uppercase tracking-tight">
+              &copy; {new Date().getFullYear()} Ford Shelby Exchange. All rights reserved.
+            </span>
+            <span className="text-[10px] font-medium text-[#565d6d] uppercase tracking-tight flex items-center gap-1">
+              Based in Columbus, Ohio
+            </span>
+          </div>
+            <span className="text-[10px] font-medium text-[#565d6d] uppercase tracking-tight flex items-center gap-1">
+              Based in Columbus, Ohio
+            </span>
+          </div>
           <div className="flex flex-wrap justify-center gap-6 text-[10px] font-medium text-[#565d6d] uppercase tracking-tight">
             <Link href="/privacy" className="hover:text-[#002D72]">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-[#002D72]">Terms of Service</Link>
