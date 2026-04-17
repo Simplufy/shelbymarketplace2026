@@ -24,6 +24,29 @@ type WhySellReason = {
   description: string;
 };
 
+type HowItWorksStep = {
+  step: string;
+  icon: string;
+  title: string;
+  description: string;
+};
+
+type PricingTier = {
+  name: string;
+  price: string;
+  description: string;
+  features: string[];
+  cta: string;
+  popular: boolean;
+};
+
+type Testimonial = {
+  name: string;
+  location: string;
+  text: string;
+  rating: number;
+};
+
 type SiteContent = {
   hero: HeroContent;
   featuredListingIds: string[];
@@ -36,6 +59,9 @@ type SiteContent = {
   ctaTitle: string;
   ctaSubtitle: string;
   ctaImage: string;
+  howItWorksSteps: HowItWorksStep[];
+  pricingTiers: PricingTier[];
+  testimonials: Testimonial[];
 };
 
 // Default content matching current homepage
@@ -99,11 +125,29 @@ const defaultContent: SiteContent = {
   ],
   ctaTitle: "FIND THE SPEC NOBODY ELSE CAN.",
   ctaSubtitle: "Whether you're looking for a track-ready GT350R or a pristine 1960s classic, the Ford Shelby Exchange is your definitive destination.",
-  ctaImage: "/images/c5f4c-hi-tech-mustang-front.webp"
+  ctaImage: "/images/c5f4c-hi-tech-mustang-front.webp",
+  howItWorksSteps: [
+    { step: "Step 1", icon: "upload", title: "Create Your Listing", description: "Fill in your Shelby's details, upload photos, and choose your listing package. Our VIN decoder auto-fills most specs." },
+    { step: "Step 2", icon: "megaphone", title: "Get Maximum Exposure", description: "Your listing goes live instantly to our nationwide network of Shelby buyers. Featured packages get homepage placement." },
+    { step: "Step 3", icon: "coins", title: "Close the Deal", description: "Connect directly with serious buyers. We provide secure escrow services to ensure a safe, smooth transaction." }
+  ],
+  pricingTiers: [
+    { name: "Standard Listing", price: "$99", description: "Standard search grid visibility.", features: ["Up to 20 High-Res Photos", "VIN Decoding", "Standard Placement"], cta: "Get Started", popular: false },
+    { name: "Homepage Featured", price: "$149", description: "Gets you on the homepage.", features: ["Featured Badge", "Homepage Carousel Placement", "Priority Search Highlighting"], cta: "Get Featured", popular: true },
+    { name: "Homepage + Google Ads", price: "$299", description: "Maximum exposure globally.", features: ["Homepage Carousel Placement", "Dedicated Google Ads Campaign", "Social Media Spotlight"], cta: "Max Exposure", popular: false }
+  ],
+  testimonials: [
+    { name: "Mike R.", location: "Dallas, TX", text: "Sold my GT500 in 3 weeks. The process was smooth and the buyers were serious. Way better than dealing with dealers.", rating: 5 },
+    { name: "Sarah K.", location: "Phoenix, AZ", text: "I was nervous selling online but the escrow service gave me confidence. Got top dollar for my GT350R.", rating: 5 },
+    { name: "James T.", location: "Miami, FL", text: "The homepage featured package was worth every penny. Had 12 inquiries in the first week.", rating: 5 },
+    { name: "David L.", location: "Denver, CO", text: "Finally a marketplace just for Shelby owners. The community here actually knows what these cars are worth.", rating: 5 },
+    { name: "Chris M.", location: "Atlanta, GA", text: "Sold my Super Snake without the usual dealer hassle. The listing tools made it easy to showcase the car.", rating: 5 },
+    { name: "Ryan P.", location: "Seattle, WA", text: "Best platform for selling performance cars. The verification process builds trust with buyers immediately.", rating: 5 }
+  ]
 };
 
 export default function ContentManager() {
-  const [activeTab, setActiveTab] = useState<"hero" | "featured" | "why-sell" | "why-buy" | "cta">("hero");
+  const [activeTab, setActiveTab] = useState<"hero" | "featured" | "why-sell" | "why-buy" | "how-it-works" | "pricing" | "testimonials" | "cta">("hero");
   const [content, setContent] = useState<SiteContent>(defaultContent);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -215,6 +259,18 @@ export default function ContentManager() {
           loadedContent.ctaSubtitle = cta.subtitle || loadedContent.ctaSubtitle;
           loadedContent.ctaImage = cta.image || loadedContent.ctaImage;
         }
+        if (result.data.how_it_works) {
+          const hiw = result.data.how_it_works as { steps?: HowItWorksStep[] };
+          loadedContent.howItWorksSteps = hiw.steps || loadedContent.howItWorksSteps;
+        }
+        if (result.data.pricing) {
+          const pricing = result.data.pricing as { tiers?: PricingTier[] };
+          loadedContent.pricingTiers = pricing.tiers || loadedContent.pricingTiers;
+        }
+        if (result.data.testimonials) {
+          const testimonials = result.data.testimonials as { items?: Testimonial[] };
+          loadedContent.testimonials = testimonials.items || loadedContent.testimonials;
+        }
         
         setContent(loadedContent);
       }
@@ -270,7 +326,10 @@ export default function ContentManager() {
           title: content.ctaTitle,
           subtitle: content.ctaSubtitle,
           image: content.ctaImage
-        }}
+        }},
+        { key: "how_it_works", value: { steps: content.howItWorksSteps }},
+        { key: "pricing", value: { tiers: content.pricingTiers }},
+        { key: "testimonials", value: { items: content.testimonials }}
       ];
 
       const saveRequest = fetch("/api/admin/content", {
@@ -335,11 +394,14 @@ export default function ContentManager() {
     }));
   };
 
-  const tabs: Array<{ id: "hero" | "featured" | "why-sell" | "why-buy" | "cta"; label: string; icon: typeof Layout }> = [
+  const tabs: Array<{ id: "hero" | "featured" | "why-sell" | "why-buy" | "how-it-works" | "pricing" | "testimonials" | "cta"; label: string; icon: typeof Layout }> = [
     { id: "hero", label: "Hero Section", icon: Layout },
     { id: "featured", label: "Featured Listings", icon: Eye },
     { id: "why-sell", label: "Why Sell Section", icon: Type },
     { id: "why-buy", label: "Why Buy Section", icon: Type },
+    { id: "how-it-works", label: "How It Works", icon: Type },
+    { id: "pricing", label: "Pricing", icon: Type },
+    { id: "testimonials", label: "Testimonials", icon: Type },
     { id: "cta", label: "CTA Section", icon: Type },
   ];
 
@@ -696,6 +758,116 @@ export default function ContentManager() {
                         rows={3}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all resize-none"
                       />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "how-it-works" && (
+          <div className="p-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">How It Works Section</h2>
+            <div className="space-y-6">
+              {content.howItWorksSteps.map((step, index) => (
+                <div key={index} className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-[#E31837] font-black text-sm">{step.step}</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Step Label</label>
+                      <input type="text" value={step.step} onChange={(e) => setContent(prev => ({ ...prev, howItWorksSteps: prev.howItWorksSteps.map((s, i) => i === index ? { ...s, step: e.target.value } : s) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Icon (upload/megaphone/coins)</label>
+                      <input type="text" value={step.icon} onChange={(e) => setContent(prev => ({ ...prev, howItWorksSteps: prev.howItWorksSteps.map((s, i) => i === index ? { ...s, icon: e.target.value } : s) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Title</label>
+                      <input type="text" value={step.title} onChange={(e) => setContent(prev => ({ ...prev, howItWorksSteps: prev.howItWorksSteps.map((s, i) => i === index ? { ...s, title: e.target.value } : s) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
+                      <textarea value={step.description} onChange={(e) => setContent(prev => ({ ...prev, howItWorksSteps: prev.howItWorksSteps.map((s, i) => i === index ? { ...s, description: e.target.value } : s) }))} rows={3} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all resize-none" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "pricing" && (
+          <div className="p-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Pricing Tiers</h2>
+            <div className="space-y-6">
+              {content.pricingTiers.map((tier, index) => (
+                <div key={index} className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className={`font-black text-sm ${tier.popular ? 'text-[#002D72]' : 'text-gray-500'}`}>{tier.name}</span>
+                    {tier.popular && <span className="px-2 py-0.5 bg-[#E31837] text-white text-[10px] font-bold rounded-full">Popular</span>}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Name</label>
+                      <input type="text" value={tier.name} onChange={(e) => setContent(prev => ({ ...prev, pricingTiers: prev.pricingTiers.map((t, i) => i === index ? { ...t, name: e.target.value } : t) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Price</label>
+                      <input type="text" value={tier.price} onChange={(e) => setContent(prev => ({ ...prev, pricingTiers: prev.pricingTiers.map((t, i) => i === index ? { ...t, price: e.target.value } : t) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
+                      <input type="text" value={tier.description} onChange={(e) => setContent(prev => ({ ...prev, pricingTiers: prev.pricingTiers.map((t, i) => i === index ? { ...t, description: e.target.value } : t) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Features (one per line)</label>
+                      <textarea value={tier.features.join('\n')} onChange={(e) => setContent(prev => ({ ...prev, pricingTiers: prev.pricingTiers.map((t, i) => i === index ? { ...t, features: e.target.value.split('\n').filter(f => f.trim()) } : t) }))} rows={3} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all resize-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">CTA Button Text</label>
+                      <input type="text" value={tier.cta} onChange={(e) => setContent(prev => ({ ...prev, pricingTiers: prev.pricingTiers.map((t, i) => i === index ? { ...t, cta: e.target.value } : t) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
+                    </div>
+                    <div className="flex items-center">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={tier.popular} onChange={(e) => setContent(prev => ({ ...prev, pricingTiers: prev.pricingTiers.map((t, i) => i === index ? { ...t, popular: e.target.checked } : t) }))} className="w-5 h-5 text-[#002D72] rounded focus:ring-[#002D72]" />
+                        <span className="text-sm font-medium text-gray-700">Mark as Popular</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "testimonials" && (
+          <div className="p-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Testimonials</h2>
+            <div className="space-y-6">
+              {content.testimonials.map((t, index) => (
+                <div key={index} className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-[#E31837] font-black text-sm">#{index + 1}</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Name</label>
+                      <input type="text" value={t.name} onChange={(e) => setContent(prev => ({ ...prev, testimonials: prev.testimonials.map((x, i) => i === index ? { ...x, name: e.target.value } : x) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
+                      <input type="text" value={t.location} onChange={(e) => setContent(prev => ({ ...prev, testimonials: prev.testimonials.map((x, i) => i === index ? { ...x, location: e.target.value } : x) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Quote</label>
+                      <textarea value={t.text} onChange={(e) => setContent(prev => ({ ...prev, testimonials: prev.testimonials.map((x, i) => i === index ? { ...x, text: e.target.value } : x) }))} rows={3} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all resize-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Rating (1-5)</label>
+                      <input type="number" min="1" max="5" value={t.rating} onChange={(e) => setContent(prev => ({ ...prev, testimonials: prev.testimonials.map((x, i) => i === index ? { ...x, rating: parseInt(e.target.value) } : x) }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none transition-all" />
                     </div>
                   </div>
                 </div>
