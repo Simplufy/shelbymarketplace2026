@@ -68,7 +68,7 @@ export default function Header() {
               <img 
                 src="/images/logo.png" 
                 alt="Shelby Exchange" 
-                className="h-[70px] w-auto object-contain"
+                className="h-[91px] w-auto object-contain"
               />
             </Link>
           </div>

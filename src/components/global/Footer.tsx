@@ -55,7 +55,7 @@ export default function Footer() {
             <img 
               src="/images/logo.png" 
               alt="Shelby Exchange" 
-              className="h-20 w-auto object-contain"
+              className="h-40 w-auto object-contain"
             />
           </div>
           <p className="text-[#565d6d] text-sm leading-relaxed mb-8 max-w-sm">
