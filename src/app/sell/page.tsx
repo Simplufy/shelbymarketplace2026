@@ -246,29 +246,24 @@ export default function SellLandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="bg-white py-20 px-5 md:px-12">
-        <div className="max-w-[1440px] mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837]/10 rounded-full mb-6">
-              <span className="text-xs font-bold text-[#E31837] uppercase tracking-wider">Testimonials</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">What Sellers Say</h2>
-            <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Real stories from real Shelby owners who sold through our platform.</p>
+      {/* Testimonials - Auto-scrolling */}
+      <section className="bg-[#fafafb] py-16 md:py-20 overflow-hidden border-y border-[#dee1e6]">
+        <div className="max-w-[1440px] mx-auto px-5 md:px-12">
+          <div className="text-center mb-10 md:mb-16">
+            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-[#E31837]/10 rounded-full mb-4 md:mb-6"><span className="text-[10px] md:text-xs font-bold text-[#E31837] uppercase tracking-wider">Testimonials</span></div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter mb-3 md:mb-4">What Sellers Say</h2>
+            <p className="text-[#565d6d] text-sm md:text-lg max-w-2xl mx-auto">Real stories from real Shelby owners who sold through our platform.</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, idx) => (
-              <div key={idx} className="bg-[#fafafb] rounded-2xl p-8 border border-[#dee1e6]">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-[#E31837] text-[#E31837]" />
-                  ))}
-                </div>
-                <p className="text-[#565d6d] text-sm leading-relaxed mb-6">&ldquo;{testimonial.text}&rdquo;</p>
-                <div>
-                  <span className="block text-sm font-bold text-[#171a1f]">{testimonial.name}</span>
-                  <span className="block text-xs text-[#565d6d]">{testimonial.location}</span>
+        </div>
+        <div className="relative overflow-hidden">
+          <div className="flex animate-scroll-testimonials gap-4 md:gap-6 w-max">
+            {[...testimonials, ...testimonials, ...testimonials].map((testimonial, idx) => (
+              <div key={idx} className="bg-white rounded-2xl p-5 md:p-6 border border-[#dee1e6] shadow-sm flex flex-col w-[280px] md:w-[320px] shrink-0">
+                <div className="flex gap-0.5 md:gap-1 mb-3 md:mb-4">{[...Array(testimonial.rating)].map((_, i) => (<Star key={i} className="w-3.5 h-3.5 md:w-4 md:h-4 fill-[#E31837] text-[#E31837]" />))}</div>
+                <p className="text-[#565d6d] text-xs md:text-sm leading-relaxed mb-4 md:mb-6 flex-1">&ldquo;{testimonial.text}&rdquo;</p>
+                <div className="flex items-center gap-2 md:gap-3 pt-3 md:pt-4 border-t border-[#f3f4f6]">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-[#002D72]/10 rounded-full flex items-center justify-center"><span className="text-[#002D72] font-bold text-xs md:text-sm">{testimonial.name[0]}</span></div>
+                  <div><span className="block text-xs md:text-sm font-bold text-[#171a1f]">{testimonial.name}</span><span className="block text-[10px] md:text-xs text-[#565d6d]">{testimonial.location}</span></div>
                 </div>
               </div>
             ))}
