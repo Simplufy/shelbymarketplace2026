@@ -80,7 +80,6 @@ export default function Header() {
             <a href="/#how-it-works" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">How It Works</a>
             <Link href="/featured" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Featured</Link>
             <Link href="/blog" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Articles</Link>
-            <a href="/#testimonials" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Testimonials</a>
             <Link href="/dealers" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Dealers</Link>
             <Link href="/about" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">About</Link>
           </nav>
@@ -89,10 +88,6 @@ export default function Header() {
             <Link href="/sell" className="hidden lg:flex items-center gap-2 px-5 py-2.5 bg-[#E31837] text-white text-sm font-bold rounded-md hover:bg-[#c41530] transition-colors shadow-sm">
               Sell Your Shelby
             </Link>
-            <a href="tel:6149177107" className="hidden lg:flex items-center gap-1.5 text-sm font-bold text-[#E31837] hover:text-[#c41530] transition-colors">
-              <Phone className="w-4 h-4" />
-              614-917-7107
-            </a>
             <div className="h-8 w-px bg-[#dee1e6] hidden lg:block" />
             <button className="p-2 text-[#565d6d] hover:text-[#E31837]">
               <Heart className="w-5 h-5" />
@@ -139,7 +134,6 @@ export default function Header() {
             <a href="/#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">How It Works</a>
             <Link href="/featured" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Featured</Link>
             <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Articles</Link>
-            <a href="/#testimonials" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Testimonials</a>
             <Link href="/dealers" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Dealers</Link>
             <Link href="/about" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">About</Link>
             <Link href="/sell" onClick={() => setIsMenuOpen(false)} className="block w-full py-3 bg-[#E31837] text-white text-sm font-bold rounded-md text-center">Sell Your Shelby</Link>

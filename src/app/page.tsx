@@ -299,7 +299,7 @@ export default async function Home() {
             </div>
             <button type="submit" className="w-full md:w-auto px-8 md:px-10 py-3 md:py-4 bg-[#E31837] text-white text-sm font-black rounded-lg md:rounded-xl shadow-lg shadow-[#E31837]/20 hover:bg-[#c41530] transition-colors">{cmsContent.hero.ctaText}</button>
           </form>
-          <div className="mt-6 md:mt-8 grid grid-cols-2 gap-2 md:gap-4 max-w-3xl mx-auto">
+          <div className="mt-6 md:mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-3xl mx-auto">
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">Verified Listings</span></div>
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">No Dealer Fees</span></div>
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">Secure Transactions</span></div>
@@ -437,7 +437,7 @@ export default async function Home() {
                   <ul className="space-y-2.5 md:space-y-3 mb-6 md:mb-8 flex-1">
                     {tier.features.map((feature, fIdx) => (<li key={fIdx} className="flex items-start gap-2 md:gap-3 text-xs md:text-sm text-[#171a1f]"><CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-600 shrink-0 mt-0.5" />{feature}</li>))}
                   </ul>
-                  <Link href="/sell" className={`w-full py-2.5 md:py-3 rounded-lg text-center text-xs md:text-sm font-bold transition-colors ${tier.popular ? 'bg-[#002D72] text-white hover:bg-[#001D4A]' : 'bg-[#f3f4f6] text-[#171a1f] hover:bg-[#e5e7eb]'}`}>{tier.cta}</Link>
+                  <Link href="/sell/wizard" className={`w-full py-2.5 md:py-3 rounded-lg text-center text-xs md:text-sm font-bold transition-colors ${tier.popular ? 'bg-[#002D72] text-white hover:bg-[#001D4A]' : 'bg-[#f3f4f6] text-[#171a1f] hover:bg-[#e5e7eb]'}`}>{tier.cta}</Link>
                 </div>
               ))}
             </div>
