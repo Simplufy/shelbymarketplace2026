@@ -299,7 +299,7 @@ export default async function Home() {
             </div>
             <button type="submit" className="w-full md:w-auto px-8 md:px-10 py-3 md:py-4 bg-[#E31837] text-white text-sm font-black rounded-lg md:rounded-xl shadow-lg shadow-[#E31837]/20 hover:bg-[#c41530] transition-colors">{cmsContent.hero.ctaText}</button>
           </form>
-          <div className="mt-6 md:mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-3xl mx-auto">
+          <div className="mt-6 md:mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-3xl mx-auto md:mx-0 md:justify-start justify-items-center">
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">Verified Listings</span></div>
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">No Dealer Fees</span></div>
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">Secure Transactions</span></div>

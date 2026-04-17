@@ -77,6 +77,11 @@ export async function POST(req: NextRequest) {
           transmission: vehicleData.transmission || 'Automatic',
           drivetrain: vehicleData.drivetrain || 'RWD',
           engine: vehicleData.engine || null,
+          listing_tag: vehicleData.listingTag || null,
+          listing_tag_number: vehicleData.listingTagNumber ? parseInt(vehicleData.listingTagNumber) : null,
+          service_history: vehicleData.serviceHistory && vehicleData.serviceHistory.length > 0
+            ? JSON.stringify(vehicleData.serviceHistory.filter((r: any) => r.date || r.type || r.description))
+            : null,
         })
         .select()
         .single();
@@ -86,7 +91,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to create listing' }, { status: 500 });
       }
 
-      // Add service history if provided
+      // Add service history if provided (stored as features for backward compatibility)
       if (vehicleData.serviceHistory && vehicleData.serviceHistory.length > 0) {
         const serviceRecords = vehicleData.serviceHistory
           .filter((record: any) => record.date && record.type)
@@ -134,11 +139,12 @@ export async function POST(req: NextRequest) {
 
       // Add images if provided
       if (vehicleData.images && vehicleData.images.length > 0) {
+        const primaryIdx = typeof vehicleData.primaryImageIndex === 'number' ? vehicleData.primaryImageIndex : 0;
         const imageRecords = vehicleData.images.map((img: any, index: number) => ({
           listing_id: listing.id,
           url: img.url,
           storage_path: img.storagePath,
-          is_primary: index === 0,
+          is_primary: index === primaryIdx,
           order_index: index,
         }));
 

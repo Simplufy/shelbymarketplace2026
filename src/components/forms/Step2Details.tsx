@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { UploadCloud, Plus, Trash2, X, Loader2 } from "lucide-react";
+import { UploadCloud, Plus, Trash2, X, Loader2, Star } from "lucide-react";
 import { useStorage } from "@/hooks/useStorage";
 
 export default function Step2Details({ initialData, onNext, onBack }: any) {
@@ -11,6 +11,9 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
   ]);
   const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
+  const [listingTag, setListingTag] = useState("");
+  const [listingTagNumber, setListingTagNumber] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadListingImage } = useStorage();
 
@@ -58,6 +61,15 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
 
   const removeImage = (index: number) => {
     setUploadedImages(uploadedImages.filter((_, i) => i !== index));
+    if (primaryImageIndex === index) {
+      setPrimaryImageIndex(0);
+    } else if (primaryImageIndex > index) {
+      setPrimaryImageIndex(primaryImageIndex - 1);
+    }
+  };
+
+  const setPrimary = (index: number) => {
+    setPrimaryImageIndex(index);
   };
 
   const onSubmit = (data: any) => {
@@ -228,26 +240,47 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
         {uploadedImages.length > 0 && (
           <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
             {uploadedImages.map((image, index) => (
-              <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
+              <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 group cursor-pointer" onClick={() => setPrimary(index)}>
                 <img 
                   src={image.url} 
                   alt={`Upload ${index + 1}`} 
                   className="w-full h-full object-cover"
                 />
-                {index === 0 && (
-                  <div className="absolute top-1 left-1 px-2 py-0.5 bg-[var(--color-shelby-blue)] text-white text-[10px] font-bold rounded">
-                    Primary
-                  </div>
-                )}
+                <div className="absolute top-1 left-1 flex gap-1">
+                  {index === primaryImageIndex && (
+                    <div className="px-2 py-0.5 bg-[var(--color-shelby-blue)] text-white text-[10px] font-bold rounded flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> Primary
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
-                  onClick={() => removeImage(index)}
-                  className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => { e.stopPropagation(); removeImage(index); }}
+                  className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="w-3 h-3" />
                 </button>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Listing Tag */}
+      <div>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
+          Listing Tag (Optional)
+        </label>
+        <select value={listingTag} onChange={(e) => setListingTag(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm">
+          <option value="">None</option>
+          <option value="Just Listed">Just Listed</option>
+          <option value="Rare Spec">Rare Spec</option>
+          <option value="1 of #__">1 of #__</option>
+        </select>
+        {listingTag === '1 of #__' && (
+          <div className="mt-2">
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Total Produced</label>
+            <input type="number" value={listingTagNumber} onChange={(e) => setListingTagNumber(e.target.value)} placeholder="e.g. 500" className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm" />
           </div>
         )}
       </div>

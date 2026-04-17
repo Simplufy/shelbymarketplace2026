@@ -12,7 +12,8 @@ import {
   Loader2,
   Save,
   Plus,
-  Wrench
+  Wrench,
+  Star
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -37,6 +38,7 @@ export default function AdminCreateListing() {
   const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>([
     { date: "", type: "", description: "", mileage: "" }
   ]);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   const [formData, setFormData] = useState({
     vin: "",
@@ -56,6 +58,8 @@ export default function AdminCreateListing() {
     status: "ACTIVE", // Admin can set status directly
     is_featured: false,
     engine: "",
+    listing_tag: "",
+    listing_tag_number: "",
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -142,6 +146,8 @@ export default function AdminCreateListing() {
         status: "ACTIVE",
         is_featured: formData.is_featured || false,
         engine: formData.engine || "",
+        listing_tag: formData.listing_tag || null,
+        listing_tag_number: formData.listing_tag_number ? Number(formData.listing_tag_number) : null,
         service_history: JSON.stringify(serviceRecords.filter(r => r.date || r.type || r.description)),
       };
       
@@ -176,7 +182,7 @@ export default function AdminCreateListing() {
           listing_id: listing.id,
           url: img.url,
           storage_path: img.storagePath,
-          is_primary: index === 0,
+          is_primary: index === primaryImageIndex,
           order_index: index,
         }));
 
@@ -464,17 +470,30 @@ export default function AdminCreateListing() {
           {uploadedImages.length > 0 && (
             <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
               {uploadedImages.map((img, index) => (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer" onClick={() => setPrimaryImageIndex(index)}>
                   <img src={img.url} alt="" className="w-full h-full object-cover" />
-                  {index === 0 && (
+                  {index === primaryImageIndex && (
                     <span className="absolute top-1 left-1 px-2 py-0.5 bg-[#002D72] text-white text-[10px] font-bold rounded">
                       Primary
                     </span>
                   )}
                   <button
                     type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPrimaryImageIndex(index);
+                    }}
+                    className={`absolute top-1 right-1 p-1 rounded-full transition-colors ${index === primaryImageIndex ? 'bg-yellow-400 text-[#002D72]' : 'bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-black/70'}`}
+                  >
+                    <Star className="w-3 h-3" fill={index === primaryImageIndex ? "currentColor" : "none"} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(index);
+                    }}
+                    className="absolute bottom-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -562,6 +581,40 @@ export default function AdminCreateListing() {
                 <span className="text-sm font-medium text-gray-700">Featured Listing</span>
               </label>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Listing Tag</label>
+              <select
+                value={formData.listing_tag}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  handleInputChange('listing_tag', val === "None" ? "" : val);
+                  if (val !== "1 of #__") {
+                    handleInputChange('listing_tag_number', "");
+                  }
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+              >
+                <option value="">None</option>
+                <option value="Just Listed">Just Listed</option>
+                <option value="Rare Spec">Rare Spec</option>
+                <option value="1 of #__">1 of #__</option>
+              </select>
+            </div>
+
+            {formData.listing_tag === "1 of #__" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tag Number</label>
+                <input
+                  type="number"
+                  value={formData.listing_tag_number}
+                  onChange={(e) => handleInputChange('listing_tag_number', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+                  placeholder="500"
+                  min="1"
+                />
+              </div>
+            )}
           </div>
         </div>
 

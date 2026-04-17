@@ -10,7 +10,10 @@ import {
   UploadCloud, 
   X, 
   Loader2,
-  Save
+  Save,
+  Plus,
+  Wrench,
+  Star
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +26,8 @@ const PACKAGES = [
   { id: "HOMEPAGE", name: "Homepage Featured" },
   { id: "HOMEPAGE_PLUS_ADS", name: "Homepage + Google Ads" },
 ];
+
+type ServiceRecord = { date: string; type: string; description: string; mileage: string };
 
 export default function AdminEditListing() {
   const router = useRouter();
@@ -38,6 +43,10 @@ export default function AdminEditListing() {
   const [originalPrice, setOriginalPrice] = useState<number>(0);
   const [listingUserId, setListingUserId] = useState<string>("");
   const [listingUserEmail, setListingUserEmail] = useState<string>("");
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
+  const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>([
+    { date: "", type: "", description: "", mileage: "" }
+  ]);
 
   const [formData, setFormData] = useState({
     vin: "",
@@ -57,6 +66,8 @@ export default function AdminEditListing() {
     status: "ACTIVE",
     is_featured: false,
     engine: "",
+    listing_tag: "",
+    listing_tag_number: "",
   });
 
   useEffect(() => {
@@ -104,6 +115,8 @@ export default function AdminEditListing() {
         status: listing.status || "ACTIVE",
         is_featured: listing.is_featured || false,
         engine: listing.engine || "",
+        listing_tag: listing.listing_tag || "",
+        listing_tag_number: listing.listing_tag_number?.toString() || "",
       });
       setOriginalPrice(Number(listing.price || 0));
       setListingUserId(listing.user_id || "");
@@ -126,6 +139,20 @@ export default function AdminEditListing() {
         }));
         setUploadedImages(mappedImages);
         setOriginalImages(images);
+        const primaryIdx = images.findIndex((img: any) => img.is_primary);
+        setPrimaryImageIndex(primaryIdx >= 0 ? primaryIdx : 0);
+      }
+
+      // Set service history
+      if (listing.service_history) {
+        try {
+          const parsed = JSON.parse(listing.service_history);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setServiceRecords(parsed);
+          }
+        } catch {
+          // ignore parse errors
+        }
       }
     } catch (error) {
       console.error('Error fetching listing:', error);
@@ -176,6 +203,20 @@ export default function AdminEditListing() {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const addServiceRecord = () => {
+    setServiceRecords([...serviceRecords, { date: "", type: "", description: "", mileage: "" }]);
+  };
+
+  const removeServiceRecord = (index: number) => {
+    setServiceRecords(serviceRecords.filter((_, i) => i !== index));
+  };
+
+  const updateServiceRecord = (index: number, field: keyof ServiceRecord, value: string) => {
+    const updated = [...serviceRecords];
+    updated[index][field] = value;
+    setServiceRecords(updated);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -190,6 +231,9 @@ export default function AdminEditListing() {
           price: newPrice,
           mileage: Number(formData.mileage),
           year: Number(formData.year),
+          listing_tag: formData.listing_tag || null,
+          listing_tag_number: formData.listing_tag_number ? Number(formData.listing_tag_number) : null,
+          service_history: JSON.stringify(serviceRecords.filter(r => r.date || r.type || r.description)),
           updated_at: new Date().toISOString(),
         })
         .eq('id', listingId);
@@ -240,7 +284,7 @@ export default function AdminEditListing() {
           listing_id: listingId,
           url: img.url,
           storage_path: img.storagePath,
-          is_primary: uploadedImages.findIndex(i => i.storagePath === img.storagePath) === 0,
+          is_primary: uploadedImages.findIndex(i => i.storagePath === img.storagePath) === primaryImageIndex,
           order_index: uploadedImages.findIndex(i => i.storagePath === img.storagePath),
         }));
 
@@ -258,7 +302,7 @@ export default function AdminEditListing() {
         const original = originalImages.find(o => o.storage_path === img.storagePath);
         if (original) {
           const newOrderIndex = uploadedImages.findIndex(u => u.storagePath === img.storagePath);
-          const isPrimary = newOrderIndex === 0;
+          const isPrimary = newOrderIndex === primaryImageIndex;
           
           if (original.order_index !== newOrderIndex || original.is_primary !== isPrimary) {
             await supabase
@@ -532,17 +576,30 @@ export default function AdminEditListing() {
           {uploadedImages.length > 0 && (
             <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
               {uploadedImages.map((img, index) => (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer" onClick={() => setPrimaryImageIndex(index)}>
                   <img src={img.url} alt="" className="w-full h-full object-cover" />
-                  {index === 0 && (
+                  {index === primaryImageIndex && (
                     <span className="absolute top-1 left-1 px-2 py-0.5 bg-[#002D72] text-white text-[10px] font-bold rounded">
                       Primary
                     </span>
                   )}
                   <button
                     type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPrimaryImageIndex(index);
+                    }}
+                    className={`absolute top-1 right-1 p-1 rounded-full transition-colors ${index === primaryImageIndex ? 'bg-yellow-400 text-[#002D72]' : 'bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-black/70'}`}
+                  >
+                    <Star className="w-3 h-3" fill={index === primaryImageIndex ? "currentColor" : "none"} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(index);
+                    }}
+                    className="absolute bottom-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -550,6 +607,42 @@ export default function AdminEditListing() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Service History */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+            <Wrench className="w-5 h-5 text-[#002D72]" />
+            Service History
+          </h2>
+
+          <div className="space-y-4">
+            {serviceRecords.map((record, index) => (
+              <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                    <input type="date" value={record.date} onChange={(e) => updateServiceRecord(index, "date", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Service Type</label>
+                    <input type="text" value={record.type} onChange={(e) => updateServiceRecord(index, "type", e.target.value)} placeholder="Oil change, brake service..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Mileage</label>
+                    <input type="number" value={record.mileage} onChange={(e) => updateServiceRecord(index, "mileage", e.target.value)} placeholder="25000" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <input type="text" value={record.description} onChange={(e) => updateServiceRecord(index, "description", e.target.value)} placeholder="Notes..." className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                    {serviceRecords.length > 1 && (
+                      <button type="button" onClick={() => removeServiceRecord(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><X className="w-4 h-4" /></button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button type="button" onClick={addServiceRecord} className="flex items-center gap-2 text-sm font-medium text-[#002D72] hover:text-[#001D4A]"><Plus className="w-4 h-4" /> Add Service Record</button>
+          </div>
         </div>
 
         {/* Admin Settings */}
@@ -595,6 +688,40 @@ export default function AdminEditListing() {
                 <span className="text-sm font-medium text-gray-700">Featured Listing</span>
               </label>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Listing Tag</label>
+              <select
+                value={formData.listing_tag}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  handleInputChange('listing_tag', val === "None" ? "" : val);
+                  if (val !== "1 of #__") {
+                    handleInputChange('listing_tag_number', "");
+                  }
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+              >
+                <option value="">None</option>
+                <option value="Just Listed">Just Listed</option>
+                <option value="Rare Spec">Rare Spec</option>
+                <option value="1 of #__">1 of #__</option>
+              </select>
+            </div>
+
+            {formData.listing_tag === "1 of #__" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tag Number</label>
+                <input
+                  type="number"
+                  value={formData.listing_tag_number}
+                  onChange={(e) => handleInputChange('listing_tag_number', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+                  placeholder="500"
+                  min="1"
+                />
+              </div>
+            )}
           </div>
         </div>
 
