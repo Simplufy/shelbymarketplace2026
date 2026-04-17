@@ -109,3 +109,15 @@ html {
 [class*="bg-shelby-red"] {
   font-weight: 800 !important;
 }
+
+/* Auto-scrolling testimonials */
+@keyframes scroll-testimonials {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+.animate-scroll-testimonials {
+  animation: scroll-testimonials 30s linear infinite;
+}
+.animate-scroll-testimonials:hover {
+  animation-play-state: paused;
+}

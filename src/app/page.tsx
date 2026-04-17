@@ -560,7 +560,6 @@ export default async function Home() {
             ))}
           </div>
         </div>
-        <style jsx>{`@keyframes scroll-testimonials { 0% { transform: translateX(0); } 100% { transform: translateX(-33.333%); } } .animate-scroll-testimonials { animation: scroll-testimonials 30s linear infinite; } .animate-scroll-testimonials:hover { animation-play-state: paused; }`}</style>
       </section>
 
       {/* CTA Section */}
