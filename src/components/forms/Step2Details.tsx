@@ -12,8 +12,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
   const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
-  const [listingTag, setListingTag] = useState("");
-  const [listingTagNumber, setListingTagNumber] = useState("");
+  const [listingTags, setListingTags] = useState<{ type: string; number?: number }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadListingImage } = useStorage();
 
@@ -73,7 +72,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
   };
 
   const onSubmit = (data: any) => {
-    onNext({ ...data, serviceHistory: serviceRecords, images: uploadedImages });
+    onNext({ ...data, serviceHistory: serviceRecords, images: uploadedImages, primaryImageIndex, listingTags });
   };
 
   return (
@@ -266,23 +265,40 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
         )}
       </div>
 
-      {/* Listing Tag */}
+      {/* Listing Tags */}
       <div>
         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
-          Listing Tag (Optional)
+          Listing Tags (Optional)
         </label>
-        <select value={listingTag} onChange={(e) => setListingTag(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm">
-          <option value="">None</option>
-          <option value="Just Listed">Just Listed</option>
-          <option value="Rare Spec">Rare Spec</option>
-          <option value="1 of #__">1 of #__</option>
-        </select>
-        {listingTag === '1 of #__' && (
-          <div className="mt-2">
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Total Produced</label>
-            <input type="number" value={listingTagNumber} onChange={(e) => setListingTagNumber(e.target.value)} placeholder="e.g. 500" className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm" />
+        {listingTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {listingTags.map((tag, idx) => (
+              <span key={idx} className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full ${tag.type === 'Just Listed' ? 'bg-[#002D72] text-white' : tag.type === 'Rare Spec' ? 'bg-purple-600 text-white' : 'bg-[#E31837] text-white'}`}>
+                {tag.type === '1 of #__' && tag.number ? `1 of ${tag.number}` : tag.type}
+                <button type="button" onClick={() => setListingTags(listingTags.filter((_, i) => i !== idx))} className="ml-1 hover:opacity-70"><X className="w-3 h-3" /></button>
+              </span>
+            ))}
           </div>
         )}
+        <div className="flex gap-2">
+          <select id="user-tag-type" className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm">
+            <option value="">Select tag...</option>
+            <option value="Just Listed">Just Listed</option>
+            <option value="Rare Spec">Rare Spec</option>
+            <option value="1 of #__">1 of #__</option>
+          </select>
+          <input id="user-tag-number" type="number" placeholder="#" className="w-20 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-shelby-blue)] outline-none text-sm" min="1" />
+          <button type="button" onClick={() => {
+            const typeEl = document.getElementById('user-tag-type') as HTMLSelectElement;
+            const numEl = document.getElementById('user-tag-number') as HTMLInputElement;
+            if (!typeEl || !typeEl.value) return;
+            const newTag: { type: string; number?: number } = { type: typeEl.value };
+            if (typeEl.value === '1 of #__' && numEl.value) newTag.number = parseInt(numEl.value);
+            setListingTags([...listingTags, newTag]);
+            typeEl.value = '';
+            numEl.value = '';
+          }} className="px-4 py-2.5 bg-[var(--color-shelby-blue)] text-white text-sm font-bold rounded-lg hover:bg-[#001D40] transition-colors">Add</button>
+        </div>
       </div>
 
       <div className="bg-gray-50/50 p-4 rounded-xl flex items-start gap-3 border border-gray-200 hover:border-[var(--color-shelby-blue)] hover:bg-blue-50/20 transition-colors">

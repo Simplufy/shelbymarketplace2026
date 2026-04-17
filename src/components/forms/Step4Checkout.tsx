@@ -133,8 +133,7 @@ export default function Step4Checkout({ formData, onBack }: any) {
             serviceHistory: formData.serviceHistory,
             images: formData.images,
             primaryImageIndex: formData.primaryImageIndex || 0,
-            listingTag: formData.listingTag || null,
-            listingTagNumber: formData.listingTagNumber || null,
+            listingTags: formData.listingTags || null,
           },
         }),
       });

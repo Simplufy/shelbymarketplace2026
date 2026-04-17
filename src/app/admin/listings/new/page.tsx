@@ -58,8 +58,7 @@ export default function AdminCreateListing() {
     status: "ACTIVE", // Admin can set status directly
     is_featured: false,
     engine: "",
-    listing_tag: "",
-    listing_tag_number: "",
+    listing_tags: [] as { type: string; number?: number }[],
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -146,8 +145,7 @@ export default function AdminCreateListing() {
         status: "ACTIVE",
         is_featured: formData.is_featured || false,
         engine: formData.engine || "",
-        listing_tag: formData.listing_tag || null,
-        listing_tag_number: formData.listing_tag_number ? Number(formData.listing_tag_number) : null,
+        listing_tags: formData.listing_tags.length > 0 ? JSON.stringify(formData.listing_tags) : null,
         service_history: JSON.stringify(serviceRecords.filter(r => r.date || r.type || r.description)),
       };
       
@@ -582,39 +580,53 @@ export default function AdminCreateListing() {
               </label>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Listing Tag</label>
-              <select
-                value={formData.listing_tag}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  handleInputChange('listing_tag', val === "None" ? "" : val);
-                  if (val !== "1 of #__") {
-                    handleInputChange('listing_tag_number', "");
-                  }
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
-              >
-                <option value="">None</option>
-                <option value="Just Listed">Just Listed</option>
-                <option value="Rare Spec">Rare Spec</option>
-                <option value="1 of #__">1 of #__</option>
-              </select>
-            </div>
-
-            {formData.listing_tag === "1 of #__" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tag Number</label>
+            <div className="md:col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Listing Tags</label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {formData.listing_tags.map((tag: any, idx: number) => (
+                  <span key={idx} className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full ${tag.type === 'Just Listed' ? 'bg-[#002D72] text-white' : tag.type === 'Rare Spec' ? 'bg-purple-600 text-white' : 'bg-[#E31837] text-white'}`}>
+                    {tag.type === '1 of #__' && tag.number ? `1 of ${tag.number}` : tag.type}
+                    <button type="button" onClick={() => handleInputChange('listing_tags', formData.listing_tags.filter((_: any, i: number) => i !== idx))} className="ml-1 hover:opacity-70"><X className="w-3 h-3" /></button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <select
+                  id="new-tag-type"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none text-sm"
+                >
+                  <option value="">Select tag...</option>
+                  <option value="Just Listed">Just Listed</option>
+                  <option value="Rare Spec">Rare Spec</option>
+                  <option value="1 of #__">1 of #__</option>
+                </select>
                 <input
+                  id="new-tag-number"
                   type="number"
-                  value={formData.listing_tag_number}
-                  onChange={(e) => handleInputChange('listing_tag_number', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
-                  placeholder="500"
+                  placeholder="#"
+                  className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                   min="1"
                 />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const typeEl = document.getElementById('new-tag-type') as HTMLSelectElement;
+                    const numEl = document.getElementById('new-tag-number') as HTMLInputElement;
+                    if (!typeEl || !typeEl.value) return;
+                    const newTag: { type: string; number?: number } = { type: typeEl.value };
+                    if (typeEl.value === '1 of #__' && numEl.value) {
+                      newTag.number = parseInt(numEl.value);
+                    }
+                    handleInputChange('listing_tags', [...formData.listing_tags, newTag]);
+                    typeEl.value = '';
+                    numEl.value = '';
+                  }}
+                  className="px-4 py-2 bg-[#002D72] text-white text-sm font-bold rounded-lg hover:bg-[#001D4A] transition-colors"
+                >
+                  Add
+                </button>
               </div>
-            )}
+            </div>
           </div>
         </div>
 

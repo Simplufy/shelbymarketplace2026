@@ -35,7 +35,7 @@ type ActiveListing = {
   primary_image_url: string | null;
   is_featured: boolean;
   status: string;
-  listing_tag?: string;
+  listing_tags?: { type: string; number?: number }[];
 };
 
 const defaultCmsContent = {
@@ -299,7 +299,7 @@ export default async function Home() {
             </div>
             <button type="submit" className="w-full md:w-auto px-8 md:px-10 py-3 md:py-4 bg-[#E31837] text-white text-sm font-black rounded-lg md:rounded-xl shadow-lg shadow-[#E31837]/20 hover:bg-[#c41530] transition-colors">{cmsContent.hero.ctaText}</button>
           </form>
-          <div className="mt-6 md:mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-3xl mx-auto md:mx-0 md:justify-start justify-items-center">
+          <div className="mt-6 md:mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-3xl mx-auto">
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">Verified Listings</span></div>
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">No Dealer Fees</span></div>
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">Secure Transactions</span></div>
@@ -340,7 +340,15 @@ export default async function Home() {
                 <div className="relative h-44 md:h-48 overflow-hidden">
                   <img src={car.primary_image_url || '/images/logo.png'} className="w-full h-full object-cover" alt={`${car.year} ${car.make} ${car.model}`} />
                   {car.is_featured && <div className="absolute top-3 left-3 px-2 md:px-3 py-0.5 md:py-1 bg-[#E31837] text-white text-[9px] md:text-[10px] font-bold rounded-full">FEATURED</div>}
-                  {car.listing_tag && <div className={`absolute top-3 left-3 px-2 md:px-3 py-0.5 md:py-1 text-white text-[9px] md:text-[10px] font-bold rounded-full ${car.listing_tag.includes('Just Listed') ? 'bg-[#002D72]' : car.listing_tag.includes('Rare') ? 'bg-purple-600' : 'bg-[#E31837]'}`}>{car.listing_tag}</div>}
+                  {car.listing_tags && Array.isArray(car.listing_tags) && (
+                    <div className="absolute top-3 left-3 flex flex-col gap-1">
+                      {car.listing_tags.map((tag: any, tIdx: number) => (
+                        <div key={tIdx} className={`px-2 md:px-3 py-0.5 md:py-1 text-white text-[9px] md:text-[10px] font-bold rounded-full ${tag.type === 'Just Listed' ? 'bg-[#002D72]' : tag.type === 'Rare Spec' ? 'bg-purple-600' : 'bg-[#E31837]'}`}>
+                          {tag.type === '1 of #__' && tag.number ? `1 of ${tag.number}` : tag.type}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <button className="absolute top-3 right-3 p-1.5 md:p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/40 transition-colors"><Heart className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                 </div>
                 <div className="p-4 md:p-6 flex-1 flex flex-col">
@@ -418,6 +426,33 @@ export default async function Home() {
         </ScrollReveal>
       </section>
 
+      {/* Testimonials - Auto-scrolling */}
+      <section id="testimonials" className="bg-[#fafafb] py-16 md:py-20 overflow-hidden border-y border-[#dee1e6]">
+        <ScrollReveal>
+          <div className="max-w-[1440px] mx-auto px-5 md:px-12">
+            <div className="text-center mb-10 md:mb-16">
+              <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-[#E31837]/10 rounded-full mb-4 md:mb-6"><span className="text-[10px] md:text-xs font-bold text-[#E31837] uppercase tracking-wider">Testimonials</span></div>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter mb-3 md:mb-4">What Our Community Says</h2>
+              <p className="text-[#565d6d] text-sm md:text-lg max-w-2xl mx-auto">Real stories from real Shelby enthusiasts who bought and sold on our platform.</p>
+            </div>
+          </div>
+        </ScrollReveal>
+        <div className="relative overflow-hidden">
+          <div className="flex animate-scroll-testimonials gap-4 md:gap-6 w-max">
+            {[...testimonials, ...testimonials, ...testimonials].map((testimonial, idx) => (
+              <div key={idx} className="bg-white rounded-2xl p-5 md:p-6 border border-[#dee1e6] shadow-sm flex flex-col w-[280px] md:w-[320px] shrink-0">
+                <div className="flex gap-0.5 md:gap-1 mb-3 md:mb-4">{[...Array(testimonial.rating)].map((_, i) => (<Star key={i} className="w-3.5 h-3.5 md:w-4 md:h-4 fill-[#E31837] text-[#E31837]" />))}</div>
+                <p className="text-[#565d6d] text-xs md:text-sm leading-relaxed mb-4 md:mb-6 flex-1">&ldquo;{testimonial.text}&rdquo;</p>
+                <div className="flex items-center gap-2 md:gap-3 pt-3 md:pt-4 border-t border-[#f3f4f6]">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-[#002D72]/10 rounded-full flex items-center justify-center"><span className="text-[#002D72] font-bold text-xs md:text-sm">{testimonial.name[0]}</span></div>
+                  <div><span className="block text-xs md:text-sm font-bold text-[#171a1f]">{testimonial.name}</span><span className="block text-[10px] md:text-xs text-[#565d6d]">{testimonial.location}</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Listing Pricing */}
       <section className="bg-white py-16 md:py-20 px-5 md:px-12">
         <ScrollReveal>
@@ -452,10 +487,10 @@ export default async function Home() {
             <div className="text-center mb-10 md:mb-16">
               <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-[#E31837]/10 rounded-full mb-4 md:mb-6"><span className="text-[10px] md:text-xs font-bold text-[#E31837] uppercase tracking-wider">For Sellers</span></div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter mb-4 md:mb-6">Sell Your Shelby Without Dealer Games</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6 max-w-4xl mx-auto">
-                <div className="flex items-center gap-2 md:gap-3 justify-center"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">Reach Nationwide Buyers</span></div>
-                <div className="flex items-center gap-2 md:gap-3 justify-center"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">No Trade-In Loss</span></div>
-                <div className="flex items-center gap-2 md:gap-3 justify-center"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">You Control Your Price</span></div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6 max-w-4xl mx-auto justify-items-center">
+                <div className="flex items-center gap-2 md:gap-3"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">Reach Nationwide Buyers</span></div>
+                <div className="flex items-center gap-2 md:gap-3"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">No Trade-In Loss</span></div>
+                <div className="flex items-center gap-2 md:gap-3"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">You Control Your Price</span></div>
               </div>
             </div>
             <div className="space-y-6 md:space-y-8 lg:hidden">
@@ -531,33 +566,6 @@ export default async function Home() {
           <div className="lg:col-span-5 flex flex-col gap-6 md:gap-8">
             {sideArticles.map((item: any) => (<Link key={item.id} href={`/blog/${item.slug || item.id}`} className="flex gap-4 md:gap-6 group cursor-pointer"><div className="w-24 h-24 md:w-32 md:h-32 rounded-xl md:rounded-2xl overflow-hidden shrink-0 shadow-sm"><img src={item.image_url || '/images/logo.png'} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt={item.title} /></div><div className="flex flex-col justify-center"><div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-2"><span className="text-[8px] md:text-[9px] font-black text-[#E31837] uppercase tracking-widest">{item.category}</span><span className="text-[8px] md:text-[9px] font-bold text-[#565d6d] uppercase tracking-widest">{new Date(item.published_at).toLocaleDateString()}</span></div><h4 className="font-outfit font-bold text-sm md:text-lg leading-snug group-hover:text-[#002D72] transition-colors">{item.title}</h4></div></Link>))}
             <div className="mt-2 md:mt-4 p-6 md:p-8 bg-[#002D72]/5 rounded-2xl md:rounded-3xl border border-[#002D72]/10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6"><div><h4 className="font-outfit font-bold text-base md:text-lg mb-1">The Shelby Weekly</h4><p className="text-[10px] md:text-xs text-[#565d6d]">Auction alerts and performance reviews.</p></div><button className="px-6 md:px-8 py-2 md:py-2.5 bg-[#002D72] text-white text-xs md:text-sm font-bold rounded-md hover:bg-[#001D4A] transition-colors">Subscribe</button></div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials - Auto-scrolling */}
-      <section id="testimonials" className="bg-[#fafafb] py-16 md:py-20 overflow-hidden border-y border-[#dee1e6]">
-        <ScrollReveal>
-          <div className="max-w-[1440px] mx-auto px-5 md:px-12">
-            <div className="text-center mb-10 md:mb-16">
-              <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-[#E31837]/10 rounded-full mb-4 md:mb-6"><span className="text-[10px] md:text-xs font-bold text-[#E31837] uppercase tracking-wider">Testimonials</span></div>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter mb-3 md:mb-4">What Our Community Says</h2>
-              <p className="text-[#565d6d] text-sm md:text-lg max-w-2xl mx-auto">Real stories from real Shelby enthusiasts who bought and sold on our platform.</p>
-            </div>
-          </div>
-        </ScrollReveal>
-        <div className="relative overflow-hidden">
-          <div className="flex animate-scroll-testimonials gap-4 md:gap-6 w-max">
-            {[...testimonials, ...testimonials, ...testimonials].map((testimonial, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-5 md:p-6 border border-[#dee1e6] shadow-sm flex flex-col w-[280px] md:w-[320px] shrink-0">
-                <div className="flex gap-0.5 md:gap-1 mb-3 md:mb-4">{[...Array(testimonial.rating)].map((_, i) => (<Star key={i} className="w-3.5 h-3.5 md:w-4 md:h-4 fill-[#E31837] text-[#E31837]" />))}</div>
-                <p className="text-[#565d6d] text-xs md:text-sm leading-relaxed mb-4 md:mb-6 flex-1">&ldquo;{testimonial.text}&rdquo;</p>
-                <div className="flex items-center gap-2 md:gap-3 pt-3 md:pt-4 border-t border-[#f3f4f6]">
-                  <div className="w-8 h-8 md:w-10 md:h-10 bg-[#002D72]/10 rounded-full flex items-center justify-center"><span className="text-[#002D72] font-bold text-xs md:text-sm">{testimonial.name[0]}</span></div>
-                  <div><span className="block text-xs md:text-sm font-bold text-[#171a1f]">{testimonial.name}</span><span className="block text-[10px] md:text-xs text-[#565d6d]">{testimonial.location}</span></div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

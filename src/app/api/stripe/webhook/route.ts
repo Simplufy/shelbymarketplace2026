@@ -77,8 +77,9 @@ export async function POST(req: NextRequest) {
           transmission: vehicleData.transmission || 'Automatic',
           drivetrain: vehicleData.drivetrain || 'RWD',
           engine: vehicleData.engine || null,
-          listing_tag: vehicleData.listingTag || null,
-          listing_tag_number: vehicleData.listingTagNumber ? parseInt(vehicleData.listingTagNumber) : null,
+          listing_tags: vehicleData.listingTags && vehicleData.listingTags.length > 0
+            ? JSON.stringify(vehicleData.listingTags)
+            : null,
           service_history: vehicleData.serviceHistory && vehicleData.serviceHistory.length > 0
             ? JSON.stringify(vehicleData.serviceHistory.filter((r: any) => r.date || r.type || r.description))
             : null,

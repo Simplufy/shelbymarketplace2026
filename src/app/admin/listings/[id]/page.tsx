@@ -32,8 +32,7 @@ interface ListingDetail {
   title_status: string | null;
   previous_owners: number | null;
   accidents: string | null;
-  listing_tag: string | null;
-  listing_tag_number: number | null;
+  listing_tags: any;
   service_history: any;
   created_at: string;
   seller_name: string;
@@ -52,7 +51,7 @@ export default function AdminListingDetail() {
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [editingTag, setEditingTag] = useState(false);
-  const [tagForm, setTagForm] = useState({ listing_tag: "", listing_tag_number: "" });
+  const [tagForm, setTagForm] = useState({ type: "", number: "" });
   const [savingTag, setSavingTag] = useState(false);
   const supabase = createClient();
   const listingId = params.id as string;
@@ -122,10 +121,7 @@ export default function AdminListingDetail() {
         images: imagesData || [],
         features: featuresData?.map(f => f.feature) || []
       });
-      setTagForm({
-        listing_tag: listingData.listing_tag || "",
-        listing_tag_number: listingData.listing_tag_number?.toString() || ""
-      });
+      setTagForm({ type: "", number: "" });
     } catch (error) {
       console.error('Error loading listing:', error);
       alert('Failed to load listing details');
@@ -184,25 +180,49 @@ export default function AdminListingDetail() {
 
   const handleSaveTag = async () => {
     if (!listing) return;
+    if (!tagForm.type) return;
     setSavingTag(true);
     try {
+      const currentTags = listing.listing_tags ? (typeof listing.listing_tags === 'string' ? JSON.parse(listing.listing_tags) : listing.listing_tags) : [];
+      const newTag: { type: string; number?: number } = { type: tagForm.type };
+      if (tagForm.type === '1 of #__' && tagForm.number) {
+        newTag.number = parseInt(tagForm.number);
+      }
+      const updatedTags = [...currentTags, newTag];
       const { error } = await supabase
         .from('listings')
         .update({
-          listing_tag: tagForm.listing_tag || null,
-          listing_tag_number: tagForm.listing_tag_number ? parseInt(tagForm.listing_tag_number) : null,
+          listing_tags: JSON.stringify(updatedTags),
           updated_at: new Date().toISOString()
         })
         .eq('id', listingId);
       if (error) throw error;
       await loadListing();
-      setEditingTag(false);
-      alert('Listing tag updated!');
+      setTagForm({ type: "", number: "" });
     } catch (error) {
       console.error('Error saving tag:', error);
       alert('Failed to save listing tag');
     }
     setSavingTag(false);
+  };
+
+  const handleRemoveTag = async (idx: number) => {
+    if (!listing) return;
+    const currentTags = listing.listing_tags ? (typeof listing.listing_tags === 'string' ? JSON.parse(listing.listing_tags) : listing.listing_tags) : [];
+    const updatedTags = currentTags.filter((_: any, i: number) => i !== idx);
+    try {
+      const { error } = await supabase
+        .from('listings')
+        .update({
+          listing_tags: updatedTags.length > 0 ? JSON.stringify(updatedTags) : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', listingId);
+      if (error) throw error;
+      await loadListing();
+    } catch (error) {
+      console.error('Error removing tag:', error);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -545,56 +565,38 @@ export default function AdminListingDetail() {
             </div>
           </div>
 
-          {/* Listing Tag */}
+          {/* Listing Tags */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Tag className="w-5 h-5" />
-                Listing Tag
-              </h2>
-              {!editingTag && (
-                <button onClick={() => { setTagForm({ listing_tag: listing.listing_tag || "", listing_tag_number: listing.listing_tag_number?.toString() || "" }); setEditingTag(true); }} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Edit2 className="w-4 h-4 text-gray-400" />
-                </button>
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Tag className="w-5 h-5" />
+              Listing Tags
+            </h2>
+            <div className="space-y-3">
+              {listing.listing_tags && Array.isArray(listing.listing_tags) && listing.listing_tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {listing.listing_tags.map((tag: any, idx: number) => (
+                    <span key={idx} className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full ${tag.type === 'Just Listed' ? 'bg-[#002D72] text-white' : tag.type === 'Rare Spec' ? 'bg-purple-600 text-white' : 'bg-[#E31837] text-white'}`}>
+                      {tag.type === '1 of #__' && tag.number ? `1 of ${tag.number}` : tag.type}
+                      <button onClick={() => handleRemoveTag(idx)} className="ml-1 hover:opacity-70"><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+                </div>
               )}
+              <div className="flex gap-2">
+                <select value={tagForm.type} onChange={(e) => setTagForm({ ...tagForm, type: e.target.value })} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none">
+                  <option value="">Select tag...</option>
+                  <option value="Just Listed">Just Listed</option>
+                  <option value="Rare Spec">Rare Spec</option>
+                  <option value="1 of #__">1 of #__</option>
+                </select>
+                {tagForm.type === '1 of #__' && (
+                  <input type="number" value={tagForm.number} onChange={(e) => setTagForm({ ...tagForm, number: e.target.value })} placeholder="#" className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                )}
+                <button onClick={handleSaveTag} disabled={savingTag || !tagForm.type} className="px-4 py-2 bg-[#002D72] text-white text-sm font-bold rounded-lg hover:bg-[#001D4A] transition-colors disabled:opacity-50 flex items-center gap-1">
+                  {savingTag ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Add
+                </button>
+              </div>
             </div>
-            {editingTag ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Tag Type</label>
-                  <select value={tagForm.listing_tag} onChange={(e) => setTagForm({ ...tagForm, listing_tag: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none">
-                    <option value="">None</option>
-                    <option value="Just Listed">Just Listed</option>
-                    <option value="Rare Spec">Rare Spec</option>
-                    <option value="1 of #__">1 of #__</option>
-                  </select>
-                </div>
-                {tagForm.listing_tag === '1 of #__' && (
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Number</label>
-                    <input type="number" value={tagForm.listing_tag_number} onChange={(e) => setTagForm({ ...tagForm, listing_tag_number: e.target.value })} placeholder="e.g. 500" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
-                  </div>
-                )}
-                <div className="flex gap-2">
-                  <button onClick={handleSaveTag} disabled={savingTag} className="flex-1 px-3 py-2 bg-[#002D72] text-white text-sm font-bold rounded-lg hover:bg-[#001D4A] transition-colors disabled:opacity-50 flex items-center justify-center gap-1">
-                    {savingTag ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
-                  </button>
-                  <button onClick={() => setEditingTag(false)} className="px-3 py-2 border border-gray-300 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-1">
-                    <X className="w-3 h-3" /> Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                {listing.listing_tag ? (
-                  <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full ${listing.listing_tag.includes('Just Listed') ? 'bg-[#002D72] text-white' : listing.listing_tag.includes('Rare') ? 'bg-purple-600 text-white' : 'bg-[#E31837] text-white'}`}>
-                    {listing.listing_tag === '1 of #__' && listing.listing_tag_number ? `1 of ${listing.listing_tag_number}` : listing.listing_tag}
-                  </span>
-                ) : (
-                  <p className="text-sm text-gray-400">No tag set</p>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Service History */}
