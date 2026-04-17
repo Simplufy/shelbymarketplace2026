@@ -174,10 +174,6 @@ export default function Footer() {
               Based in Columbus, Ohio
             </span>
           </div>
-            <span className="text-[10px] font-medium text-[#565d6d] uppercase tracking-tight flex items-center gap-1">
-              Based in Columbus, Ohio
-            </span>
-          </div>
           <div className="flex flex-wrap justify-center gap-6 text-[10px] font-medium text-[#565d6d] uppercase tracking-tight">
             <Link href="/privacy" className="hover:text-[#002D72]">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-[#002D72]">Terms of Service</Link>

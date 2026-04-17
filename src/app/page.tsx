@@ -415,6 +415,26 @@ export default async function Home() {
               {cmsContent.hero.ctaText}
             </button>
           </form>
+
+          {/* Trust Checkmarks */}
+          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-[#E31837] shrink-0" />
+              <span className="text-white/90 text-sm font-semibold">Verified Listings</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-[#E31837] shrink-0" />
+              <span className="text-white/90 text-sm font-semibold">No Dealer Fees</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-[#E31837] shrink-0" />
+              <span className="text-white/90 text-sm font-semibold">Secure Transactions</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-[#E31837] shrink-0" />
+              <span className="text-white/90 text-sm font-semibold">Nationwide Buyers</span>
+            </div>
+          </div>
         </div>
       </section>
 
