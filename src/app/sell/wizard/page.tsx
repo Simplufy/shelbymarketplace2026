@@ -38,9 +38,10 @@ function SuccessView() {
 
 function SellForm() {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<any>({});
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
+  const preselectedPackage = searchParams.get('package');
+  const [formData, setFormData] = useState<any>(preselectedPackage ? { package_tier: preselectedPackage } : {});
   const wizardRef = useRef<HTMLDivElement | null>(null);
 
   const nextStep = (data: any) => {

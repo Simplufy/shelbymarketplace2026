@@ -437,7 +437,7 @@ export default async function Home() {
                   <ul className="space-y-2.5 md:space-y-3 mb-6 md:mb-8 flex-1">
                     {tier.features.map((feature, fIdx) => (<li key={fIdx} className="flex items-start gap-2 md:gap-3 text-xs md:text-sm text-[#171a1f]"><CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-600 shrink-0 mt-0.5" />{feature}</li>))}
                   </ul>
-                  <Link href="/sell/wizard" className={`w-full py-2.5 md:py-3 rounded-lg text-center text-xs md:text-sm font-bold transition-colors ${tier.popular ? 'bg-[#002D72] text-white hover:bg-[#001D4A]' : 'bg-[#f3f4f6] text-[#171a1f] hover:bg-[#e5e7eb]'}`}>{tier.cta}</Link>
+                  <Link href={tier.name === "Standard Listing" ? "/sell/wizard?package=STANDARD" : tier.name === "Homepage Featured" ? "/sell/wizard?package=HOMEPAGE" : "/sell/wizard?package=HOMEPAGE_PLUS_ADS"} className={`w-full py-2.5 md:py-3 rounded-lg text-center text-xs md:text-sm font-bold transition-colors ${tier.popular ? 'bg-[#002D72] text-white hover:bg-[#001D4A]' : 'bg-[#f3f4f6] text-[#171a1f] hover:bg-[#e5e7eb]'}`}>{tier.cta}</Link>
                 </div>
               ))}
             </div>
