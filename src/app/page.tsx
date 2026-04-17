@@ -283,7 +283,7 @@ export default async function Home() {
   return (
     <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[55vh] min-h-[420px] md:h-[70vh] md:min-h-[560px] bg-[#0F172A] overflow-hidden">
+      <section className="relative h-[60vh] min-h-[450px] md:h-[70vh] md:min-h-[560px] bg-[#0F172A] overflow-hidden">
         <img src={cmsContent.hero.heroImage} className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative max-w-[1440px] mx-auto px-5 md:px-12 h-full pt-16 md:pt-28 pb-6 flex flex-col justify-center">
@@ -487,10 +487,12 @@ export default async function Home() {
             <div className="text-center mb-10 md:mb-16">
               <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-[#E31837]/10 rounded-full mb-4 md:mb-6"><span className="text-[10px] md:text-xs font-bold text-[#E31837] uppercase tracking-wider">For Sellers</span></div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter mb-4 md:mb-6">Sell Your Shelby Without Dealer Games</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6 max-w-4xl mx-auto justify-items-center">
-                <div className="flex items-center gap-2 md:gap-3"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">Reach Nationwide Buyers</span></div>
-                <div className="flex items-center gap-2 md:gap-3"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">No Trade-In Loss</span></div>
-                <div className="flex items-center gap-2 md:gap-3"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">You Control Your Price</span></div>
+              <div className="flex flex-col items-center">
+                <div className="flex flex-col gap-3 md:gap-6 items-start">
+                  <div className="flex items-center gap-2 md:gap-3"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">Reach Nationwide Buyers</span></div>
+                  <div className="flex items-center gap-2 md:gap-3"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">No Trade-In Loss</span></div>
+                  <div className="flex items-center gap-2 md:gap-3"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#E31837] shrink-0" /><span className="text-xs md:text-sm font-bold text-[#171a1f]">You Control Your Price</span></div>
+                </div>
               </div>
             </div>
             <div className="space-y-6 md:space-y-8 lg:hidden">
