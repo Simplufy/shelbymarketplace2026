@@ -283,10 +283,10 @@ export default async function Home() {
   return (
     <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[60vh] min-h-[450px] md:h-[70vh] md:min-h-[560px] bg-[#0F172A] overflow-hidden">
+      <section className="relative h-[75vh] min-h-[580px] md:h-[70vh] md:min-h-[560px] bg-[#0F172A] overflow-hidden">
         <img src={cmsContent.hero.heroImage} className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="relative max-w-[1440px] mx-auto px-5 md:px-12 h-full pt-16 md:pt-28 pb-6 flex flex-col justify-center">
+        <div className="relative max-w-[1440px] mx-auto px-5 md:px-12 h-full pt-10 md:pt-28 pb-16 md:pb-6 flex flex-col justify-center">
           <div className="inline-flex items-center px-3 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-3 self-start">
             <span className="text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider">{cmsContent.hero.badge}</span>
           </div>
