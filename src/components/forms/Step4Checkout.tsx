@@ -33,17 +33,10 @@ const ADDON_CATALOG = [
     defaultChecked: false,
   },
   {
-    id: "premium_listing_upgrade",
-    name: "Premium Listing",
-    description: "Upgrade to Premium Listing",
-    price: 129,
-    defaultChecked: false,
-  },
-  {
     id: "concierge_service",
     name: "Concierge Service",
     description: "We write, optimize, and position your listing",
-    price: 199,
+    price: 129,
     defaultChecked: false,
   },
   {

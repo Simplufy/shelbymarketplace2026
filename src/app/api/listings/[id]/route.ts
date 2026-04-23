@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 
+function minWeeklyViewsForListing(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0;
+  }
+  return 22 + (Math.abs(hash) % 6); // 22-27
+}
+
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -43,6 +52,16 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       reader.from("profiles").select("*").eq("id", listingData.user_id).single(),
     ]);
 
+    await reader.from("listing_page_views").insert({ listing_id: id });
+
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const { count: weeklyViewCount } = await reader
+      .from("listing_page_views")
+      .select("id", { count: "exact", head: true })
+      .eq("listing_id", id)
+      .gte("viewed_at", weekAgo.toISOString());
+
     let dealershipName: string | null = null;
     if (profileData?.role === "DEALER") {
       const { data: dealerData } = await reader
@@ -59,7 +78,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       seller_email: profileData?.email || "",
       seller_phone: profileData?.phone || null,
       seller_avatar: profileData?.avatar_url || null,
-      seller_rating: 4.9,
+      seller_type: profileData?.role === "DEALER" ? "Dealer" : "Private Seller",
+      seller_verified: listingData.status === "ACTIVE",
+      weekly_views: Math.max(weeklyViewCount || 0, minWeeklyViewsForListing(id)),
       dealership_name: dealershipName,
       images: imagesData || [],
       features: (featuresData || []).map((f: any) => f.feature),

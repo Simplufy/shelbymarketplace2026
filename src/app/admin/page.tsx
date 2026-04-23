@@ -35,7 +35,9 @@ export default function AdminDashboard() {
     total: 0,
     pending: 0,
     active: 0,
-    featured: 0
+    featured: 0,
+    userAccounts: 0,
+    revenueMonthlyCents: null as number | null,
   });
   
   const supabase = createClient();
@@ -64,12 +66,12 @@ export default function AdminDashboard() {
       }));
 
       setListings(listingsWithDetails);
-      setStats(result.stats || { total: 0, pending: 0, active: 0, featured: 0 });
+      setStats(result.stats || { total: 0, pending: 0, active: 0, featured: 0, userAccounts: 0, revenueMonthlyCents: null });
     } catch (error: any) {
       console.error("Error loading listings:", error);
       // Set empty state on error to prevent infinite loading
       setListings([]);
-      setStats({ total: 0, pending: 0, active: 0, featured: 0 });
+      setStats({ total: 0, pending: 0, active: 0, featured: 0, userAccounts: 0, revenueMonthlyCents: null });
     }
     setLoading(false);
   };
@@ -178,6 +180,12 @@ export default function AdminDashboard() {
     }).format(price);
   };
 
+  const getChangeBadgeClass = (change: string) => {
+    if (change.startsWith("+")) return "bg-green-100 text-green-700";
+    if (change.startsWith("-")) return "bg-red-100 text-red-700";
+    return "bg-gray-100 text-gray-700";
+  };
+
   // Filter listings based on active tab
   const filteredListings = listings.filter(listing => {
     if (activeTab === "pending") return listing.status === "PENDING";
@@ -192,8 +200,14 @@ export default function AdminDashboard() {
   const statsData = [
     { label: "Total Listings", value: stats.total.toString(), change: "+12%", icon: Package, color: "blue" },
     { label: "Pending Review", value: stats.pending.toString(), change: "+3", icon: AlertTriangle, color: "yellow" },
-    { label: "Active Users", value: "2,847", change: "+18%", icon: Users, color: "green" },
-    { label: "Revenue (Mo)", value: "$14,280", change: "+24%", icon: DollarSign, color: "red" },
+    { label: "Active Users", value: stats.userAccounts.toLocaleString(), change: "Account Count", icon: Users, color: "green" },
+    {
+      label: "Revenue (Mo)",
+      value: stats.revenueMonthlyCents === null ? "--" : formatPrice(stats.revenueMonthlyCents / 100),
+      change: stats.revenueMonthlyCents === null ? "Stripe Live Required" : "Stripe",
+      icon: DollarSign,
+      color: "red",
+    },
   ];
 
   return (
@@ -217,9 +231,7 @@ export default function AdminDashboard() {
               }`}>
                 <stat.icon className="w-6 h-6" />
               </div>
-              <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                stat.change.startsWith("+") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-              }`}>
+              <span className={`text-xs font-bold px-2 py-1 rounded-full ${getChangeBadgeClass(stat.change)}`}>
                 {stat.change}
               </span>
             </div>

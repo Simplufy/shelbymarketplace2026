@@ -4,8 +4,8 @@ import { Shield, TrendingUp, Users, ArrowRight, Check, Award } from "lucide-reac
 import ScrollReveal from "@/components/animations/ScrollReveal";
 
 const SUBSCRIPTIONS = [
-  { id: "ENTHUSIAST", name: "Enthusiast Dealer", price: 400, desc: "Perfect for specialty dealers moving low volume of Shelby vehicles.", features: ["Up to 10 active listings/mo", "Bypass one-time listing fees", "Admin prioritized review", "Dealer Profile Verification badge"] },
-  { id: "APEX", name: "Apex Dealer", price: 1000, desc: "For high-volume dealerships dominating the performance market.", features: ["Unlimited active listings", "Bypass one-time listing fees", "Immediate auto-approval", "Homepage Featured Slot (1/mo)", "Dedicated Account Manager"], recommended: true },
+  { id: "ENTHUSIAST", name: "Enthusiast Dealer", price: 399, desc: "Perfect for specialty dealers moving low volume of Shelby vehicles.", features: ["Up to 10 active listings/mo", "Bypass one-time listing fees", "Admin prioritized review", "Dealer Profile Verification badge"] },
+  { id: "APEX", name: "Apex Dealer", price: 999, desc: "For high-volume dealerships dominating the performance market.", features: ["Unlimited active listings", "Bypass one-time listing fees", "Immediate auto-approval", "Homepage Featured Slot (1/mo)", "Dedicated Account Manager"], recommended: true },
 ];
 
 export default function DealersPage() {

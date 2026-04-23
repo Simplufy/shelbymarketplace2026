@@ -69,7 +69,7 @@ const defaultContent: SiteContent = {
   hero: {
     badge: "Exclusively Shelby",
     headline: "The Fastest Way to Buy or Sell a Ford Shelby",
-    subheadline: "The world's premier marketplace for authentic Shelby engineering.",
+    subheadline: "Join 1000+ Shelby enthusiasts buying and selling GT350s, GT500s & rare builds nationwide",
     heroImage: "/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg",
     searchPlaceholder: "Search by Model, Year, or ZIP...",
     ctaText: "Search Inventory"

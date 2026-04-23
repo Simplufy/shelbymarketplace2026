@@ -120,9 +120,9 @@ export default function SellLandingPage() {
               Start Your Listing
               <ArrowRight className="w-5 h-5" />
             </Link>
-            <a href="tel:6149177107" className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-white/10 backdrop-blur-md text-white font-bold rounded-xl border border-white/20 hover:bg-white/20 transition-colors">
-              Call Us: 614-917-7107
-            </a>
+            <Link href="/contact" className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-white/10 backdrop-blur-md text-white font-bold rounded-xl border border-white/20 hover:bg-white/20 transition-colors">
+              Contact Us
+            </Link>
           </div>
         </div>
       </section>

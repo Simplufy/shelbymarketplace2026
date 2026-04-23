@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronRight, Share2, Calendar, Gauge, Zap, Palette, ShieldCheck, Copy, Check, Star, MapPin, Phone, MessageSquare, Loader2, Printer } from "lucide-react";
+import { ChevronRight, Share2, Gauge, Zap, Palette, ShieldCheck, Copy, Check, MapPin, Phone, MessageSquare, Loader2, Printer, Eye } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareModal } from "@/components/ShareModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,7 +34,9 @@ interface ListingDetail {
   seller_phone: string | null;
   seller_avatar: string | null;
   dealership_name: string | null;
-  seller_rating: number | null;
+  seller_type: "Dealer" | "Private Seller";
+  seller_verified: boolean;
+  weekly_views: number;
   images: { url: string; is_primary: boolean }[];
   features: string[];
 }
@@ -339,8 +341,8 @@ export default function VehicleDetailPage() {
                 </div>
               )}
               <div className="flex items-center gap-1.5 text-sm text-[#565d6d]">
-                <Calendar className="w-4 h-4" />
-                <span>Listed {new Date(car.created_at).toLocaleDateString()}</span>
+                <Eye className="w-4 h-4" />
+                <span>Viewed {car.weekly_views.toLocaleString()} times this week</span>
               </div>
               <FavoriteButton listingId={car.id} showLabel />
               <button 
@@ -485,12 +487,10 @@ export default function VehicleDetailPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-outfit font-bold">{car.dealership_name || car.seller_name}</h3>
-                    {car.seller_rating && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <span className="text-sm font-bold">{car.seller_rating}</span>
-                        <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />)}</div>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#002D72]/10 text-[#002D72]">{car.seller_type}</span>
+                      {car.seller_verified && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Verified</span>}
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-3 mb-8">
@@ -587,8 +587,8 @@ export default function VehicleDetailPage() {
 
         <div className="mt-10">
           <KlaviyoInlineForm
-            title="Get Weekly Shelby Deals & Listings"
-            description="Track listing drops and rare specs before they sell."
+            title="Get Selby Deals Before Anyone Else"
+            description="New Listings. Price Drops. Rare Finds. Delivered Weekly."
             source="listing_inline"
           />
         </div>

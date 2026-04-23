@@ -42,7 +42,7 @@ const defaultCmsContent = {
   hero: {
     badge: "Exclusively Shelby",
     headline: "The Fastest Way to Buy or Sell a Ford Shelby",
-    subheadline: "The world's premier marketplace for authentic Shelby engineering.",
+    subheadline: "Join 1000+ Shelby enthusiasts buying and selling GT350s, GT500s & rare builds nationwide",
     heroImage: "/images/96eb0d70-2020-ford-mustang-shelby-gt500-3.jpg",
     searchPlaceholder: "Search by Model, Year, or ZIP...",
     ctaText: "Search Inventory",
@@ -256,6 +256,10 @@ export default async function Home() {
     if (tData && tData.length > 0) dbTestimonials = tData;
   } catch (err) { console.error('Testimonials fetch error:', err); }
   const testimonials = dbTestimonials.length > 0 ? dbTestimonials : defaultTestimonials;
+  const heroSubheadline =
+    cmsContent.hero.subheadline === "The world's premier marketplace for authentic Shelby engineering."
+      ? "Join 1000+ Shelby enthusiasts buying and selling GT350s, GT500s & rare builds nationwide"
+      : cmsContent.hero.subheadline;
 
   let howItWorksSteps = defaultHowItWorks;
   let pricingTiers = defaultPricingTiers;
@@ -291,7 +295,7 @@ export default async function Home() {
             <span className="text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider">{cmsContent.hero.badge}</span>
           </div>
           <h1 className="text-white font-black text-2xl sm:text-4xl md:text-5xl lg:text-[64px] leading-tight tracking-tighter mb-2 drop-shadow-2xl break-words italic uppercase max-w-4xl">{cmsContent.hero.headline}</h1>
-          <p className="text-[#D1D5DB] font-outfit text-sm sm:text-lg max-w-lg mb-4">{cmsContent.hero.subheadline}</p>
+          <p className="text-[#D1D5DB] font-outfit text-sm sm:text-lg max-w-lg mb-4">{heroSubheadline || "Join 1000+ Shelby enthusiasts buying and selling GT350s, GT500s & rare builds nationwide"}</p>
           <form action="/listings" method="GET" className="glass-search max-w-3xl w-full mx-auto rounded-xl md:rounded-2xl p-2 md:p-3 flex flex-col md:flex-row items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20">
             <div className="flex-1 flex items-center gap-2 md:gap-3 px-3 md:px-4 w-full bg-white/90 rounded-lg md:rounded-xl py-2.5 md:py-3">
               <Search className="w-4 h-4 md:w-5 md:h-5 text-[#565d6d] shrink-0" />
@@ -575,7 +579,7 @@ export default async function Home() {
       {/* CTA Section */}
       <section className="py-8 md:py-12 px-5 md:px-12 max-w-[1440px] mx-auto w-full">
         <ScrollReveal>
-          <KlaviyoInlineForm title="Get Weekly Shelby Deals & Listings" description="Be first to hear about hot listings, price drops, and collector opportunities." source="homepage_inline" />
+          <KlaviyoInlineForm title="Get Selby Deals Before Anyone Else" description="New Listings. Price Drops. Rare Finds. Delivered Weekly." source="homepage_inline" />
         </ScrollReveal>
       </section>
 

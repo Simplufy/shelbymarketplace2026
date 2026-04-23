@@ -80,7 +80,7 @@ export default function Header() {
             <a href="/#how-it-works" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">How It Works</a>
             <Link href="/featured" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Featured</Link>
             <Link href="/blog" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Articles</Link>
-            <Link href="/dealers" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Dealers</Link>
+            <Link href="/contact" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Contact</Link>
             <Link href="/about" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">About</Link>
           </nav>
 
@@ -134,7 +134,7 @@ export default function Header() {
             <a href="/#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">How It Works</a>
             <Link href="/featured" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Featured</Link>
             <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Articles</Link>
-            <Link href="/dealers" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Dealers</Link>
+            <Link href="/contact" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Contact</Link>
             <Link href="/about" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">About</Link>
             <Link href="/sell" onClick={() => setIsMenuOpen(false)} className="block w-full py-3 bg-[#E31837] text-white text-sm font-bold rounded-md text-center">Sell Your Shelby</Link>
             <a href="tel:6149177107" className="flex items-center justify-center gap-2 py-3 border border-[#E31837] text-[#E31837] text-sm font-bold rounded-md">

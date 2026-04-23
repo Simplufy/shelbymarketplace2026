@@ -73,8 +73,8 @@ export async function POST(req: NextRequest) {
 
     // Create Stripe checkout session for subscription
     const prices: Record<string, number> = {
-      'ENTHUSIAST': 40000, // $400.00
-      'APEX': 100000, // $1000.00
+      'ENTHUSIAST': 39900, // $399.00
+      'APEX': 99900, // $999.00
     };
 
     const packageNames: Record<string, string> = {
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       'APEX': 'Apex Dealer Subscription',
     };
 
-    const price = prices[subscription_tier] || 40000;
+    const price = prices[subscription_tier] || 39900;
     const packageName = packageNames[subscription_tier] || 'Dealer Subscription';
 
     const session = await stripe.checkout.sessions.create({

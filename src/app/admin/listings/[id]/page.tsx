@@ -192,7 +192,7 @@ export default function AdminListingDetail() {
       const { error } = await supabase
         .from('listings')
         .update({
-          listing_tags: JSON.stringify(updatedTags),
+          listing_tags: updatedTags,
           updated_at: new Date().toISOString()
         })
         .eq('id', listingId);
@@ -214,7 +214,7 @@ export default function AdminListingDetail() {
       const { error } = await supabase
         .from('listings')
         .update({
-          listing_tags: updatedTags.length > 0 ? JSON.stringify(updatedTags) : null,
+          listing_tags: updatedTags.length > 0 ? updatedTags : null,
           updated_at: new Date().toISOString()
         })
         .eq('id', listingId);

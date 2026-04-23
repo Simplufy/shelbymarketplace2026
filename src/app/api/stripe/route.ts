@@ -78,8 +78,7 @@ export async function POST(req: NextRequest) {
       featured_listing: { name: 'Feature My Listing', amount: 7900, stripePriceIdEnv: 'STRIPE_PRICE_FEATURED_LISTING' },
       social_media_promotion: { name: 'Promote on Social Media', amount: 9900, stripePriceIdEnv: 'STRIPE_PRICE_SOCIAL_PROMOTION' },
       video_showcase: { name: 'Video Showcase', amount: 4900, stripePriceIdEnv: 'STRIPE_PRICE_VIDEO_SHOWCASE' },
-      premium_listing_upgrade: { name: 'Premium Listing Upgrade', amount: 12900, stripePriceIdEnv: 'STRIPE_PRICE_PREMIUM_LISTING' },
-      concierge_service: { name: 'Concierge Listing Service', amount: 19900, stripePriceIdEnv: 'STRIPE_PRICE_CONCIERGE_SERVICE' },
+      concierge_service: { name: 'Concierge Listing Service', amount: 12900, stripePriceIdEnv: 'STRIPE_PRICE_CONCIERGE_SERVICE' },
       pro_seller_package: { name: 'Pro Seller Package', amount: 19900, stripePriceIdEnv: 'STRIPE_PRICE_PRO_SELLER_PACKAGE' },
     };
 

@@ -229,7 +229,7 @@ export default function AdminEditListing() {
           price: newPrice,
           mileage: Number(formData.mileage),
           year: Number(formData.year),
-          listing_tags: formData.listing_tags.length > 0 ? JSON.stringify(formData.listing_tags) : null,
+          listing_tags: formData.listing_tags.length > 0 ? formData.listing_tags : null,
           service_history: JSON.stringify(serviceRecords.filter(r => r.date || r.type || r.description)),
           updated_at: new Date().toISOString(),
         })

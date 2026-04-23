@@ -145,7 +145,7 @@ export default function AdminCreateListing() {
         status: "ACTIVE",
         is_featured: formData.is_featured || false,
         engine: formData.engine || "",
-        listing_tags: formData.listing_tags.length > 0 ? JSON.stringify(formData.listing_tags) : null,
+        listing_tags: formData.listing_tags.length > 0 ? formData.listing_tags : null,
         service_history: JSON.stringify(serviceRecords.filter(r => r.date || r.type || r.description)),
       };
       
