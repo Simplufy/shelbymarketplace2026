@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isAllowlistedAdminEmail } from '@/lib/admin/allowlist'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -67,7 +68,7 @@ export async function middleware(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      if (profile?.role !== 'ADMIN') {
+      if (profile?.role !== 'ADMIN' && !isAllowlistedAdminEmail(user.email)) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
         return NextResponse.redirect(url)

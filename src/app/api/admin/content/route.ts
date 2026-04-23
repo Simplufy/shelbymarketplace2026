@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { isAllowlistedAdminEmail } from "@/lib/admin/allowlist";
 
 type ContentSection = {
   key: "hero" | "featured_listings" | "why_sell" | "why_buy" | "cta";
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (profile?.role !== "ADMIN") {
+    if (profile?.role !== "ADMIN" && !isAllowlistedAdminEmail(user.email)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

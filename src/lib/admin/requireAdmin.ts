@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isAllowlistedAdminEmail } from "@/lib/admin/allowlist";
 
 export async function requireAdmin() {
   const supabase = await createClient();
@@ -17,7 +18,7 @@ export async function requireAdmin() {
     .eq("id", user.id)
     .single();
 
-  if (error || profile?.role !== "ADMIN") {
+  if (error || (profile?.role !== "ADMIN" && !isAllowlistedAdminEmail(user.email))) {
     return { ok: false as const, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
 
