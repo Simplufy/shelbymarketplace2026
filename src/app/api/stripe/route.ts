@@ -86,6 +86,11 @@ export async function POST(req: NextRequest) {
       ? selected_addons.filter((id: string) => addonCatalog[id])
       : [];
 
+    const normalizedAddonIds =
+      package_tier === 'HOMEPAGE' || package_tier === 'HOMEPAGE_PLUS_ADS'
+        ? selectedAddonIds.filter((id: string) => id !== 'featured_listing')
+        : selectedAddonIds;
+
     const lineItems: any[] = [
       {
         price_data: {
@@ -100,7 +105,7 @@ export async function POST(req: NextRequest) {
       },
     ];
 
-    for (const addonId of selectedAddonIds) {
+    for (const addonId of normalizedAddonIds) {
       const addon = addonCatalog[addonId];
       const configuredPriceId = addon.stripePriceIdEnv ? process.env[addon.stripePriceIdEnv] : undefined;
 
@@ -128,7 +133,7 @@ export async function POST(req: NextRequest) {
     const vehicleChunks = chunkString(serializedVehicleInfo, 450);
     const metadata: Record<string, string> = {
       package_tier,
-      selected_addons: JSON.stringify(selectedAddonIds),
+      selected_addons: JSON.stringify(normalizedAddonIds),
       vehicle_chunks: String(vehicleChunks.length),
     };
 

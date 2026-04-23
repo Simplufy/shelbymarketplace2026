@@ -51,15 +51,26 @@ const ADDON_CATALOG = [
 
 export default function Step4Checkout({ formData, onBack }: any) {
   const supabase = createClient();
+  const packageIncludesFeatured =
+    formData.package_tier === "HOMEPAGE" || formData.package_tier === "HOMEPAGE_PLUS_ADS";
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Record<string, boolean>>(() => {
     const defaults: Record<string, boolean> = {};
     for (const addon of ADDON_CATALOG) {
-      defaults[addon.id] = addon.defaultChecked;
+      if (packageIncludesFeatured && addon.id === "featured_listing") {
+        defaults[addon.id] = false;
+      } else {
+        defaults[addon.id] = addon.defaultChecked;
+      }
     }
     return defaults;
   });
+
+  const visibleAddons = ADDON_CATALOG.filter(
+    (addon) => !(packageIncludesFeatured && addon.id === "featured_listing")
+  );
 
   const getPrice = () => {
     if (formData.package_tier === "HOMEPAGE_PLUS_ADS") return 299;
@@ -79,7 +90,9 @@ export default function Step4Checkout({ formData, onBack }: any) {
 
       // Bundle behavior: selecting Pro Seller auto-includes key promotions
       if (addonId === "pro_seller_package" && !prev[addonId]) {
-        next.featured_listing = true;
+        if (!packageIncludesFeatured) {
+          next.featured_listing = true;
+        }
         next.social_media_promotion = true;
       }
 
@@ -87,7 +100,7 @@ export default function Step4Checkout({ formData, onBack }: any) {
     });
   };
 
-  const selectedAddonItems = ADDON_CATALOG.filter((addon) => selectedAddons[addon.id]);
+  const selectedAddonItems = visibleAddons.filter((addon) => selectedAddons[addon.id]);
   const addonsTotal = selectedAddonItems.reduce((sum, addon) => sum + addon.price, 0);
   const total = getPrice() + addonsTotal;
 
@@ -198,7 +211,7 @@ export default function Step4Checkout({ formData, onBack }: any) {
         </div>
 
         <div className="space-y-2 md:space-y-3">
-          {ADDON_CATALOG.map((addon) => (
+          {visibleAddons.map((addon) => (
             <label
               key={addon.id}
               className={`block rounded-xl border p-3 md:p-4 cursor-pointer transition-colors ${
