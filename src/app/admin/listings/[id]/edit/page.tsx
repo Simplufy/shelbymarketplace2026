@@ -215,6 +215,14 @@ export default function AdminEditListing() {
     setServiceRecords(updated);
   };
 
+  const stripUnsupportedListingColumns = (payload: Record<string, any>, message?: string) => {
+    if (!message) return payload;
+    const next = { ...payload };
+    if (message.includes("'listing_tags'")) delete next.listing_tags;
+    if (message.includes("'service_history'")) delete next.service_history;
+    return next;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -222,18 +230,30 @@ export default function AdminEditListing() {
     try {
       // Update listing
       const newPrice = Number(formData.price);
-      const { error: listingError } = await supabase
+      let updatePayload = {
+        ...formData,
+        price: newPrice,
+        mileage: Number(formData.mileage),
+        year: Number(formData.year),
+        listing_tags: formData.listing_tags.length > 0 ? formData.listing_tags : null,
+        service_history: serviceRecords.filter(r => r.date || r.type || r.description),
+        updated_at: new Date().toISOString(),
+      };
+
+      let { error: listingError } = await supabase
         .from('listings')
-        .update({
-          ...formData,
-          price: newPrice,
-          mileage: Number(formData.mileage),
-          year: Number(formData.year),
-          listing_tags: formData.listing_tags.length > 0 ? formData.listing_tags : null,
-          service_history: JSON.stringify(serviceRecords.filter(r => r.date || r.type || r.description)),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', listingId);
+
+      if (listingError?.message?.includes("Could not find the '")) {
+        const sanitized = stripUnsupportedListingColumns(updatePayload, listingError.message);
+        if (JSON.stringify(sanitized) !== JSON.stringify(updatePayload)) {
+          ({ error: listingError } = await supabase
+            .from('listings')
+            .update(sanitized)
+            .eq('id', listingId));
+        }
+      }
 
       if (listingError) throw listingError;
 

@@ -114,6 +114,14 @@ export default function AdminCreateListing() {
     setServiceRecords(updated);
   };
 
+  const stripUnsupportedListingColumns = (payload: Record<string, any>, message?: string) => {
+    if (!message) return payload;
+    const next = { ...payload };
+    if (message.includes("'listing_tags'")) delete next.listing_tags;
+    if (message.includes("'service_history'")) delete next.service_history;
+    return next;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -146,16 +154,28 @@ export default function AdminCreateListing() {
         is_featured: formData.is_featured || false,
         engine: formData.engine || "",
         listing_tags: formData.listing_tags.length > 0 ? formData.listing_tags : null,
-        service_history: JSON.stringify(serviceRecords.filter(r => r.date || r.type || r.description)),
+        service_history: serviceRecords.filter(r => r.date || r.type || r.description),
       };
       
       console.log('Inserting listing:', insertData);
       
-      const { data: listing, error: listingError } = await supabase
+      let insertPayload = { ...insertData };
+      let { data: listing, error: listingError } = await supabase
         .from('listings')
-        .insert(insertData)
+        .insert(insertPayload)
         .select()
         .single();
+
+      if (listingError?.message?.includes("Could not find the '")) {
+        const sanitized = stripUnsupportedListingColumns(insertPayload, listingError.message);
+        if (JSON.stringify(sanitized) !== JSON.stringify(insertPayload)) {
+          ({ data: listing, error: listingError } = await supabase
+            .from('listings')
+            .insert(sanitized)
+            .select()
+            .single());
+        }
+      }
 
       console.log('Insert result:', { listing, listingError });
 

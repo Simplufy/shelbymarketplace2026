@@ -201,7 +201,12 @@ export default function AdminListingDetail() {
       setTagForm({ type: "", number: "" });
     } catch (error) {
       console.error('Error saving tag:', error);
-      alert('Failed to save listing tag');
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes("'listing_tags'")) {
+        alert("This project's database is missing the listing_tags column. Please run the latest migrations.");
+      } else {
+        alert('Failed to save listing tag');
+      }
     }
     setSavingTag(false);
   };
@@ -222,6 +227,10 @@ export default function AdminListingDetail() {
       await loadListing();
     } catch (error) {
       console.error('Error removing tag:', error);
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes("'listing_tags'")) {
+        alert("This project's database is missing the listing_tags column. Please run the latest migrations.");
+      }
     }
   };
 

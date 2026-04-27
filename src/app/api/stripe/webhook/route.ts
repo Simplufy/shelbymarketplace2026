@@ -52,40 +52,60 @@ export async function POST(req: NextRequest) {
       const featuredByPackage = package_tier === 'HOMEPAGE' || package_tier === 'HOMEPAGE_PLUS_ADS';
       const featuredByAddon =
         selectedAddonIds.includes('featured_listing') ||
-        selectedAddonIds.includes('premium_listing_upgrade') ||
         selectedAddonIds.includes('pro_seller_package');
 
       // Create the listing in Supabase
       const supabase = await createClient();
+
+      const stripUnsupportedListingColumns = (payload: Record<string, any>, message?: string) => {
+        if (!message) return payload;
+        const next = { ...payload };
+        if (message.includes("'listing_tags'")) delete next.listing_tags;
+        if (message.includes("'service_history'")) delete next.service_history;
+        return next;
+      };
       
-      const { data: listing, error } = await supabase
+      let listingInsertPayload: Record<string, any> = {
+        user_id: session.client_reference_id,
+        vin: vehicleData.vin,
+        year: vehicleData.year,
+        make: vehicleData.make,
+        model: vehicleData.model,
+        trim: vehicleData.trim,
+        price: vehicleData.price,
+        mileage: vehicleData.mileage,
+        description: vehicleData.description,
+        location: vehicleData.location,
+        package_tier: package_tier,
+        status: 'PENDING',
+        is_featured: featuredByPackage || featuredByAddon,
+        transmission: vehicleData.transmission || 'Automatic',
+        drivetrain: vehicleData.drivetrain || 'RWD',
+        engine: vehicleData.engine || null,
+        listing_tags: vehicleData.listingTags && vehicleData.listingTags.length > 0
+          ? vehicleData.listingTags
+          : null,
+        service_history: vehicleData.serviceHistory && vehicleData.serviceHistory.length > 0
+          ? vehicleData.serviceHistory.filter((r: any) => r.date || r.type || r.description)
+          : null,
+      };
+
+      let { data: listing, error } = await supabase
         .from('listings')
-        .insert({
-          user_id: session.client_reference_id,
-          vin: vehicleData.vin,
-          year: vehicleData.year,
-          make: vehicleData.make,
-          model: vehicleData.model,
-          trim: vehicleData.trim,
-          price: vehicleData.price,
-          mileage: vehicleData.mileage,
-          description: vehicleData.description,
-          location: vehicleData.location,
-          package_tier: package_tier,
-          status: 'PENDING',
-          is_featured: featuredByPackage || featuredByAddon,
-          transmission: vehicleData.transmission || 'Automatic',
-          drivetrain: vehicleData.drivetrain || 'RWD',
-          engine: vehicleData.engine || null,
-          listing_tags: vehicleData.listingTags && vehicleData.listingTags.length > 0
-            ? vehicleData.listingTags
-            : null,
-          service_history: vehicleData.serviceHistory && vehicleData.serviceHistory.length > 0
-            ? JSON.stringify(vehicleData.serviceHistory.filter((r: any) => r.date || r.type || r.description))
-            : null,
-        })
+        .insert(listingInsertPayload)
         .select()
         .single();
+
+      if (error?.message?.includes("Could not find the '")) {
+        const sanitized = stripUnsupportedListingColumns(listingInsertPayload, error.message);
+        if (JSON.stringify(sanitized) !== JSON.stringify(listingInsertPayload)) {
+          ({ data: listing, error } = await supabase
+            .from('listings')
+            .insert(sanitized)
+            .select()
+            .single());
+        }
+      }
 
       if (error) {
         console.error('Error creating listing:', error);
@@ -113,7 +133,6 @@ export async function POST(req: NextRequest) {
           featured_listing: 'Upsell: Featured Listing enabled',
           social_media_promotion: 'Upsell: Social Media Promotion included',
           video_showcase: 'Upsell: Video Showcase included',
-          premium_listing_upgrade: 'Upsell: Premium Listing Upgrade enabled',
           concierge_service: 'Upsell: Concierge Service purchased (writing, optimization, photo positioning)',
           pro_seller_package: 'Upsell: Pro Seller Package enabled',
         };
