@@ -550,7 +550,7 @@ export default function VehicleDetailPage() {
                 ) : null}
                 <div className="mb-6 p-4 rounded-lg border border-[#dee1e6] bg-[#fafafb]">
                   <p className="text-xs text-[#565d6d] leading-relaxed">
-                    Ford ShelbyForSale.com is a marketplace platform that connects buyers and sellers. We do not own, inspect, or sell any vehicles listed on this site. All transactions occur directly between buyer and seller.
+                    FordShelbyForSale.com is a marketplace platform that connects buyers and sellers. We do not own, inspect, or sell any vehicles listed on this site. All transactions occur directly between buyer and seller.
                   </p>
                 </div>
                 <div className="pt-6 border-t border-[#f3f4f6] space-y-3">
@@ -585,7 +585,7 @@ export default function VehicleDetailPage() {
 
         <div className="mt-10">
           <KlaviyoInlineForm
-            title="Get Selby Deals Before Anyone Else"
+            title="Get Shelby Deals Before Anyone Else"
             description="New Listings. Price Drops. Rare Finds. Delivered Weekly."
             source="listing_inline"
           />

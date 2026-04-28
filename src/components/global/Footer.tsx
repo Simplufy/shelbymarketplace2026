@@ -161,7 +161,7 @@ export default function Footer() {
       <div className="max-w-[1440px] mx-auto px-4 md:px-12 pt-8 border-t border-[#f3f4f6]">
         <div className="mb-6">
           <p className="text-xs text-gray-500 leading-relaxed max-w-4xl opacity-75 mb-3">
-            Ford ShelbyForSale.com is a marketplace platform that connects buyers and sellers. We do not own, inspect, or sell any vehicles listed on this site. All transactions occur directly between buyer and seller.
+            FordShelbyForSale.com is a marketplace platform that connects buyers and sellers. We do not own, inspect, or sell any vehicles listed on this site. All transactions occur directly between buyer and seller.
           </p>
           <p className="text-xs text-gray-500 leading-relaxed max-w-4xl opacity-75">
             Shelby Exchange is an independent marketplace. We are not affiliated with or endorsed by Shelby American.

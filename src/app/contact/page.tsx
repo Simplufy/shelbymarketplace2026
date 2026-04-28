@@ -146,13 +146,13 @@ export default function ContactPage() {
             <div className="bg-[#fafafb] rounded-2xl p-8 border border-[#dee1e6] sticky top-24">
               <h3 className="font-outfit font-bold text-lg mb-6">Get in Touch</h3>
               <div className="space-y-6">
-                <a href="https://fordshelbyforsale.com" target="_blank" rel="noopener noreferrer" className="flex items-start gap-4 group">
+                <a href="mailto:fordshelbyforsale@gmail.com" className="flex items-start gap-4 group">
                   <div className="w-10 h-10 bg-[#002D72]/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#002D72]/20 transition-colors">
                     <Mail className="w-5 h-5 text-[#002D72]" />
                   </div>
                   <div>
-                    <span className="block text-xs font-bold text-[#565d6d] uppercase tracking-wider mb-1">Website</span>
-                    <span className="text-sm font-bold text-[#002D72] group-hover:underline">fordshelbyforsale.com</span>
+                    <span className="block text-xs font-bold text-[#565d6d] uppercase tracking-wider mb-1">Email</span>
+                    <span className="text-sm font-bold text-[#002D72] group-hover:underline">fordshelbyforsale@gmail.com</span>
                   </div>
                 </a>
                 <a href="tel:6149177107" className="flex items-start gap-4 group">

@@ -578,7 +578,7 @@ export default async function Home() {
       {/* CTA Section */}
       <section className="py-8 md:py-12 px-5 md:px-12 max-w-[1440px] mx-auto w-full">
         <ScrollReveal>
-          <KlaviyoInlineForm title="Get Selby Deals Before Anyone Else" description="New Listings. Price Drops. Rare Finds. Delivered Weekly." source="homepage_inline" />
+          <KlaviyoInlineForm title="Get Shelby Deals Before Anyone Else" description="New Listings. Price Drops. Rare Finds. Delivered Weekly." source="homepage_inline" />
         </ScrollReveal>
       </section>
 
