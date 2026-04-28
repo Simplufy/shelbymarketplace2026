@@ -2,9 +2,10 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, MapPin, ShieldCheck, X, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Search, MapPin, ShieldCheck, X, SlidersHorizontal } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { CompareButton } from "@/components/CompareButton";
+import LoadingAnimation from "@/components/global/LoadingAnimation";
 
 interface Listing {
   id: string;
@@ -298,10 +299,7 @@ function ListingsContent() {
   if (loading) {
     return (
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8 py-20 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[#002D72] mx-auto mb-4" />
-          <p className="text-[#565d6d] font-medium">Loading listings...</p>
-        </div>
+        <LoadingAnimation message="Loading listings..." />
       </div>
     );
   }
@@ -478,10 +476,7 @@ export default function ListingsPage() {
   return (
     <Suspense fallback={
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8 py-20 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[#002D72] mx-auto mb-4" />
-          <p className="text-[#565d6d] font-medium">Loading listings...</p>
-        </div>
+        <LoadingAnimation message="Loading listings..." />
       </div>
     }>
       <ListingsContent />

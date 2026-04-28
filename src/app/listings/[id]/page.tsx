@@ -2,12 +2,13 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronRight, Share2, Gauge, Zap, Palette, ShieldCheck, Copy, Check, MapPin, Phone, MessageSquare, Loader2, Printer, Eye } from "lucide-react";
+import { ChevronRight, Share2, Gauge, Zap, Palette, ShieldCheck, Copy, Check, MapPin, Phone, MessageSquare, Printer, Eye } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareModal } from "@/components/ShareModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackClientEvent } from "@/lib/klaviyo/client";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
+import LoadingAnimation from "@/components/global/LoadingAnimation";
 
 interface ListingDetail {
   id: string;
@@ -210,10 +211,7 @@ export default function VehicleDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[#002D72] mx-auto mb-4" />
-          <p className="text-[#565d6d] font-medium">Loading vehicle details...</p>
-        </div>
+        <LoadingAnimation message="Loading vehicle details..." />
       </div>
     );
   }
