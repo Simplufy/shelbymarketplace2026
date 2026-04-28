@@ -9,7 +9,7 @@ const ADDON_CATALOG = [
     name: "CarFax Report",
     description: "Add Vehicle History Report",
     price: 29,
-    defaultChecked: true,
+    defaultChecked: false,
   },
   {
     id: "featured_listing",
@@ -23,6 +23,20 @@ const ADDON_CATALOG = [
     name: "Social Media Promotion",
     description: "Promote on Social Media",
     price: 99,
+    defaultChecked: false,
+  },
+  {
+    id: "email_blast",
+    name: "Email Blast",
+    description: "Send your listing to our buyer email list",
+    price: 29,
+    defaultChecked: false,
+  },
+  {
+    id: "urgent_badge",
+    name: "Urgent Badge",
+    description: "Highlight your listing with an urgent badge",
+    price: 29,
     defaultChecked: false,
   },
   {
@@ -42,7 +56,7 @@ const ADDON_CATALOG = [
   {
     id: "pro_seller_package",
     name: "Pro Seller Package",
-    description: "Featured + Social + Email Blast + Urgent Badge",
+    description: "Featured + Social + Email Blast + Urgent Badge + CarFax",
     price: 199,
     defaultChecked: false,
     isRecommended: true,
@@ -94,6 +108,9 @@ export default function Step4Checkout({ formData, onBack }: any) {
           next.featured_listing = true;
         }
         next.social_media_promotion = true;
+        next.email_blast = true;
+        next.urgent_badge = true;
+        next.carfax_report = true;
       }
 
       return next;

@@ -526,7 +526,27 @@ export default async function Home() {
             <div className="text-center mb-10 md:mb-16">
               <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-[#002D72]/10 rounded-full mb-4 md:mb-6"><span className="text-[10px] md:text-xs font-bold text-[#002D72] uppercase tracking-wider">For Buyers</span></div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter mb-3 md:mb-4">{cmsContent.whyBuyTitle}</h2>
-              <p className="text-[#565d6d] text-sm md:text-lg max-w-2xl mx-auto">{cmsContent.whyBuySubtitle}</p>
+              <p className="text-[#565d6d] text-sm md:text-lg max-w-2xl mx-auto mb-5 md:mb-6">{cmsContent.whyBuySubtitle}</p>
+              <div className="flex flex-col items-center">
+                <div className="flex flex-col gap-3 md:gap-4 items-start text-left">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#002D72] shrink-0" />
+                    <span className="text-xs md:text-sm font-bold text-[#171a1f]">Verified VIN Listings</span>
+                  </div>
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#002D72] shrink-0" />
+                    <span className="text-xs md:text-sm font-bold text-[#171a1f]">No Dealer Fees</span>
+                  </div>
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#002D72] shrink-0" />
+                    <span className="text-xs md:text-sm font-bold text-[#171a1f]">Direct Seller Contact</span>
+                  </div>
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-[#002D72] shrink-0" />
+                    <span className="text-xs md:text-sm font-bold text-[#171a1f]">Nationwide Inventory</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="space-y-6 md:space-y-8 lg:hidden">
               {cmsContent.whyBuyReasons.map((reason, idx) => (

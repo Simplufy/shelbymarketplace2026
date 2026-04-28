@@ -487,7 +487,11 @@ export default function VehicleDetailPage() {
                     <h3 className="text-lg font-outfit font-bold">{car.dealership_name || car.seller_name}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#002D72]/10 text-[#002D72]">{car.seller_type}</span>
-                      {car.seller_verified && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Verified</span>}
+                      {car.seller_verified && (
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.35)]">
+                          Verified
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
