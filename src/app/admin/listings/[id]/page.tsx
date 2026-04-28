@@ -53,6 +53,20 @@ export default function AdminListingDetail() {
   const [editingTag, setEditingTag] = useState(false);
   const [tagForm, setTagForm] = useState({ type: "", number: "" });
   const [savingTag, setSavingTag] = useState(false);
+
+  const normalizedServiceHistory =
+    listing?.service_history && typeof listing.service_history === 'string'
+      ? (() => {
+          try {
+            const parsed = JSON.parse(listing.service_history);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        })()
+      : Array.isArray(listing?.service_history)
+      ? listing.service_history
+      : [];
   const supabase = createClient();
   const listingId = params.id as string;
 
@@ -609,14 +623,14 @@ export default function AdminListingDetail() {
           </div>
 
           {/* Service History */}
-          {listing.service_history && Array.isArray(listing.service_history) && listing.service_history.length > 0 && (
+          {normalizedServiceHistory.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Wrench className="w-5 h-5" />
                 Service History
               </h2>
               <div className="space-y-3">
-                {listing.service_history.map((record: any, idx: number) => (
+                {normalizedServiceHistory.map((record: any, idx: number) => (
                   <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-bold text-[#002D72]">{record.date || 'N/A'}</span>

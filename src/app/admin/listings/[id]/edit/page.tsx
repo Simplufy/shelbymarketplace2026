@@ -144,7 +144,10 @@ export default function AdminEditListing() {
       // Set service history
       if (listing.service_history) {
         try {
-          const parsed = JSON.parse(listing.service_history);
+          const parsed =
+            typeof listing.service_history === 'string'
+              ? JSON.parse(listing.service_history)
+              : listing.service_history;
           if (Array.isArray(parsed) && parsed.length > 0) {
             setServiceRecords(parsed);
           }

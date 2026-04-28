@@ -104,8 +104,7 @@ export interface Database {
           title_status?: string | null
           previous_owners?: number | null
           accidents?: string | null
-          listing_tag?: string | null
-          listing_tag_number?: number | null
+          listing_tags?: Json | null
           service_history?: Json | null
           created_at?: string
           updated_at?: string
@@ -134,8 +133,7 @@ export interface Database {
           title_status?: string | null
           previous_owners?: number | null
           accidents?: string | null
-          listing_tag?: string | null
-          listing_tag_number?: number | null
+          listing_tags?: Json | null
           service_history?: Json | null
           created_at?: string
           updated_at?: string
