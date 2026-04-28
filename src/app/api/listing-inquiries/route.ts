@@ -19,9 +19,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { listing_id, seller_id, name, email, phone, message } = body;
+    const { listing_id, name, email, phone, message } = body;
 
-    if (!listing_id || !seller_id || !name || !email || !message) {
+    if (!listing_id || !name || !email || !message) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -31,8 +31,7 @@ export async function POST(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE ||
-      process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+      process.env.SUPABASE_SERVICE_ROLE;
 
     const writer =
       supabaseUrl && serviceKey
@@ -41,9 +40,20 @@ export async function POST(req: NextRequest) {
           })
         : sessionClient;
 
+    const { data: listing, error: listingError } = await writer
+      .from("listings")
+      .select("user_id, status")
+      .eq("id", listing_id)
+      .eq("status", "ACTIVE")
+      .single();
+
+    if (listingError || !listing) {
+      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+    }
+
     const { error } = await writer.from("listing_inquiries").insert({
       listing_id,
-      seller_id,
+      seller_id: listing.user_id,
       buyer_name: name,
       buyer_email: email,
       buyer_phone: phone || null,

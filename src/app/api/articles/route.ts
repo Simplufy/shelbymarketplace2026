@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,8 +15,7 @@ export async function GET(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE ||
-      process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+      process.env.SUPABASE_SERVICE_ROLE;
 
     const reader =
       supabaseUrl && serviceKey
@@ -38,6 +38,9 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
     const { id, title, excerpt, content, category, image_url, status } = body;
 
@@ -45,19 +48,17 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const sessionClient = await createServerClient();
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE ||
-      process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+      process.env.SUPABASE_SERVICE_ROLE;
 
     const writer =
       supabaseUrl && serviceKey
         ? createAdminClient(supabaseUrl, serviceKey, {
             auth: { autoRefreshToken: false, persistSession: false },
           })
-        : sessionClient;
+        : auth.supabase;
 
     const { error } = await writer
       .from("news_articles")

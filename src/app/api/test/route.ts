@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 
 export async function GET() {
-  const supabase = await createClient();
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
+  const supabase = auth.supabase;
   
   const { data, error } = await supabase
     .from("listings")
@@ -13,6 +16,5 @@ export async function GET() {
     success: !error, 
     data, 
     error: error?.message,
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL
   });
 }

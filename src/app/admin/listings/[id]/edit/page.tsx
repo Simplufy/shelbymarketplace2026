@@ -233,7 +233,7 @@ export default function AdminEditListing() {
     try {
       // Update listing
       const newPrice = Number(formData.price);
-      let updatePayload = {
+      const updatePayload = {
         ...formData,
         price: newPrice,
         mileage: Number(formData.mileage),

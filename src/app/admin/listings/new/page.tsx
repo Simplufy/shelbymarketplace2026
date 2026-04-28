@@ -159,7 +159,7 @@ export default function AdminCreateListing() {
       
       console.log('Inserting listing:', insertData);
       
-      let insertPayload = { ...insertData };
+      const insertPayload = { ...insertData };
       let { data: listing, error: listingError } = await supabase
         .from('listings')
         .insert(insertPayload)

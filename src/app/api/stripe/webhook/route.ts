@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js';
 import { trackKlaviyoEvent } from '@/lib/klaviyo/server';
+
+async function createWebhookSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
+
+  if (supabaseUrl && serviceKey) {
+    return createSupabaseAdminClient(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+
+  return createClient();
+}
 
 export async function POST(req: NextRequest) {
   // Initialize Stripe inside the function to avoid build-time issues
@@ -38,6 +52,43 @@ export async function POST(req: NextRequest) {
     try {
       // Get metadata from the session
       const metadata = session.metadata || {};
+      const supabase = await createWebhookSupabaseClient();
+
+      if (metadata.dealer_user_id) {
+        const subscriptionTier = metadata.subscription_tier || 'ENTHUSIAST';
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ role: 'DEALER', updated_at: new Date().toISOString() })
+          .eq('id', metadata.dealer_user_id);
+
+        if (profileError) {
+          console.error('Error activating dealer profile role:', profileError);
+          return NextResponse.json({ error: 'Failed to activate dealer' }, { status: 500 });
+        }
+
+        const { error: dealerError } = await supabase
+          .from('dealer_profiles')
+          .upsert({
+            user_id: metadata.dealer_user_id,
+            dealership_name: metadata.dealership_name,
+            license_number: metadata.dealer_license,
+            website_url: metadata.website || null,
+            phone: metadata.phone,
+            location: metadata.location,
+            subscription_tier: subscriptionTier,
+            subscription_status: 'ACTIVE',
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
+
+        if (dealerError) {
+          console.error('Error activating dealer profile:', dealerError);
+          return NextResponse.json({ error: 'Failed to activate dealer' }, { status: 500 });
+        }
+
+        return NextResponse.json({ received: true });
+      }
+
       const { package_tier, selected_addons } = metadata;
       const chunkCount = Number(metadata.vehicle_chunks || 0);
       let vehicleInfoPayload = metadata.vehicle_info || '';
@@ -54,9 +105,6 @@ export async function POST(req: NextRequest) {
         selectedAddonIds.includes('featured_listing') ||
         selectedAddonIds.includes('pro_seller_package');
 
-      // Create the listing in Supabase
-      const supabase = await createClient();
-
       const stripUnsupportedListingColumns = (payload: Record<string, any>, message?: string) => {
         if (!message) return payload;
         const next = { ...payload };
@@ -65,7 +113,7 @@ export async function POST(req: NextRequest) {
         return next;
       };
       
-      let listingInsertPayload: Record<string, any> = {
+      const listingInsertPayload: Record<string, any> = {
         user_id: session.client_reference_id,
         vin: vehicleData.vin,
         year: vehicleData.year,

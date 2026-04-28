@@ -28,7 +28,6 @@ interface ListingDetail {
   status: string;
   is_featured: boolean;
   created_at: string;
-  user_id: string;
   seller_name: string;
   seller_email: string;
   seller_phone: string | null;
@@ -183,7 +182,6 @@ export default function VehicleDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           listing_id: listingId,
-          seller_id: listing.user_id,
           name: contactForm.name,
           email: contactForm.email,
           phone: contactForm.phone,

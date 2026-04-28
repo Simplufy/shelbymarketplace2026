@@ -39,39 +39,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Update user role to dealer
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ role: 'DEALER' })
-      .eq('id', user.id);
-
-    if (profileError) {
-      console.error('Error updating profile:', profileError);
-      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
-    }
-
-    // Create dealer profile
-    const { data: dealerProfile, error: dealerError } = await supabase
-      .from('dealer_profiles')
-      .insert({
-        user_id: user.id,
-        dealership_name,
-        license_number: dealer_license,
-        website_url: website || null,
-        phone,
-        location,
-        subscription_tier,
-        subscription_status: 'INACTIVE',
-      })
-      .select()
-      .single();
-
-    if (dealerError) {
-      console.error('Error creating dealer profile:', dealerError);
-      return NextResponse.json({ error: 'Failed to create dealer profile' }, { status: 500 });
-    }
-
-    // Create Stripe checkout session for subscription
     const prices: Record<string, number> = {
       'ENTHUSIAST': 39900, // $399.00
       'APEX': 99900, // $999.00
@@ -108,15 +75,18 @@ export async function POST(req: NextRequest) {
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dealers/register?canceled=true`,
       client_reference_id: user.id,
       metadata: {
-        dealer_user_id: dealerProfile.user_id,
+        dealer_user_id: user.id,
         subscription_tier,
         dealership_name,
+        dealer_license,
+        website: website || '',
+        phone,
+        location,
       },
     });
 
     return NextResponse.json({ 
       success: true, 
-      dealerProfile,
       checkoutUrl: session.url,
     });
 

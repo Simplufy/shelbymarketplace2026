@@ -1,10 +1,14 @@
 import { test, expect, devices } from '@playwright/test';
 
-const BASE_URL = 'https://shelbymarketplace2026.vercel.app';
-const EMAIL = 'mcguireflanigan@gmail.com';
-const PASSWORD = 'password';
+const BASE_URL = process.env.E2E_BASE_URL || 'https://shelbymarketplace2026.vercel.app';
+const EMAIL = process.env.E2E_EMAIL;
+const PASSWORD = process.env.E2E_PASSWORD;
 
 async function login(page: any, redirect = '/') {
+  if (!EMAIL || !PASSWORD) {
+    throw new Error('Set E2E_EMAIL and E2E_PASSWORD to run authenticated smoke tests.');
+  }
+
   await page.goto(`${BASE_URL}/login?redirect=${encodeURIComponent(redirect)}`);
   await page.getByPlaceholder('you@example.com').fill(EMAIL);
   await page.getByPlaceholder('••••••••').fill(PASSWORD);
@@ -17,9 +21,10 @@ test('unauthenticated users are redirected from protected admin route', async ({
 });
 
 test('authenticated user can access sell wizard', async ({ page }) => {
+  test.skip(!EMAIL || !PASSWORD, 'Set E2E_EMAIL and E2E_PASSWORD to run authenticated smoke tests.');
   await login(page, '/sell');
   await expect(page).toHaveURL(/\/sell/);
-  await expect(page.getByRole('heading', { name: 'Sell Your Shelby' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sell Your Shelby', exact: true })).toBeVisible();
 });
 
 test('listing contact CTA behaves for auth/unauth states', async ({ page, request }) => {
@@ -43,11 +48,13 @@ test('listing contact CTA behaves for auth/unauth states', async ({ page, reques
     })
     .toBeTruthy();
 
-  await login(page, `/listings/${listingId}`);
-  await expect(page).toHaveURL(new RegExp(`/listings/${listingId}`));
-  await page.waitForLoadState('networkidle');
-  const authBody = (await page.textContent('body')) || '';
-  expect(authBody.includes('Email Seller') || authBody.includes('Contact Seller')).toBeTruthy();
+  if (EMAIL && PASSWORD) {
+    await login(page, `/listings/${listingId}`);
+    await expect(page).toHaveURL(new RegExp(`/listings/${listingId}`));
+    await page.waitForLoadState('networkidle');
+    const authBody = (await page.textContent('body')) || '';
+    expect(authBody.includes('Email Seller') || authBody.includes('Contact Seller')).toBeTruthy();
+  }
 });
 
 test('all six Klaviyo events accept full payload schema', async ({ request }) => {

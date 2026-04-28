@@ -77,7 +77,7 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/listings" className="text-sm font-bold text-[#002D72] uppercase tracking-wider hover:text-[#E31837] transition-colors">Browse Inventory</Link>
             <div className="w-px h-5 bg-[#dee1e6]" />
-            <a href="/#how-it-works" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">How It Works</a>
+            <Link href="/#how-it-works" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">How It Works</Link>
             <Link href="/featured" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Featured</Link>
             <Link href="/blog" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Articles</Link>
             <Link href="/contact" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Contact</Link>
@@ -131,7 +131,7 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden bg-white border-t border-[#f3f4f6] px-5 py-6 space-y-4">
             <Link href="/listings" onClick={() => setIsMenuOpen(false)} className="block text-sm font-bold text-[#002D72] uppercase tracking-wider">Browse Inventory</Link>
-            <a href="/#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">How It Works</a>
+            <Link href="/#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">How It Works</Link>
             <Link href="/featured" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Featured</Link>
             <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Articles</Link>
             <Link href="/contact" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Contact</Link>

@@ -26,8 +26,7 @@ export async function POST(req: NextRequest) {
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const serviceKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE ||
-      process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+      process.env.SUPABASE_SERVICE_ROLE;
 
     if (!supabaseUrl || !anonKey) {
       return NextResponse.json({ error: "Supabase configuration missing" }, { status: 500 });

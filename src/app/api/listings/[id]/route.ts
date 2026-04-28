@@ -19,11 +19,13 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     }
 
     const sessionClient = await createServerClient();
+    const {
+      data: { user },
+    } = await sessionClient.auth.getUser();
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE ||
-      process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+      process.env.SUPABASE_SERVICE_ROLE;
 
     const reader =
       supabaseUrl && serviceKey
@@ -36,6 +38,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       .from("listings")
       .select("*")
       .eq("id", id)
+      .eq("status", "ACTIVE")
       .single();
 
     if (listingError || !listingData) {
@@ -72,11 +75,15 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       dealershipName = dealerData?.dealership_name || null;
     }
 
+    const publicListingData = Object.fromEntries(
+      Object.entries(listingData).filter(([key]) => key !== "user_id")
+    );
+
     const formattedData = {
-      ...listingData,
+      ...publicListingData,
       seller_name: `${profileData?.first_name || ""} ${profileData?.last_name || ""}`.trim() || "Private Seller",
-      seller_email: profileData?.email || "",
-      seller_phone: profileData?.phone || null,
+      seller_email: user ? profileData?.email || "" : "",
+      seller_phone: user ? profileData?.phone || null : null,
       seller_avatar: profileData?.avatar_url || null,
       seller_type: profileData?.role === "DEALER" ? "Dealer" : "Private Seller",
       seller_verified: listingData.status === "ACTIVE",

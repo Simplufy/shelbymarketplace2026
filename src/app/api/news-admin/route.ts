@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 
 export async function GET() {
-  const supabase = await createClient();
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
+  const supabase = auth.supabase;
   
   const { data, error } = await supabase
     .from("news_articles")
@@ -15,6 +18,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
     const { title, excerpt, content, category, image_url, status, featured, read_time, published_at, created_at, updated_at } = body;
 
@@ -22,23 +28,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    const sessionClient = await createClient();
-    const {
-      data: { user },
-    } = await sessionClient.auth.getUser();
-
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE ||
-      process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+      process.env.SUPABASE_SERVICE_ROLE;
 
     const writer =
       supabaseUrl && serviceKey
         ? createAdminClient(supabaseUrl, serviceKey, {
             auth: { autoRefreshToken: false, persistSession: false },
           })
-        : sessionClient;
+        : auth.supabase;
 
     const { data, error } = await writer
       .from("news_articles")
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
         content: content?.trim() || "",
         category: category || "Market News",
         image_url: image_url || null,
-        author_id: user?.id || null,
+        author_id: auth.user.id,
         status: status || "draft",
         featured: featured || false,
         read_time: read_time || `${Math.ceil((content || "").split(" ").length / 200)} min read`,

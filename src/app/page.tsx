@@ -141,8 +141,7 @@ export default async function Home() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE ||
-    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+    process.env.SUPABASE_SERVICE_ROLE;
   const cmsReader =
     supabaseUrl && serviceKey
       ? createAdminClient(supabaseUrl, serviceKey, {
@@ -261,8 +260,8 @@ export default async function Home() {
       ? "Join 1000+ Shelby enthusiasts buying and selling GT350s, GT500s & rare builds nationwide"
       : cmsContent.hero.subheadline;
 
-  let howItWorksSteps = defaultHowItWorks;
-  let pricingTiers = defaultPricingTiers;
+  const howItWorksSteps = defaultHowItWorks;
+  const pricingTiers = defaultPricingTiers;
 
   try {
     const { count } = await supabase.from("listings").select("id", { count: "exact", head: true }).eq("status", "ACTIVE");
