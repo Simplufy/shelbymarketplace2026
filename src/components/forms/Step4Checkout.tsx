@@ -8,7 +8,7 @@ const ADDON_CATALOG = [
     id: "carfax_report",
     name: "CarFax Report",
     description: "Add Vehicle History Report",
-    price: 29,
+    price: 39,
     defaultChecked: false,
   },
   {
@@ -29,14 +29,14 @@ const ADDON_CATALOG = [
     id: "email_blast",
     name: "Email Blast",
     description: "Send your listing to our buyer email list",
-    price: 29,
+    price: 39,
     defaultChecked: false,
   },
   {
     id: "urgent_badge",
     name: "Urgent Badge",
     description: "Highlight your listing with an urgent badge",
-    price: 29,
+    price: 39,
     defaultChecked: false,
   },
   {
@@ -67,6 +67,12 @@ export default function Step4Checkout({ formData, onBack }: any) {
   const supabase = createClient();
   const packageIncludesFeatured =
     formData.package_tier === "HOMEPAGE" || formData.package_tier === "HOMEPAGE_PLUS_ADS";
+  const proIncludedAddonIds = new Set([
+    "social_media_promotion",
+    "email_blast",
+    "urgent_badge",
+    "carfax_report",
+  ]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,7 +124,13 @@ export default function Step4Checkout({ formData, onBack }: any) {
   };
 
   const selectedAddonItems = visibleAddons.filter((addon) => selectedAddons[addon.id]);
-  const addonsTotal = selectedAddonItems.reduce((sum, addon) => sum + addon.price, 0);
+  const isProSelected = !!selectedAddons.pro_seller_package;
+  const getAddonPrice = (addonId: string, addonPrice: number) =>
+    isProSelected && proIncludedAddonIds.has(addonId) ? 0 : addonPrice;
+  const addonsTotal = selectedAddonItems.reduce(
+    (sum, addon) => sum + getAddonPrice(addon.id, addon.price),
+    0
+  );
   const total = getPrice() + addonsTotal;
 
   const handleCheckout = async () => {
@@ -255,7 +267,9 @@ export default function Step4Checkout({ formData, onBack }: any) {
                     )}
                   </div>
                 </div>
-                <span className="font-bold text-xs md:text-sm text-gray-900 shrink-0">+${addon.price}</span>
+                <span className="font-bold text-xs md:text-sm text-gray-900 shrink-0">
+                  +${getAddonPrice(addon.id, addon.price)}
+                </span>
               </div>
             </label>
           ))}
@@ -278,7 +292,7 @@ export default function Step4Checkout({ formData, onBack }: any) {
           {selectedAddonItems.map((addon) => (
             <div key={addon.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 md:py-3 border-b border-gray-200">
               <span className="text-gray-600 text-xs md:text-sm">{addon.name}</span>
-              <span className="font-bold shrink-0">+${addon.price.toFixed(2)}</span>
+              <span className="font-bold shrink-0">+${getAddonPrice(addon.id, addon.price).toFixed(2)}</span>
             </div>
           ))}
           <div className="flex justify-between items-center py-3 md:py-4 text-lg md:text-xl font-black text-[var(--color-shelby-blue)] border-t-2 border-gray-300 mt-1 md:mt-2">

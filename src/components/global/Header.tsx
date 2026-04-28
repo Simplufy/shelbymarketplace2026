@@ -76,26 +76,23 @@ export default function Header() {
 
           {/* Navigation - moved to center where search was */}
           <nav className="hidden md:flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Link href="/listings" className="text-sm font-bold text-[#002D72] uppercase tracking-wider hover:text-[#E31837] transition-colors">Browse Inventory</Link>
-              <select
-                aria-label="Filter inventory by Shelby model"
-                defaultValue=""
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (!value) return;
-                  router.push(`/listings?model=${encodeURIComponent(value)}`);
-                  e.target.value = "";
-                }}
-                className="h-8 px-2 bg-white border border-[#dee1e6] rounded-md text-[11px] font-bold text-[#565d6d] uppercase tracking-wider focus:outline-none focus:border-[#002D72]"
-              >
-                <option value="">Filter</option>
-                {inventoryFilters.map((filter) => (
-                  <option key={filter} value={filter}>
-                    {filter}
-                  </option>
-                ))}
-              </select>
+            <div className="relative group">
+              <Link href="/listings" className="text-sm font-bold text-[#002D72] uppercase tracking-wider hover:text-[#E31837] transition-colors">
+                Browse Inventory
+              </Link>
+              <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-150 absolute left-0 top-full pt-3 z-50">
+                <div className="min-w-[220px] bg-white border border-[#dee1e6] rounded-lg shadow-lg p-2">
+                  {inventoryFilters.map((filter) => (
+                    <Link
+                      key={filter}
+                      href={`/listings?model=${encodeURIComponent(filter)}`}
+                      className="block px-3 py-2 rounded-md text-xs font-bold text-[#565d6d] uppercase tracking-wider hover:bg-[#f3f4f6] hover:text-[#002D72] transition-colors"
+                    >
+                      {filter}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="w-px h-5 bg-[#dee1e6]" />
             <Link href="/sell" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">How It Works</Link>
