@@ -14,6 +14,7 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const isHomepage = pathname === "/";
+  const inventoryFilters = ["GT500", "GT350", "GT350R", "Super Snake", "Cobra Jet", "Classic Shelby"];
 
   const handleSignOut = async () => {
     setIsMenuOpen(false);
@@ -75,9 +76,29 @@ export default function Header() {
 
           {/* Navigation - moved to center where search was */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/listings" className="text-sm font-bold text-[#002D72] uppercase tracking-wider hover:text-[#E31837] transition-colors">Browse Inventory</Link>
+            <div className="flex items-center gap-2">
+              <Link href="/listings" className="text-sm font-bold text-[#002D72] uppercase tracking-wider hover:text-[#E31837] transition-colors">Browse Inventory</Link>
+              <select
+                aria-label="Filter inventory by Shelby model"
+                defaultValue=""
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (!value) return;
+                  router.push(`/listings?model=${encodeURIComponent(value)}`);
+                  e.target.value = "";
+                }}
+                className="h-8 px-2 bg-white border border-[#dee1e6] rounded-md text-[11px] font-bold text-[#565d6d] uppercase tracking-wider focus:outline-none focus:border-[#002D72]"
+              >
+                <option value="">Filter</option>
+                {inventoryFilters.map((filter) => (
+                  <option key={filter} value={filter}>
+                    {filter}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="w-px h-5 bg-[#dee1e6]" />
-            <Link href="/#how-it-works" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">How It Works</Link>
+            <Link href="/sell" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">How It Works</Link>
             <Link href="/featured" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Featured</Link>
             <Link href="/blog" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Articles</Link>
             <Link href="/contact" className="text-xs font-bold text-[#565d6d] uppercase tracking-widest hover:text-[#002D72] transition-colors">Contact</Link>
@@ -131,7 +152,22 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden bg-white border-t border-[#f3f4f6] px-5 py-6 space-y-4">
             <Link href="/listings" onClick={() => setIsMenuOpen(false)} className="block text-sm font-bold text-[#002D72] uppercase tracking-wider">Browse Inventory</Link>
-            <Link href="/#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">How It Works</Link>
+            <div className="space-y-2">
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-[#565d6d]">Quick Filters</span>
+              <div className="grid grid-cols-2 gap-2">
+                {inventoryFilters.map((filter) => (
+                  <Link
+                    key={filter}
+                    href={`/listings?model=${encodeURIComponent(filter)}`}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="px-2 py-1.5 border border-[#dee1e6] rounded text-[11px] font-semibold text-[#002D72] text-center"
+                  >
+                    {filter}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <Link href="/sell" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">How It Works</Link>
             <Link href="/featured" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Featured</Link>
             <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Articles</Link>
             <Link href="/contact" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-[#565d6d]">Contact</Link>
