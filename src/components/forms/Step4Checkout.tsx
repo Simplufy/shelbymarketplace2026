@@ -99,7 +99,7 @@ export default function Step4Checkout({ formData, onBack }: any) {
   };
 
   const getPackageName = () => {
-    if (formData.package_tier === "HOMEPAGE_PLUS_ADS") return "Homepage + Google Ads";
+    if (formData.package_tier === "HOMEPAGE_PLUS_ADS") return "Premium Exposure Package";
     if (formData.package_tier === "HOMEPAGE") return "Homepage Featured";
     return "Standard Listing";
   };

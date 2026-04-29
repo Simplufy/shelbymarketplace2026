@@ -96,7 +96,7 @@ const defaultContent: SiteContent = {
     {
       num: "04",
       title: "Dealer Discounted Rates",
-      description: "Professional dealers benefit from our exclusive subscription plans with significant savings. Our Enthusiast and Apex packages offer unlimited listings, priority placement, and dedicated support at rates designed to maximize your ROI."
+      description: "Professional dealers benefit from our exclusive subscription plans with significant savings. Starter, Growth, and Apex packages help dealers scale exposure, leads, and sales."
     }
   ],
   whyBuyTitle: "Why Buy With Shelby Exchange?",
@@ -132,9 +132,9 @@ const defaultContent: SiteContent = {
     { step: "Step 3", icon: "coins", title: "Close the Deal", description: "Connect directly with serious buyers. We provide secure escrow services to ensure a safe, smooth transaction." }
   ],
   pricingTiers: [
-    { name: "Standard Listing", price: "$99", description: "Standard search grid visibility.", features: ["Up to 20 High-Res Photos", "VIN Decoding", "Standard Placement"], cta: "Get Started", popular: false },
-    { name: "Homepage Featured", price: "$149", description: "Gets you on the homepage.", features: ["Featured Badge", "Homepage Carousel Placement", "Priority Search Highlighting"], cta: "Get Featured", popular: true },
-    { name: "Homepage + Google Ads", price: "$299", description: "Maximum exposure globally.", features: ["Homepage Carousel Placement", "Dedicated Google Ads Campaign", "Social Media Spotlight"], cta: "Max Exposure", popular: false }
+    { name: "Standard Listing", price: "$99", description: "Standard visibility for budget-conscious sellers.", features: ["Up to 20 High-Res Photos", "VIN Decoding", "Standard Placement"], cta: "List My Shelby", popular: false },
+    { name: "Homepage Featured", price: "$149", description: "Designed to sell faster with increased visibility.", features: ["Featured Badge", "Homepage Carousel Placement", "Priority Search Highlighting"], cta: "Get More Exposure", popular: true },
+    { name: "Premium Exposure Package", price: "$299", description: "Maximum exposure for fastest possible sale.", features: ["Homepage Featured Placement (Top Section)", "Email Blast to Shelby Buyers 🔥", "Social Media Promotion 🔥", "Priority Search Ranking", "2x Visibility vs Standard"], cta: "Maximize My Sale", popular: false }
   ],
   testimonials: [
     { name: "Mike R.", location: "Dallas, TX", text: "Sold my GT500 in 3 weeks. The process was smooth and the buyers were serious. Way better than dealing with dealers.", rating: 5 },

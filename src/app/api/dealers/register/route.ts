@@ -41,11 +41,13 @@ export async function POST(req: NextRequest) {
 
     const prices: Record<string, number> = {
       'ENTHUSIAST': 39900, // $399.00
+      'GROWTH': 59900, // $599.00
       'APEX': 99900, // $999.00
     };
 
     const packageNames: Record<string, string> = {
-      'ENTHUSIAST': 'Enthusiast Dealer Subscription',
+      'ENTHUSIAST': 'Starter Dealer Subscription',
+      'GROWTH': 'Growth Dealer Subscription',
       'APEX': 'Apex Dealer Subscription',
     };
 

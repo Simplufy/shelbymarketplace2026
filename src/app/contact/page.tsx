@@ -96,11 +96,10 @@ export default function ContactPage() {
           Back to Home
         </Link>
 
-        <h1 className="text-3xl md:text-4xl font-outfit font-black tracking-tight mb-2">Contact Us</h1>
-        <p className="text-[#565d6d] text-lg mb-10">Have a question or need help? Fill out the form below and we&apos;ll get back to you shortly.</p>
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl md:text-4xl font-outfit font-black tracking-tight mb-2 text-center">Contact Us</h1>
+          <p className="text-[#565d6d] text-lg mb-10 text-center">Have a question or need help? Fill out the form below and we&apos;ll get back to you shortly.</p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -140,33 +139,6 @@ export default function ContactPage() {
                 {sending ? <><Loader2 className="w-5 h-5 animate-spin" /> Sending...</> : <><Send className="w-5 h-5" /> Send Message</>}
               </button>
             </form>
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="bg-[#fafafb] rounded-2xl p-8 border border-[#dee1e6] sticky top-24">
-              <h3 className="font-outfit font-bold text-lg mb-6">Get in Touch</h3>
-              <div className="space-y-6">
-                <a href="mailto:fordshelbyforsale@gmail.com" className="flex items-start gap-4 group">
-                  <div className="w-10 h-10 bg-[#002D72]/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#002D72]/20 transition-colors">
-                    <Mail className="w-5 h-5 text-[#002D72]" />
-                  </div>
-                  <div>
-                    <span className="block text-xs font-bold text-[#565d6d] uppercase tracking-wider mb-1">Email</span>
-                    <span className="text-sm font-bold text-[#002D72] group-hover:underline">fordshelbyforsale@gmail.com</span>
-                  </div>
-                </a>
-                <a href="tel:6149177107" className="flex items-start gap-4 group">
-                  <div className="w-10 h-10 bg-[#E31837]/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#E31837]/20 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#E31837]"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  </div>
-                  <div>
-                    <span className="block text-xs font-bold text-[#565d6d] uppercase tracking-wider mb-1">Phone</span>
-                    <span className="text-sm font-bold text-[#E31837] group-hover:underline">614-917-7107</span>
-                  </div>
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

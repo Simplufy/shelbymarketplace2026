@@ -71,28 +71,29 @@ export default function SellLandingPage() {
     {
       name: "Standard Listing",
       price: "$99",
-      description: "Standard search grid visibility.",
+      description: "Standard visibility for budget-conscious sellers.",
       period: "one-time",
       features: ["Up to 20 High-Res Photos", "VIN Decoding", "Standard Placement"],
-      cta: "Select",
+      cta: "List My Shelby",
       popular: false,
     },
     {
       name: "Homepage Featured",
       price: "$149",
-      description: "Gets you on the homepage.",
+      description: "Designed to sell faster with increased visibility.",
       period: "one-time",
-      features: ["Featured Badge", "Homepage Carousel Placement", "Priority Search Highlighting"],
-      cta: "Select",
+      features: ["Featured Badge", "Homepage Carousel Placement", "Priority Search Highlighting", "Limited featured spots available each week"],
+      cta: "Get More Exposure",
       popular: true,
+      note: "⭐ Most sellers choose this option",
     },
     {
-      name: "Homepage + Google Ads",
+      name: "Premium Exposure Package",
       price: "$299",
-      description: "Maximum exposure globally.",
+      description: "Maximum exposure for fastest possible sale.",
       period: "one-time",
-      features: ["Homepage Carousel Placement", "Dedicated Google Ads Campaign", "Social Media Spotlight"],
-      cta: "Select",
+      features: ["Homepage Featured Placement (Top Section)", "Email Blast to Shelby Buyers 🔥", "Social Media Promotion 🔥", "Priority Search Ranking", "2x Visibility vs Standard", "Limited featured spots available each week"],
+      cta: "Maximize My Sale",
       popular: false,
     },
   ];
@@ -216,11 +217,12 @@ export default function SellLandingPage() {
             </div>
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">Listing Packages</h2>
             <p className="text-[#565d6d] text-lg max-w-2xl mx-auto">Choose the package that fits your needs. No hidden fees, no transaction commissions.</p>
+            <p className="text-sm font-bold text-[#002D72] mt-3">Listings on other platforms cost $200-$500+ with less exposure.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-8 max-w-5xl mx-auto">
             {pricingTiers.map((tier, idx) => (
-              <div key={idx} className={`relative rounded-2xl p-8 border ${tier.popular ? 'border-[#E31837] shadow-lg shadow-[#E31837]/10' : 'border-[#dee1e6] shadow-sm'} flex flex-col`}>
+              <div key={idx} className={`relative rounded-2xl p-8 border ${tier.popular ? 'border-2 border-[#E31837] shadow-xl shadow-[#E31837]/15 md:scale-[1.04]' : 'border-[#dee1e6] shadow-sm'} flex flex-col bg-white`}>
                 {tier.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#E31837] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">Most Popular</div>
                 )}
@@ -229,6 +231,7 @@ export default function SellLandingPage() {
                   <span className="text-4xl font-black">{tier.price}</span>
                   <span className="text-[#565d6d] text-sm">{tier.period}</span>
                 </div>
+                {"note" in tier && tier.note ? <p className="text-xs font-black text-[#E31837] mb-4">{tier.note}</p> : null}
                 <ul className="space-y-3 mb-8 flex-1">
                   {tier.features.map((feature, fIdx) => (
                     <li key={fIdx} className="flex items-start gap-3 text-sm text-[#565d6d]">

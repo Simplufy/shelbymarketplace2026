@@ -24,7 +24,7 @@ const DRIVETRAINS = ["RWD", "AWD", "4WD"];
 const PACKAGES = [
   { id: "STANDARD", name: "Standard Listing" },
   { id: "HOMEPAGE", name: "Homepage Featured" },
-  { id: "HOMEPAGE_PLUS_ADS", name: "Homepage + Google Ads" },
+  { id: "HOMEPAGE_PLUS_ADS", name: "Premium Exposure Package" },
 ];
 
 type ServiceRecord = { date: string; type: string; description: string; mileage: string };

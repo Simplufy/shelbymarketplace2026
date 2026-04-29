@@ -6,8 +6,9 @@ import { Check, UploadCloud, CheckCircle2, Building2, Globe, Phone, MapPin, Arro
 import { createClient } from "@/lib/supabase/client";
 
 const SUBSCRIPTIONS = [
-  { id: "ENTHUSIAST", name: "Enthusiast Dealer", price: 399, desc: "Perfect for specialty dealers moving low volume of Shelby vehicles.", features: ["Up to 10 active listings/mo", "Bypass one-time listing fees", "Admin prioritized review", "Dealer Profile Verification badge"] },
-  { id: "APEX", name: "Apex Dealer", price: 999, desc: "For high-volume dealerships dominating the performance market.", features: ["Unlimited active listings", "Bypass one-time listing fees", "Immediate auto-approval", "Homepage Featured Slot (1/mo)", "Dedicated Account Manager"], recommended: true },
+  { id: "ENTHUSIAST", name: "Starter Dealer", price: 399, desc: "Best for low-volume dealers testing the platform.", features: ["Up to 10 active listings/mo", "Bypass one-time listing fees", "Admin prioritized review", "Dealer Profile Verification badge"] },
+  { id: "GROWTH", name: "Growth Dealer", price: 599, desc: "Built for growing dealers who want steady lead flow and stronger placement.", features: ["25 listings", "Featured placement (limited)", "Priority approval", "Dealer badge"], cta: "Start Getting Leads" },
+  { id: "APEX", name: "Apex Dealer", price: 999, desc: "Built for dealers who want maximum exposure, faster sales, and market dominance.", features: ["Unlimited active listings", "Homepage featured placement (rotating)", "Email blast to buyers (1x/month) 🔥", "Social media promotion 🔥", "Verified dealer badge", "Dedicated account manager"], recommended: true, note: "⭐ Most serious Shelby dealers choose this plan", valueCopy: ["Listing individually could cost $1,500+/month", "Apex Dealer gives you unlimited exposure for $999", "Close just ONE deal per month and this pays for itself."] },
 ];
 
 const REQUIRED_DOCS = [
@@ -353,8 +354,11 @@ function DealerRegisterForm() {
           {/* Step 3: Subscription */}
           {step === 3 && (
             <div className="space-y-6">
-              <h2 className="font-outfit font-bold text-2xl mb-6">Select Your Plan</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h2 className="font-outfit font-bold text-2xl mb-2">Select Your Plan</h2>
+                <p className="text-sm font-bold text-[#002D72]">Cancel anytime. No long-term contracts.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {SUBSCRIPTIONS.map((pkg) => (
                   <div 
                     key={pkg.id} 
@@ -367,6 +371,7 @@ function DealerRegisterForm() {
                     <h3 className="font-outfit font-bold text-xl mb-1">{pkg.name}</h3>
                     <div className="font-black text-2xl sm:text-3xl text-[#002D72] mb-2 break-words">${pkg.price} <span className="text-sm text-[#565d6d] font-medium">/ month</span></div>
                     <p className="text-sm text-[#565d6d] mb-6">{pkg.desc}</p>
+                    {"note" in pkg && pkg.note ? <p className="text-xs font-black text-[#E31837] mb-4">{pkg.note}</p> : null}
                     <ul className="space-y-2">
                       {pkg.features.map((f, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm font-medium border-b border-[#f3f4f6] pb-2 last:border-0">
@@ -374,6 +379,12 @@ function DealerRegisterForm() {
                         </li>
                       ))}
                     </ul>
+                    {"valueCopy" in pkg && pkg.valueCopy ? (
+                      <div className="mt-5 rounded-xl bg-[#002D72]/5 border border-[#002D72]/10 p-3 space-y-1.5">
+                        {pkg.valueCopy.map((line) => <p key={line} className="text-[11px] font-bold text-[#002D72]">{line}</p>)}
+                      </div>
+                    ) : null}
+                    {pkg.cta ? <p className="mt-4 text-xs font-black text-[#002D72]">{pkg.cta}</p> : null}
                   </div>
                 ))}
               </div>

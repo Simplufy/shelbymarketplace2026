@@ -128,9 +128,31 @@ const defaultHowItWorks = [
 ];
 
 const defaultPricingTiers = [
-  { name: "Standard Listing", price: "$99", description: "Standard search grid visibility.", features: ["Up to 20 High-Res Photos", "VIN Decoding", "Standard Placement"], cta: "Select", popular: false },
-  { name: "Homepage Featured", price: "$149", description: "Gets you on the homepage.", features: ["Featured Badge", "Homepage Carousel Placement", "Priority Search Highlighting"], cta: "Select", popular: true },
-  { name: "Homepage + Google Ads", price: "$299", description: "Maximum exposure globally.", features: ["Homepage Carousel Placement", "Dedicated Google Ads Campaign", "Social Media Spotlight"], cta: "Select", popular: false },
+  {
+    name: "Standard Listing",
+    price: "$99",
+    description: "Standard visibility for budget-conscious sellers.",
+    features: ["Up to 20 High-Res Photos", "VIN Decoding", "Standard Placement"],
+    cta: "List My Shelby",
+    popular: false,
+  },
+  {
+    name: "Homepage Featured",
+    price: "$149",
+    description: "Designed to sell faster with increased visibility.",
+    features: ["Featured Badge", "Homepage Carousel Placement", "Priority Search Highlighting", "Limited featured spots available each week"],
+    cta: "Get More Exposure",
+    popular: true,
+    note: "⭐ Most sellers choose this option",
+  },
+  {
+    name: "Premium Exposure Package",
+    price: "$299",
+    description: "Maximum exposure for fastest possible sale.",
+    features: ["Homepage Featured Placement (Top Section)", "Email Blast to Shelby Buyers 🔥", "Social Media Promotion 🔥", "Priority Search Ranking", "2x Visibility vs Standard", "Limited featured spots available each week"],
+    cta: "Maximize My Sale",
+    popular: false,
+  },
 ];
 
 const iconMap: Record<string, typeof Upload> = { Upload, Megaphone, HandCoins };
@@ -286,23 +308,23 @@ export default async function Home() {
   return (
     <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[75vh] min-h-[580px] md:h-[70vh] md:min-h-[560px] bg-[#0F172A] overflow-hidden">
+      <section className="relative min-h-[560px] md:min-h-[calc(100svh-140px)] bg-[#0F172A] overflow-hidden">
         <img src={cmsContent.hero.heroImage} className="absolute inset-0 w-full h-full object-cover object-center" alt="Hero" />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="relative max-w-[1440px] mx-auto px-5 md:px-12 h-full pt-10 md:pt-28 pb-16 md:pb-6 flex flex-col justify-center">
-          <div className="inline-flex items-center px-3 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-3 self-start">
+        <div className="relative max-w-[1440px] mx-auto px-5 md:px-12 min-h-[560px] md:min-h-[calc(100svh-140px)] py-8 md:py-8 lg:py-10 flex flex-col justify-center">
+          <div className="inline-flex items-center px-3 py-1 bg-[#E31837]/20 border border-[#E31837]/30 rounded-full backdrop-blur-md mb-2 md:mb-3 self-start">
             <span className="text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider">{cmsContent.hero.badge}</span>
           </div>
-          <h1 className="text-white font-black text-2xl sm:text-4xl md:text-5xl lg:text-[64px] leading-tight tracking-tighter mb-2 drop-shadow-2xl break-words italic uppercase max-w-4xl">{cmsContent.hero.headline}</h1>
-          <p className="text-[#D1D5DB] font-outfit text-sm sm:text-lg max-w-lg mb-4">{heroSubheadline || "Join 1000+ Shelby enthusiasts buying and selling GT350s, GT500s & rare builds nationwide"}</p>
-          <form action="/listings" method="GET" className="glass-search max-w-3xl w-full mx-auto rounded-xl md:rounded-2xl p-2 md:p-3 flex flex-col md:flex-row items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20">
+          <h1 className="text-white font-black text-2xl sm:text-4xl md:text-5xl lg:text-[56px] xl:text-[64px] leading-tight tracking-tighter mb-2 drop-shadow-2xl break-words italic uppercase max-w-4xl">{cmsContent.hero.headline}</h1>
+          <p className="text-[#D1D5DB] font-outfit text-sm sm:text-lg max-w-lg mb-3 md:mb-4">{heroSubheadline || "Join 1000+ Shelby enthusiasts buying and selling GT350s, GT500s & rare builds nationwide"}</p>
+          <form action="/listings" method="GET" className="glass-search max-w-3xl w-full mx-auto rounded-xl md:rounded-2xl p-2 md:p-3 flex flex-col md:flex-row items-center gap-2 md:gap-3 bg-white/10 backdrop-blur-md border border-white/20">
             <div className="flex-1 flex items-center gap-2 md:gap-3 px-3 md:px-4 w-full bg-white/90 rounded-lg md:rounded-xl py-2.5 md:py-3">
               <Search className="w-4 h-4 md:w-5 md:h-5 text-[#565d6d] shrink-0" />
               <input type="text" name="search" placeholder={cmsContent.hero.searchPlaceholder} className="bg-transparent border-none outline-none w-full text-xs sm:text-sm font-medium placeholder:text-[#565d6d]/50 min-w-0" />
             </div>
             <button type="submit" className="w-full md:w-auto px-8 md:px-10 py-3 md:py-4 bg-[#E31837] text-white text-sm font-black rounded-lg md:rounded-xl shadow-lg shadow-[#E31837]/20 hover:bg-[#c41530] transition-colors">{cmsContent.hero.ctaText}</button>
           </form>
-          <div className="mt-6 md:mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-3xl mx-auto">
+          <div className="mt-4 md:mt-5 lg:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 max-w-3xl mx-auto w-full">
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">Verified Listings</span></div>
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">No Dealer Fees</span></div>
             <div className="flex items-center gap-1.5 md:gap-2"><CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#E31837] shrink-0" /><span className="text-white/90 text-xs md:text-sm font-semibold">Secure Transactions</span></div>
@@ -464,14 +486,16 @@ export default async function Home() {
               <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-[#002D72]/10 rounded-full mb-4 md:mb-6"><span className="text-[10px] md:text-xs font-bold text-[#002D72] uppercase tracking-wider">Transparent Pricing</span></div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter mb-3 md:mb-4">Listing Packages</h2>
               <p className="text-[#565d6d] text-sm md:text-lg max-w-2xl mx-auto">Choose the package that fits your needs. No hidden fees, no transaction commissions.</p>
+              <p className="text-xs md:text-sm font-bold text-[#002D72] mt-3">Listings on other platforms cost $200-$500+ with less exposure.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
               {pricingTiers.map((tier, idx) => (
-                <div key={idx} className={`relative rounded-2xl p-6 md:p-8 border ${tier.popular ? 'border-[#002D72] shadow-lg bg-[#f8faff]' : 'border-[#dee1e6] bg-white'} flex flex-col`}>
+                <div key={idx} className={`relative rounded-2xl p-6 md:p-8 border ${tier.popular ? 'border-2 border-[#002D72] shadow-xl shadow-[#002D72]/15 bg-[#f8faff] md:scale-[1.04]' : 'border-[#dee1e6] bg-white'} flex flex-col`}>
                   {tier.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 md:px-4 py-1 bg-[#E31837] text-white text-[9px] md:text-[10px] font-bold rounded-full uppercase tracking-wider">Recommended</div>}
                   <h3 className="font-outfit font-bold text-base md:text-lg mb-1">{tier.name}</h3>
                   <div className="flex items-baseline gap-1 mb-1"><span className="text-3xl md:text-4xl font-black text-[#002D72]">{tier.price}</span></div>
                   <p className="text-[#565d6d] text-xs md:text-sm mb-4 md:mb-6">{tier.description}</p>
+                  {"note" in tier && tier.note ? <p className="text-xs font-black text-[#E31837] mb-4">{tier.note}</p> : null}
                   <ul className="space-y-2.5 md:space-y-3 mb-6 md:mb-8 flex-1">
                     {tier.features.map((feature, fIdx) => (<li key={fIdx} className="flex items-start gap-2 md:gap-3 text-xs md:text-sm text-[#171a1f]"><CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-600 shrink-0 mt-0.5" />{feature}</li>))}
                   </ul>

@@ -67,29 +67,41 @@ export async function POST(req: NextRequest) {
     const packageNames: Record<string, string> = {
       'STANDARD': 'Standard Listing',
       'HOMEPAGE': 'Homepage Featured',
-      'HOMEPAGE_PLUS_ADS': 'Homepage + Google Ads',
+      'HOMEPAGE_PLUS_ADS': 'Premium Exposure Package',
     };
 
     const basePrice = prices[package_tier] || 9900;
     const packageName = packageNames[package_tier] || 'Standard Listing';
 
     const addonCatalog: Record<string, { name: string; amount: number; stripePriceIdEnv?: string }> = {
-      carfax_report: { name: 'Vehicle History Report', amount: 2900, stripePriceIdEnv: 'STRIPE_PRICE_CARFAX_REPORT' },
+      carfax_report: { name: 'Vehicle History Report', amount: 3900, stripePriceIdEnv: 'STRIPE_PRICE_CARFAX_REPORT' },
       featured_listing: { name: 'Feature My Listing', amount: 7900, stripePriceIdEnv: 'STRIPE_PRICE_FEATURED_LISTING' },
       social_media_promotion: { name: 'Promote on Social Media', amount: 9900, stripePriceIdEnv: 'STRIPE_PRICE_SOCIAL_PROMOTION' },
+      email_blast: { name: 'Email Blast to Buyers', amount: 3900, stripePriceIdEnv: 'STRIPE_PRICE_EMAIL_BLAST' },
+      urgent_badge: { name: 'Urgent Badge', amount: 3900, stripePriceIdEnv: 'STRIPE_PRICE_URGENT_BADGE' },
       video_showcase: { name: 'Video Showcase', amount: 4900, stripePriceIdEnv: 'STRIPE_PRICE_VIDEO_SHOWCASE' },
       concierge_service: { name: 'Concierge Listing Service', amount: 12900, stripePriceIdEnv: 'STRIPE_PRICE_CONCIERGE_SERVICE' },
       pro_seller_package: { name: 'Pro Seller Package', amount: 19900, stripePriceIdEnv: 'STRIPE_PRICE_PRO_SELLER_PACKAGE' },
     };
+    const proIncludedAddonIds = new Set([
+      'social_media_promotion',
+      'email_blast',
+      'urgent_badge',
+      'carfax_report',
+    ]);
 
     const selectedAddonIds = Array.isArray(selected_addons)
       ? selected_addons.filter((id: string) => addonCatalog[id])
       : [];
 
-    const normalizedAddonIds =
+    const visibleAddonIds =
       package_tier === 'HOMEPAGE' || package_tier === 'HOMEPAGE_PLUS_ADS'
         ? selectedAddonIds.filter((id: string) => id !== 'featured_listing')
         : selectedAddonIds;
+    const hasProSellerPackage = visibleAddonIds.includes('pro_seller_package');
+    const normalizedAddonIds = hasProSellerPackage
+      ? visibleAddonIds.filter((id: string) => !proIncludedAddonIds.has(id))
+      : visibleAddonIds;
 
     const lineItems: any[] = [
       {

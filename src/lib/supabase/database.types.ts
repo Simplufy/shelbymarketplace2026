@@ -196,7 +196,7 @@ export interface Database {
           website_url: string | null
           phone: string | null
           location: string | null
-          subscription_tier: 'ENTHUSIAST' | 'APEX'
+          subscription_tier: 'ENTHUSIAST' | 'GROWTH' | 'APEX'
           subscription_status: 'ACTIVE' | 'PAST_DUE' | 'INACTIVE'
           rating: number
           review_count: number
@@ -211,7 +211,7 @@ export interface Database {
           website_url?: string | null
           phone?: string | null
           location?: string | null
-          subscription_tier?: 'ENTHUSIAST' | 'APEX'
+          subscription_tier?: 'ENTHUSIAST' | 'GROWTH' | 'APEX'
           subscription_status?: 'ACTIVE' | 'PAST_DUE' | 'INACTIVE'
           rating?: number
           review_count?: number
@@ -226,7 +226,7 @@ export interface Database {
           website_url?: string | null
           phone?: string | null
           location?: string | null
-          subscription_tier?: 'ENTHUSIAST' | 'APEX'
+          subscription_tier?: 'ENTHUSIAST' | 'GROWTH' | 'APEX'
           subscription_status?: 'ACTIVE' | 'PAST_DUE' | 'INACTIVE'
           rating?: number
           review_count?: number

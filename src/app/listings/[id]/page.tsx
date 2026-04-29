@@ -532,14 +532,14 @@ export default function VehicleDetailPage() {
                         href={`tel:${car.seller_phone}`}
                         className="w-full h-12 bg-white border border-[#dee1e6] font-semibold rounded-md flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
                       >
-                        <Phone className="w-5 h-5" /> {car.seller_phone}
+                        <Phone className="w-5 h-5" /> Contact Seller
                       </a>
                     ) : (
                       <button
                         onClick={() => router.push(`/login?redirect=/listings/${listingId}`)}
                         className="w-full h-12 bg-white border border-[#dee1e6] font-semibold rounded-md flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
                       >
-                        <Phone className="w-5 h-5" /> {car.seller_phone.slice(0, 4)}••• (login to view)
+                        <Phone className="w-5 h-5" /> Contact Seller
                       </button>
                     )
                   )}
@@ -556,8 +556,9 @@ export default function VehicleDetailPage() {
                   </p>
                 </div>
                 <div className="pt-6 border-t border-[#f3f4f6] space-y-3">
-                  <div className="flex items-center gap-2 text-xs text-[#565d6d]">
-                    <MapPin className="w-3 h-3" /> {car.location || 'Location not specified'}
+                  <div className="flex items-center gap-2 text-sm md:text-base font-bold text-[#171a1f]">
+                    <MapPin className="w-4 h-4 text-[#002D72] shrink-0" />
+                    <span>{car.location || 'Location not specified'}</span>
                   </div>
                 </div>
               </div>
