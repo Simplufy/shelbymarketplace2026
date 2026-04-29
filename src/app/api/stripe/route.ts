@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getStripeSecretKey } from '@/lib/stripe/config';
 
 const chunkString = (value: string, chunkSize: number) => {
   const chunks: string[] = [];
@@ -12,21 +13,15 @@ const chunkString = (value: string, chunkSize: number) => {
 };
 
 export async function POST(req: NextRequest) {
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-  
-  console.log('Stripe env check:', { 
-    hasKey: !!stripeSecretKey, 
-    keyPrefix: stripeSecretKey?.substring(0, 10)
-  });
-  
-  if (!stripeSecretKey) {
+  const stripeConfig = getStripeSecretKey();
+  if (!stripeConfig.ok) {
     return NextResponse.json(
-      { error: 'Stripe configuration missing', debug: 'STRIPE_SECRET_KEY not found in env' },
-      { status: 500 }
+      { error: stripeConfig.error },
+      { status: stripeConfig.status }
     );
   }
   
-  const stripe = new Stripe(stripeSecretKey, {
+  const stripe = new Stripe(stripeConfig.key, {
     apiVersion: '2026-03-25.dahlia',
   });
   
@@ -158,10 +153,13 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/sell?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/sell/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/sell?canceled=true`,
       client_reference_id: user.id,
-      metadata,
+      metadata: {
+        ...metadata,
+        stripe_livemode: String(stripeConfig.livemode),
+      },
     });
 
     return NextResponse.json({ sessionId: session.id, url: session.url });

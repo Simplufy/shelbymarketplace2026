@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { UploadCloud, Plus, Trash2, X, Loader2, Star } from "lucide-react";
@@ -210,7 +211,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,.heic,.heif"
               multiple
               onChange={handleFileSelect}
               className="hidden"
@@ -228,7 +229,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
                 <>
                   <UploadCloud className="w-8 h-8 md:w-12 md:h-12 mb-2 md:mb-3 text-[var(--color-shelby-blue)] opacity-70 group-hover:opacity-100 transition-opacity group-hover:scale-110" />
                   <p className="font-bold text-gray-800 text-xs md:text-sm mb-1 text-center break-words">Click to upload or drag & drop</p>
-                  <p className="text-[10px] md:text-xs font-medium text-gray-500 text-center">High-res JPEG, PNG (max 10MB each)</p>
+                  <p className="text-[10px] md:text-xs font-medium text-gray-500 text-center">High-res JPEG, PNG, WebP, GIF, HEIC, or HEIF (max 10MB each)</p>
                 </>
               )}
             </div>
@@ -240,10 +241,13 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
           <div className="mt-3 md:mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
             {uploadedImages.map((image, index) => (
               <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 group cursor-pointer" onClick={() => setPrimary(index)}>
-                <img 
+                <Image
                   src={image.url} 
                   alt={`Upload ${index + 1}`} 
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(min-width: 768px) 20vw, 33vw"
+                  unoptimized
+                  className="object-cover"
                 />
                 <div className="absolute top-1 left-1 flex gap-1">
                   {index === primaryImageIndex && (

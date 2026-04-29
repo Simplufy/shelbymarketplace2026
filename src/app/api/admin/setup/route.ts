@@ -31,7 +31,7 @@ export async function POST() {
     const { error } = await supabaseAdmin.storage.createBucket('site-images', {
       public: true,
       fileSizeLimit: 10485760, // 10MB
-      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml']
+      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/heic', 'image/heif', 'image/svg+xml']
     });
 
     if (error) {

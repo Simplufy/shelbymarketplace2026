@@ -71,7 +71,7 @@ export default function MediaLibrary() {
         // Filter out folders (they don't have metadata)
         const fileItems = data.filter(item => 
           item.metadata && item.metadata.mimetype && 
-          (item.metadata.mimetype.startsWith('image/') || item.name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i))
+          (item.metadata.mimetype.startsWith('image/') || item.name.match(/\.(jpg|jpeg|png|gif|webp|svg|heic|heif)$/i))
         );
 
         const mediaFiles: MediaFile[] = fileItems.map((item) => {

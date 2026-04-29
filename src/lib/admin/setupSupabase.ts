@@ -24,7 +24,7 @@ export async function setupSupabaseStorage() {
       const { error } = await supabase.storage.createBucket('listings', {
         public: true,
         fileSizeLimit: 10485760, // 10MB
-        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
+        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/heic', 'image/heif']
       });
 
       if (error) {
@@ -41,7 +41,7 @@ export async function setupSupabaseStorage() {
       const { error } = await supabase.storage.createBucket('site-images', {
         public: true,
         fileSizeLimit: 10485760, // 10MB
-        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
+        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/heic', 'image/heif']
       });
 
       if (error) {

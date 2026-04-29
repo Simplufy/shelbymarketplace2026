@@ -461,7 +461,7 @@ export default function AdminCreateListing() {
           <div className="mb-4">
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,.heic,.heif"
               multiple
               onChange={handleImageUpload}
               disabled={isUploading || uploadedImages.length >= 20}

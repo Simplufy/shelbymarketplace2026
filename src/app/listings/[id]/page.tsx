@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ChevronRight, Share2, Gauge, Zap, Palette, ShieldCheck, Copy, Check, MapPin, Phone, MessageSquare, Printer, Eye } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -71,9 +72,33 @@ export default function VehicleDetailPage() {
   
   const listingId = params.id as string;
 
-  useEffect(() => {
-    fetchListing();
+  const fetchListing = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      const response = await fetch(`/api/listings/${listingId}`, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      const payload = await response.json();
+      if (!response.ok || !payload?.data) {
+        throw new Error(payload?.error || 'Failed to load listing');
+      }
+
+      setListing(payload.data as ListingDetail);
+    } catch (err: unknown) {
+      console.error('Error fetching listing:', err);
+      setError(err instanceof Error ? err.message : "Failed to load listing");
+    } finally {
+      setLoading(false);
+    }
   }, [listingId]);
+
+  useEffect(() => {
+    void fetchListing();
+  }, [fetchListing]);
 
   useEffect(() => {
     if (!listing) return;
@@ -138,31 +163,7 @@ export default function VehicleDetailPage() {
     };
 
     void loadRelatedListings();
-  }, [listingId, listing?.model]);
-
-  const fetchListing = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
-      const response = await fetch(`/api/listings/${listingId}`, { signal: controller.signal });
-      clearTimeout(timeout);
-
-      const payload = await response.json();
-      if (!response.ok || !payload?.data) {
-        throw new Error(payload?.error || 'Failed to load listing');
-      }
-
-      setListing(payload.data as ListingDetail);
-    } catch (err: unknown) {
-      console.error('Error fetching listing:', err);
-      setError(err instanceof Error ? err.message : "Failed to load listing");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [listingId, listing]);
 
   const copyVin = () => { 
     if (listing?.vin) {
@@ -371,11 +372,14 @@ export default function VehicleDetailPage() {
           <div className="lg:col-span-8 space-y-10">
             {/* Gallery */}
             <div className="space-y-4">
-              <div className="aspect-[16/9] w-full bg-[#f3f4f6] rounded-lg overflow-hidden shadow-sm">
-                <img 
+              <div className="relative aspect-[16/9] w-full bg-[#f3f4f6] rounded-lg overflow-hidden shadow-sm">
+                <Image
                   src={allImages[activeThumb] || '/images/logo.png'} 
                   alt={`${car.year} ${car.make} ${car.model}`} 
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(min-width: 1024px) 66vw, 100vw"
+                  unoptimized
+                  className="object-cover"
                   onError={(e) => { (e.target as HTMLImageElement).src = '/images/logo.png'; }}
                 />
               </div>
@@ -385,9 +389,9 @@ export default function VehicleDetailPage() {
                     <button 
                       key={idx} 
                       onClick={() => setActiveThumb(idx)} 
-                      className={`flex-shrink-0 w-32 h-20 rounded-md overflow-hidden border-2 transition-all cursor-pointer ${idx === activeThumb ? 'border-[#002D72]' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                      className={`relative flex-shrink-0 w-32 h-20 rounded-md overflow-hidden border-2 transition-all cursor-pointer ${idx === activeThumb ? 'border-[#002D72]' : 'border-transparent opacity-60 hover:opacity-100'}`}
                     >
-                      <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                      <Image src={img} alt={`Thumb ${idx}`} fill sizes="128px" unoptimized className="object-cover" />
                     </button>
                   ))}
                 </div>
@@ -452,8 +456,8 @@ export default function VehicleDetailPage() {
                 <div className="space-y-3">
                   {relatedListings.map((item) => (
                     <Link key={item.id} href={`/listings/${item.id}`} className="flex gap-3 p-3 border border-[#dee1e6] rounded-xl hover:border-[#002D72]/30 transition-colors">
-                      <div className="w-24 h-20 rounded-lg overflow-hidden shrink-0">
-                        <img src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} className="w-full h-full object-cover" />
+                      <div className="relative w-24 h-20 rounded-lg overflow-hidden shrink-0">
+                        <Image src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} fill sizes="96px" unoptimized className="object-cover" />
                       </div>
                       <div>
                         <p className="text-sm font-bold leading-tight">{item.year} {item.make} {item.model} {item.trim || ''}</p>
@@ -473,11 +477,14 @@ export default function VehicleDetailPage() {
               {/* Contact Card */}
               <div className="bg-white rounded-lg shadow-soft border-t-4 border-[#002D72] p-6 overflow-hidden">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-full overflow-hidden bg-[#002D72]/10">
-                    <img 
+                  <div className="relative w-14 h-14 rounded-full overflow-hidden bg-[#002D72]/10">
+                    <Image
                       src={car.seller_avatar || '/images/logo.png'} 
                       alt={car.seller_name} 
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="56px"
+                      unoptimized
+                      className="object-cover"
                       onError={(e) => { (e.target as HTMLImageElement).src = '/images/logo.png'; }}
                     />
                   </div>
@@ -546,8 +553,7 @@ export default function VehicleDetailPage() {
                 </div>
                 {leadWallEnabled && !user ? (
                   <div className="mb-6 p-4 rounded-lg border border-[#E31837]/20 bg-[#E31837]/5">
-                    <p className="text-sm font-semibold text-[#171a1f]">Lead Wall</p>
-                    <p className="text-xs text-[#565d6d] mt-1">Create a free account to unlock seller contact details and get priority alerts.</p>
+                    <p className="text-xs text-[#565d6d]">Create a free account to unlock seller contact details and get priority alerts.</p>
                   </div>
                 ) : null}
                 <div className="mb-6 p-4 rounded-lg border border-[#dee1e6] bg-[#fafafb]">
@@ -569,8 +575,8 @@ export default function VehicleDetailPage() {
                   <div className="space-y-3">
                     {relatedListings.map((item) => (
                       <Link key={item.id} href={`/listings/${item.id}`} className="flex gap-3 p-2 rounded-lg hover:bg-[#fafafb] transition-colors">
-                        <div className="w-20 h-16 rounded-md overflow-hidden shrink-0">
-                          <img src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} className="w-full h-full object-cover" />
+                        <div className="relative w-20 h-16 rounded-md overflow-hidden shrink-0">
+                          <Image src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} fill sizes="80px" unoptimized className="object-cover" />
                         </div>
                         <div>
                           <p className="text-sm font-bold leading-tight line-clamp-2">{item.year} {item.make} {item.model}</p>
