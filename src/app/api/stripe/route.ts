@@ -154,6 +154,8 @@ export async function POST(req: NextRequest) {
       line_items: lineItems,
       mode: 'payment',
       allow_promotion_codes: true,
+      customer_email: user.email || undefined,
+      customer_creation: 'always',
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/sell/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/sell?canceled=true`,
       client_reference_id: user.id,
