@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { upload } from '@vercel/blob/client'
 
 interface UploadResult {
   url: string
@@ -18,17 +19,69 @@ type UploadFailure = {
 
 type UploadAttempt = UploadSuccess | UploadFailure
 
+type UploadOptions = {
+  onProgress?: (percentage: number) => void
+}
+
+const HEIC_FILE_TYPES = new Set([
+  "image/heic",
+  "image/heif",
+  "image/heic-sequence",
+  "image/heif-sequence",
+])
+const HEIC_EXTENSIONS = new Set([".heic", ".heif"])
+
+function safeFilename(name: string) {
+  return name
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 120)
+}
+
+function fileExtension(name: string) {
+  const match = name.toLowerCase().match(/\.[a-z0-9]+$/)
+  return match?.[0] || ""
+}
+
+function isHeicFile(file: File) {
+  return HEIC_FILE_TYPES.has(file.type) || HEIC_EXTENSIONS.has(fileExtension(file.name))
+}
+
 export function useStorage() {
   const [isUploading, setIsUploading] = useState(false)
   const [progress, setProgress] = useState(0)
 
   const uploadListingImage = async (
     file: File,
-    listingId: string
+    listingId: string,
+    options?: UploadOptions
   ): Promise<UploadAttempt> => {
     try {
       setIsUploading(true)
       setProgress(0)
+
+      if (!isHeicFile(file)) {
+        const pathname = `listings/client/${listingId}-${Date.now()}-${safeFilename(file.name)}`
+        const blob = await upload(pathname, file, {
+          access: "public",
+          handleUploadUrl: "/api/upload/client",
+          contentType: file.type || undefined,
+          multipart: file.size > 5 * 1024 * 1024,
+          onUploadProgress: ({ percentage }) => {
+            setProgress(percentage)
+            options?.onProgress?.(percentage)
+          },
+        })
+
+        setProgress(100)
+        options?.onProgress?.(100)
+
+        return {
+          ok: true,
+          url: blob.url,
+          storagePath: blob.pathname,
+        }
+      }
 
       const formData = new FormData()
       formData.append("file", file)
@@ -52,6 +105,7 @@ export function useStorage() {
       }
 
       setProgress(100)
+      options?.onProgress?.(100)
 
       return {
         ok: true,

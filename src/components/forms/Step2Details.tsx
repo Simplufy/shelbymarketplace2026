@@ -7,6 +7,14 @@ import { useStorage } from "@/hooks/useStorage";
 
 const MAX_PARALLEL_UPLOADS = 3;
 
+type UploadItem = {
+  id: string;
+  name: string;
+  progress: number;
+  status: "uploading" | "processing" | "complete" | "error";
+  error?: string;
+};
+
 export default function Step2Details({ initialData, onNext, onBack }: any) {
   const { register, handleSubmit } = useForm({ defaultValues: initialData });
   const [serviceRecords, setServiceRecords] = useState([
@@ -15,6 +23,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
   const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>(initialData?.images || []);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
   const [primaryImageIndex, setPrimaryImageIndex] = useState(initialData?.primaryImageIndex || 0);
   const [listingTags, setListingTags] = useState<{ type: string; number?: number }[]>(initialData?.listingTags || []);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,12 +62,47 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
       if (!file) return;
 
       const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const result = await uploadListingImage(file, tempId);
+      const uploadId = `${tempId}-${file.name}`;
+      setUploadItems((prev) => [
+        ...prev,
+        { id: uploadId, name: file.name, progress: 0, status: "uploading" },
+      ]);
+
+      const result = await uploadListingImage(file, tempId, {
+        onProgress: (percentage) => {
+          setUploadItems((prev) =>
+            prev.map((item) =>
+              item.id === uploadId
+                ? {
+                    ...item,
+                    progress: Math.max(item.progress, Math.round(percentage)),
+                    status: percentage >= 100 ? "processing" : "uploading",
+                  }
+                : item
+            )
+          );
+        },
+      });
 
       if (result.ok) {
         setUploadedImages((prev) => [...prev, result]);
+        setUploadItems((prev) =>
+          prev.map((item) =>
+            item.id === uploadId ? { ...item, progress: 100, status: "complete" } : item
+          )
+        );
+        setTimeout(() => {
+          setUploadItems((prev) => prev.filter((item) => item.id !== uploadId));
+        }, 1800);
       } else {
         failedUploads.push(`${file.name}: ${result.error}`);
+        setUploadItems((prev) =>
+          prev.map((item) =>
+            item.id === uploadId
+              ? { ...item, status: "error", error: result.error }
+              : item
+          )
+        );
       }
 
       if (uploadQueue.length > 0) {
@@ -271,6 +315,35 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
             </div>
             {uploadError && (
               <p className="mt-2 text-xs font-medium text-red-600">{uploadError}</p>
+            )}
+            {uploadItems.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {uploadItems.map((item) => (
+                  <div key={item.id} className="rounded-lg border border-gray-200 bg-white p-2.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="min-w-0 truncate text-xs font-semibold text-gray-800">{item.name}</span>
+                      <span className={`shrink-0 text-[10px] font-bold uppercase ${
+                        item.status === "error" ? "text-red-600" :
+                        item.status === "complete" ? "text-green-700" :
+                        "text-[#002D72]"
+                      }`}>
+                        {item.status === "processing" ? "Processing" : item.status === "complete" ? "Uploaded" : item.status === "error" ? "Failed" : `${item.progress}%`}
+                      </span>
+                    </div>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          item.status === "error" ? "bg-red-500" :
+                          item.status === "complete" ? "bg-green-600" :
+                          "bg-[#002D72]"
+                        }`}
+                        style={{ width: `${Math.max(item.progress, item.status === "processing" ? 96 : 0)}%` }}
+                      />
+                    </div>
+                    {item.error ? <p className="mt-1 text-[10px] text-red-600">{item.error}</p> : null}
+                  </div>
+                ))}
+              </div>
             )}
           </>
         )}
