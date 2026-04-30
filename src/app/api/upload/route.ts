@@ -68,7 +68,7 @@ async function normalizeUploadFile(file: File) {
 }
 
 export async function POST(req: NextRequest) {
-  const rate = checkRateLimit(req, "uploads", { windowMs: 60 * 1000, max: 12 });
+  const rate = checkRateLimit(req, "uploads", { windowMs: 60 * 1000, max: 30 });
   if (!rate.allowed) {
     return NextResponse.json({ error: "Too many uploads. Please wait and try again." }, { status: 429 });
   }

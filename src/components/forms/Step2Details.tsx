@@ -10,10 +10,11 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
   const [serviceRecords, setServiceRecords] = useState([
     { date: "", type: "", description: "", mileage: "" }
   ]);
-  const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>(initialData?.images || []);
   const [isUploading, setIsUploading] = useState(false);
-  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
-  const [listingTags, setListingTags] = useState<{ type: string; number?: number }[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(initialData?.primaryImageIndex || 0);
+  const [listingTags, setListingTags] = useState<{ type: string; number?: number }[]>(initialData?.listingTags || []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadListingImage } = useStorage();
 
@@ -31,32 +32,52 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
     setServiceRecords(updated);
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const uploadFiles = async (files: File[]) => {
+    if (files.length === 0) return;
 
     setIsUploading(true);
+    setUploadError(null);
+    const remainingSlots = 20 - uploadedImages.length;
+    const selectedFiles = files.slice(0, remainingSlots);
+    const failedUploads: string[] = [];
+
+    if (files.length > remainingSlots) {
+      failedUploads.push(`Only ${remainingSlots} more photo${remainingSlots === 1 ? "" : "s"} can be added.`);
+    }
     
     // Upload each file
-    for (let i = 0; i < Math.min(files.length, 20 - uploadedImages.length); i++) {
-      const file = files[i];
+    for (const file of selectedFiles) {
       
       // Create a temporary ID for the upload
       const tempId = `temp-${Date.now()}`;
       
       const result = await uploadListingImage(file, tempId);
       
-      if (result) {
+      if (result.ok) {
         setUploadedImages(prev => [...prev, result]);
+      } else {
+        failedUploads.push(`${file.name}: ${result.error}`);
       }
     }
     
     setIsUploading(false);
+    if (failedUploads.length > 0) {
+      setUploadError(failedUploads.slice(0, 3).join(" "));
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await uploadFiles(Array.from(e.target.files || []));
     
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    await uploadFiles(Array.from(e.dataTransfer.files || []));
   };
 
   const removeImage = (index: number) => {
@@ -218,6 +239,8 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
             />
             <div 
               onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
               className="border-2 border-dashed border-gray-300 rounded-xl p-4 md:p-6 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all cursor-pointer group"
             >
               {isUploading ? (
@@ -233,6 +256,9 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
                 </>
               )}
             </div>
+            {uploadError && (
+              <p className="mt-2 text-xs font-medium text-red-600">{uploadError}</p>
+            )}
           </>
         )}
 
