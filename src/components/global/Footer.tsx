@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Globe, Mail, Link as LinkIcon, Loader2, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { subscribeClientEmail } from "@/lib/klaviyo/client";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -34,6 +35,12 @@ export default function Footer() {
       if (insertError) {
         // If table doesn't exist or other error, just show success (graceful degradation)
         console.error("Newsletter subscription error:", insertError);
+      }
+
+      const klaviyoResult = await subscribeClientEmail(email.toLowerCase(), "footer_newsletter");
+      if (!klaviyoResult.ok) {
+        setError("We couldn't subscribe that email. Please try again.");
+        return;
       }
 
       setSubscribed(true);

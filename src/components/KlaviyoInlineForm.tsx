@@ -20,8 +20,9 @@ export function KlaviyoInlineForm({
     e.preventDefault();
     if (!email) return;
     setLoading(true);
-    await subscribeClientEmail(email, source);
+    const result = await subscribeClientEmail(email, source);
     setLoading(false);
+    if (!result.ok) return;
     setDone(true);
     setEmail("");
   };

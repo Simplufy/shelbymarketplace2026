@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { subscribeKlaviyoEmail } from "@/lib/klaviyo/server";
 
 export async function POST(req: NextRequest) {
   const rate = checkRateLimit(req, "listing-inquiries", { windowMs: 15 * 60 * 1000, max: 8 });
@@ -65,6 +66,17 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await subscribeKlaviyoEmail({
+      email: email.toLowerCase(),
+      firstName: name.split(" ")[0],
+      lastName: name.split(" ").slice(1).join(" ") || undefined,
+      source: "high_intent_contact",
+      properties: {
+        listing_id,
+        high_intent: true,
+      },
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error: any) {

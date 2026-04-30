@@ -42,12 +42,20 @@ export async function trackClientEvent(payload: TrackPayload) {
 
 export async function subscribeClientEmail(email: string, source: string) {
   try {
-    await fetch("/api/klaviyo/subscribe", {
+    const response = await fetch("/api/klaviyo/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, source }),
     });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.error || "Failed to subscribe email");
+    }
+
+    return { ok: true };
   } catch (error) {
     console.error("Failed to subscribe email", error);
+    return { ok: false, error };
   }
 }

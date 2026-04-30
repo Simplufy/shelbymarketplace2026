@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
-import { trackKlaviyoEvent } from "@/lib/klaviyo/server";
+import { subscribeKlaviyoEmail, trackKlaviyoEvent } from "@/lib/klaviyo/server";
 
 async function createFulfillmentSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -208,33 +208,54 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
   }
 
   let profileEmail: string | undefined;
+  let profileFirstName: string | undefined;
+  let profileLastName: string | undefined;
   if (session.client_reference_id) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("email")
+      .select("email, first_name, last_name")
       .eq("id", session.client_reference_id)
       .single();
     profileEmail = profile?.email;
+    profileFirstName = profile?.first_name || undefined;
+    profileLastName = profile?.last_name || undefined;
+  }
+
+  const klaviyoProperties = {
+    listing_id: listing.id,
+    vehicle_name: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
+    year: vehicleData.year,
+    make: vehicleData.make,
+    model: vehicleData.model,
+    trim: vehicleData.trim || null,
+    price: vehicleData.price,
+    image: vehicleData.images?.[0]?.url || null,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/listings/${listing.id}`,
+    location: vehicleData.location,
+  };
+
+  if (profileEmail) {
+    await subscribeKlaviyoEmail({
+      email: profileEmail,
+      firstName: profileFirstName,
+      lastName: profileLastName,
+      source: "seller_listing_submit",
+      properties: {
+        seller_activity: true,
+        ...klaviyoProperties,
+      },
+    });
   }
 
   await trackKlaviyoEvent({
     metricName: "New listing created",
     profile: {
       email: profileEmail,
+      first_name: profileFirstName,
+      last_name: profileLastName,
       external_id: session.client_reference_id || undefined,
     },
-    properties: {
-      listing_id: listing.id,
-      vehicle_name: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
-      year: vehicleData.year,
-      make: vehicleData.make,
-      model: vehicleData.model,
-      trim: vehicleData.trim || null,
-      price: vehicleData.price,
-      image: vehicleData.images?.[0]?.url || null,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/listings/${listing.id}`,
-      location: vehicleData.location,
-    },
+    properties: klaviyoProperties,
   });
 
   return { type: "listing" as const, listingId: listing.id, alreadyFulfilled: false };

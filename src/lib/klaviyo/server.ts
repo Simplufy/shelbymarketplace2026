@@ -1,5 +1,5 @@
 const KLAVIYO_API_BASE = "https://a.klaviyo.com/api";
-const KLAVIYO_REVISION = "2024-10-15";
+const KLAVIYO_REVISION = "2026-04-15";
 
 type KlaviyoProfile = {
   email?: string;
@@ -17,22 +17,38 @@ function getHeaders() {
   return {
     Authorization: `Klaviyo-API-Key ${apiKey}`,
     revision: KLAVIYO_REVISION,
-    "Content-Type": "application/json",
+    accept: "application/vnd.api+json",
+    "Content-Type": "application/vnd.api+json",
   };
 }
 
-function resolveListId(source?: string, explicitListId?: string) {
-  if (explicitListId) return explicitListId;
+function uniqueListIds(ids: Array<string | undefined>) {
+  return [...new Set(ids.filter(Boolean))] as string[];
+}
 
-  const sourceMap: Record<string, string | undefined> = {
-    account_signup: process.env.KLAVIYO_LIST_ID_BUYERS,
-    listing_view: process.env.KLAVIYO_LIST_ID_BUYERS,
-    high_intent_contact: process.env.KLAVIYO_LIST_ID_HIGH_INTENT,
-    seller_listing_submit: process.env.KLAVIYO_LIST_ID_SELLERS,
-    listing_published: process.env.KLAVIYO_LIST_ID_SELLERS,
+function resolveListIds(source?: string, explicitListId?: string) {
+  if (explicitListId) return uniqueListIds([explicitListId]);
+
+  const mainList = process.env.KLAVIYO_LIST_ID;
+  const buyersList = process.env.KLAVIYO_LIST_ID_BUYERS;
+  const sellersList = process.env.KLAVIYO_LIST_ID_SELLERS;
+  const highIntentList = process.env.KLAVIYO_LIST_ID_HIGH_INTENT;
+
+  const sourceMap: Record<string, Array<string | undefined>> = {
+    account_signup: [mainList, buyersList],
+    footer_newsletter: [mainList, buyersList],
+    homepage_inline: [mainList, buyersList],
+    listing_inline: [mainList, buyersList],
+    popup_offer: [mainList, buyersList],
+    website: [mainList],
+    contact_form: [mainList],
+    listing_view: [mainList, buyersList],
+    high_intent_contact: [mainList, buyersList, highIntentList],
+    seller_listing_submit: [mainList, sellersList],
+    listing_published: [mainList, sellersList],
   };
 
-  return sourceMap[source || ""] || process.env.KLAVIYO_LIST_ID;
+  return uniqueListIds(sourceMap[source || ""] || [mainList]);
 }
 
 export async function trackKlaviyoEvent(params: {
@@ -96,10 +112,12 @@ export async function subscribeKlaviyoEmail(params: {
   const headers = getHeaders();
   if (!headers) return { ok: false, skipped: true, reason: "missing_api_key" };
 
-  const listId = resolveListId(params.source, params.listId);
+  const listIds = resolveListIds(params.source, params.listId);
+  const consentedAt = new Date().toISOString();
 
   try {
     let hasError = false;
+    const listResults: Array<{ listId: string; ok: boolean; status: number; error?: string }> = [];
 
     // Upsert profile
     const profileRes = await fetch(`${KLAVIYO_API_BASE}/profiles/`, {
@@ -121,13 +139,13 @@ export async function subscribeKlaviyoEmail(params: {
       }),
     });
     
-    if (!profileRes.ok) {
+    if (!profileRes.ok && profileRes.status !== 409) {
       const profileText = await profileRes.text();
       console.error("Klaviyo profile upsert failed:", profileText);
       hasError = true;
     }
 
-    if (listId) {
+    for (const listId of listIds) {
       const subRes = await fetch(`${KLAVIYO_API_BASE}/profile-subscription-bulk-create-jobs`, {
         method: "POST",
         headers,
@@ -140,7 +158,17 @@ export async function subscribeKlaviyoEmail(params: {
                 data: [
                   {
                     type: "profile",
-                    attributes: { email: params.email },
+                    attributes: {
+                      email: params.email,
+                      subscriptions: {
+                        email: {
+                          marketing: {
+                            consent: "SUBSCRIBED",
+                            consented_at: consentedAt,
+                          },
+                        },
+                      },
+                    },
                   },
                 ],
               },
@@ -159,12 +187,15 @@ export async function subscribeKlaviyoEmail(params: {
       
       if (!subRes.ok) {
         const subText = await subRes.text();
-        console.error("Klaviyo list subscription failed:", subText);
+        console.error(`Klaviyo list subscription failed for ${listId}:`, subText);
+        listResults.push({ listId, ok: false, status: subRes.status, error: subText });
         hasError = true;
+      } else {
+        listResults.push({ listId, ok: true, status: subRes.status });
       }
     }
 
-    return hasError ? { ok: false } : { ok: true };
+    return hasError ? { ok: false, listResults } : { ok: true, listResults };
   } catch (error) {
     console.error("Klaviyo subscribe failed:", error);
     return { ok: false };

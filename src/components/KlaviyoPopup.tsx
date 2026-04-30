@@ -27,8 +27,9 @@ export function KlaviyoPopup() {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
-    await subscribeClientEmail(email, "popup_offer");
+    const result = await subscribeClientEmail(email, "popup_offer");
     setLoading(false);
+    if (!result.ok) return;
     setDone(true);
   };
 

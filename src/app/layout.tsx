@@ -21,6 +21,8 @@ const outfit = Outfit({
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
+const googleAnalyticsId = "G-JTQ0SM9NJG";
+
 export const metadata: Metadata = {
   title: "Shelby Exchange | Premium Ford Shelby Marketplace",
   description: "Buy and sell authentic Ford Shelby vehicles on the world's premier marketplace. GT500, GT350, Super Snake, and more. Verified sellers, curated listings.",
@@ -82,6 +84,23 @@ export default function RootLayout({
       className={`${inter.variable} ${outfit.variable} h-full antialiased`}
     >
       <body className="font-sans min-h-full flex flex-col pt-0 bg-white text-[#171a1f]">
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+        />
+        <Script
+          id="google-analytics-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${googleAnalyticsId}');
+            `,
+          }}
+        />
         <Script
           id="klaviyo-tracking"
           strategy="afterInteractive"
