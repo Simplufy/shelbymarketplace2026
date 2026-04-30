@@ -42,10 +42,12 @@ export async function trackClientEvent(payload: TrackPayload) {
 
 export async function subscribeClientEmail(email: string, source: string) {
   try {
+    const normalizedEmail = email.trim().toLowerCase();
+
     const response = await fetch("/api/klaviyo/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, source }),
+      body: JSON.stringify({ email: normalizedEmail, source }),
     });
     const payload = await response.json().catch(() => ({}));
 

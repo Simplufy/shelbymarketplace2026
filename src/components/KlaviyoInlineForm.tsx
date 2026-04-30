@@ -15,14 +15,19 @@ export function KlaviyoInlineForm({
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
+    setError(null);
     const result = await subscribeClientEmail(email, source);
     setLoading(false);
-    if (!result.ok) return;
+    if (!result.ok) {
+      setError("We couldn't subscribe that email. Please try again.");
+      return;
+    }
     setDone(true);
     setEmail("");
   };
@@ -44,6 +49,7 @@ export function KlaviyoInlineForm({
             placeholder="Enter Email"
             className="flex-1 h-11 px-4 rounded-xl border border-[#dee1e6] bg-white text-sm outline-none focus:border-[#002D72]"
           />
+          {error ? <p className="sm:hidden text-xs text-red-600">{error}</p> : null}
           <button
             type="submit"
             disabled={loading}
@@ -51,6 +57,7 @@ export function KlaviyoInlineForm({
           >
             {loading ? "Submitting..." : "Subscribe"}
           </button>
+          {error ? <p className="hidden sm:block sm:basis-full text-xs text-red-600">{error}</p> : null}
         </form>
       )}
     </div>

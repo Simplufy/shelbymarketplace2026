@@ -15,7 +15,9 @@ export default function Footer() {
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes("@")) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
       setError("Please enter a valid email address");
       return;
     }
@@ -28,7 +30,7 @@ export default function Footer() {
       const { error: insertError } = await supabase
         .from("newsletter_subscribers")
         .upsert(
-          { email: email.toLowerCase(), subscribed_at: new Date().toISOString() },
+          { email: normalizedEmail, subscribed_at: new Date().toISOString() },
           { onConflict: "email" }
         );
 
@@ -37,7 +39,7 @@ export default function Footer() {
         console.error("Newsletter subscription error:", insertError);
       }
 
-      const klaviyoResult = await subscribeClientEmail(email.toLowerCase(), "footer_newsletter");
+      const klaviyoResult = await subscribeClientEmail(normalizedEmail, "footer_newsletter");
       if (!klaviyoResult.ok) {
         setError("We couldn't subscribe that email. Please try again.");
         return;
@@ -47,8 +49,7 @@ export default function Footer() {
       setEmail("");
     } catch (err) {
       console.error("Subscribe error:", err);
-      // Still show success to user even if DB fails
-      setSubscribed(true);
+      setError("We couldn't subscribe that email. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -10,10 +10,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { email, firstName, lastName, source, properties } = body;
+    const { firstName, lastName, source, properties } = body;
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
 
     if (!email) {
       return NextResponse.json({ error: "Missing email" }, { status: 400 });
+    }
+
+    if (!email.includes("@")) {
+      return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
 
     const subscribeResult = await subscribeKlaviyoEmail({

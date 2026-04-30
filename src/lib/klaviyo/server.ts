@@ -113,7 +113,6 @@ export async function subscribeKlaviyoEmail(params: {
   if (!headers) return { ok: false, skipped: true, reason: "missing_api_key" };
 
   const listIds = resolveListIds(params.source, params.listId);
-  const consentedAt = new Date().toISOString();
 
   try {
     let hasError = false;
@@ -164,7 +163,6 @@ export async function subscribeKlaviyoEmail(params: {
                         email: {
                           marketing: {
                             consent: "SUBSCRIBED",
-                            consented_at: consentedAt,
                           },
                         },
                       },

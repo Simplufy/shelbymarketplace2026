@@ -9,6 +9,7 @@ export function KlaviyoPopup() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const dismissed = localStorage.getItem("klaviyo_popup_dismissed");
@@ -27,9 +28,13 @@ export function KlaviyoPopup() {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
+    setError(null);
     const result = await subscribeClientEmail(email, "popup_offer");
     setLoading(false);
-    if (!result.ok) return;
+    if (!result.ok) {
+      setError("We couldn't subscribe that email. Please try again.");
+      return;
+    }
     setDone(true);
   };
 
@@ -57,6 +62,7 @@ export function KlaviyoPopup() {
               placeholder="Enter your email"
               className="w-full h-11 px-4 rounded-xl border border-[#dee1e6] outline-none focus:border-[#002D72]"
             />
+            {error ? <p className="text-xs text-red-600">{error}</p> : null}
             <button
               type="submit"
               disabled={loading}
