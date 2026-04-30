@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { UploadCloud, Plus, Trash2, X, Loader2, Star } from "lucide-react";
 import { useStorage } from "@/hooks/useStorage";
 
+const MAX_PARALLEL_UPLOADS = 3;
+
 export default function Step2Details({ initialData, onNext, onBack }: any) {
   const { register, handleSubmit } = useForm({ defaultValues: initialData });
   const [serviceRecords, setServiceRecords] = useState([
@@ -44,21 +46,32 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
     if (files.length > remainingSlots) {
       failedUploads.push(`Only ${remainingSlots} more photo${remainingSlots === 1 ? "" : "s"} can be added.`);
     }
-    
-    // Upload each file
-    for (const file of selectedFiles) {
-      
-      // Create a temporary ID for the upload
-      const tempId = `temp-${Date.now()}`;
-      
+
+    const uploadQueue = [...selectedFiles];
+    const uploadNext = async () => {
+      const file = uploadQueue.shift();
+      if (!file) return;
+
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const result = await uploadListingImage(file, tempId);
-      
+
       if (result.ok) {
-        setUploadedImages(prev => [...prev, result]);
+        setUploadedImages((prev) => [...prev, result]);
       } else {
         failedUploads.push(`${file.name}: ${result.error}`);
       }
-    }
+
+      if (uploadQueue.length > 0) {
+        await uploadNext();
+      }
+    };
+
+    await Promise.all(
+      Array.from(
+        { length: Math.min(MAX_PARALLEL_UPLOADS, selectedFiles.length) },
+        () => uploadNext()
+      )
+    );
     
     setIsUploading(false);
     if (failedUploads.length > 0) {
