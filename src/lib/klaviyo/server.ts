@@ -26,29 +26,62 @@ function uniqueListIds(ids: Array<string | undefined>) {
   return [...new Set(ids.filter(Boolean))] as string[];
 }
 
-function resolveListIds(source?: string, explicitListId?: string) {
+let cachedEmailListId: string | null | undefined;
+
+async function findListIdByName(name: string, headers: ReturnType<typeof getHeaders>) {
+  if (!headers) return null;
+  if (name === "Email List" && cachedEmailListId !== undefined) return cachedEmailListId;
+
+  const url = new URL(`${KLAVIYO_API_BASE}/lists/`);
+  url.searchParams.set("page[size]", "100");
+
+  const res = await fetch(url, { method: "GET", headers });
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Klaviyo list lookup failed:", text);
+    return null;
+  }
+
+  const payload = await res.json().catch(() => null);
+  const listId =
+    payload?.data?.find((list: any) => list?.attributes?.name === name)?.id || null;
+
+  if (name === "Email List") cachedEmailListId = listId;
+  return listId;
+}
+
+async function resolveListIds(
+  source: string | undefined,
+  explicitListId: string | undefined,
+  headers: ReturnType<typeof getHeaders>
+) {
   if (explicitListId) return uniqueListIds([explicitListId]);
 
-  const mainList = process.env.KLAVIYO_LIST_ID;
+  const emailList =
+    process.env.KLAVIYO_LIST_ID_EMAIL_LIST ||
+    process.env.KLAVIYO_LIST_ID_GENERAL ||
+    (await findListIdByName("Email List", headers)) ||
+    process.env.KLAVIYO_LIST_ID ||
+    undefined;
   const buyersList = process.env.KLAVIYO_LIST_ID_BUYERS;
   const sellersList = process.env.KLAVIYO_LIST_ID_SELLERS;
   const highIntentList = process.env.KLAVIYO_LIST_ID_HIGH_INTENT;
 
   const sourceMap: Record<string, Array<string | undefined>> = {
-    account_signup: [mainList, buyersList],
-    footer_newsletter: [mainList, buyersList],
-    homepage_inline: [mainList, buyersList],
-    listing_inline: [mainList, buyersList],
-    popup_offer: [mainList, buyersList],
-    website: [mainList],
-    contact_form: [mainList],
-    listing_view: [mainList, buyersList],
-    high_intent_contact: [mainList, buyersList, highIntentList],
-    seller_listing_submit: [mainList, sellersList],
-    listing_published: [mainList, sellersList],
+    account_signup: [emailList, buyersList],
+    footer_newsletter: [emailList, buyersList],
+    homepage_inline: [emailList, buyersList],
+    listing_inline: [emailList, buyersList],
+    popup_offer: [emailList, buyersList],
+    website: [emailList],
+    contact_form: [emailList],
+    listing_view: [emailList, buyersList],
+    high_intent_contact: [emailList, buyersList, highIntentList],
+    seller_listing_submit: [emailList, sellersList],
+    listing_published: [emailList, sellersList],
   };
 
-  return uniqueListIds(sourceMap[source || ""] || [mainList]);
+  return uniqueListIds(sourceMap[source || ""] || [emailList]);
 }
 
 async function findProfileIdByEmail(email: string, headers: ReturnType<typeof getHeaders>) {
@@ -154,7 +187,7 @@ export async function subscribeKlaviyoEmail(params: {
   const headers = getHeaders();
   if (!headers) return { ok: false, skipped: true, reason: "missing_api_key" };
 
-  const listIds = resolveListIds(params.source, params.listId);
+  const listIds = await resolveListIds(params.source, params.listId, headers);
 
   try {
     let hasError = false;
