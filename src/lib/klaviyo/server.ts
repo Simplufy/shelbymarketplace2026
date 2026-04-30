@@ -51,6 +51,48 @@ function resolveListIds(source?: string, explicitListId?: string) {
   return uniqueListIds(sourceMap[source || ""] || [mainList]);
 }
 
+async function findProfileIdByEmail(email: string, headers: ReturnType<typeof getHeaders>) {
+  if (!headers) return null;
+
+  const url = new URL(`${KLAVIYO_API_BASE}/profiles/`);
+  url.searchParams.set("filter", `equals(email,"${email.replace(/"/g, '\\"')}")`);
+
+  const res = await fetch(url, { method: "GET", headers });
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Klaviyo profile lookup failed:", text);
+    return null;
+  }
+
+  const payload = await res.json().catch(() => null);
+  return payload?.data?.[0]?.id || null;
+}
+
+async function addProfileToList(profileId: string, listId: string, headers: ReturnType<typeof getHeaders>) {
+  if (!headers) return { ok: false, status: 0, error: "missing_api_key" };
+
+  const res = await fetch(`${KLAVIYO_API_BASE}/lists/${listId}/relationships/profiles`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      data: [
+        {
+          type: "profile",
+          id: profileId,
+        },
+      ],
+    }),
+  });
+
+  if (!res.ok && res.status !== 409) {
+    const text = await res.text();
+    console.error(`Klaviyo add profile ${profileId} to list ${listId} failed:`, text);
+    return { ok: false, status: res.status, error: text };
+  }
+
+  return { ok: true, status: res.status };
+}
+
 export async function trackKlaviyoEvent(params: {
   metricName: string;
   profile: KlaviyoProfile;
@@ -118,7 +160,9 @@ export async function subscribeKlaviyoEmail(params: {
     let hasError = false;
     const listResults: Array<{ listId: string; ok: boolean; status: number; error?: string }> = [];
 
-    // Upsert profile
+    let profileId: string | null = null;
+
+    // Create profile when new. Existing profiles return 409, then we look up the ID.
     const profileRes = await fetch(`${KLAVIYO_API_BASE}/profiles/`, {
       method: "POST",
       headers,
@@ -138,10 +182,19 @@ export async function subscribeKlaviyoEmail(params: {
       }),
     });
     
-    if (!profileRes.ok && profileRes.status !== 409) {
+    if (profileRes.ok) {
+      const profilePayload = await profileRes.json().catch(() => null);
+      profileId = profilePayload?.data?.id || null;
+    } else if (profileRes.status === 409) {
+      profileId = await findProfileIdByEmail(params.email, headers);
+    } else {
       const profileText = await profileRes.text();
       console.error("Klaviyo profile upsert failed:", profileText);
       hasError = true;
+    }
+
+    if (!profileId) {
+      profileId = await findProfileIdByEmail(params.email, headers);
     }
 
     for (const listId of listIds) {
@@ -189,7 +242,21 @@ export async function subscribeKlaviyoEmail(params: {
         listResults.push({ listId, ok: false, status: subRes.status, error: subText });
         hasError = true;
       } else {
-        listResults.push({ listId, ok: true, status: subRes.status });
+        const addResult = profileId
+          ? await addProfileToList(profileId, listId, headers)
+          : { ok: false, status: 0, error: "missing_profile_id" };
+
+        if (!addResult.ok) {
+          listResults.push({
+            listId,
+            ok: false,
+            status: addResult.status,
+            error: addResult.error,
+          });
+          hasError = true;
+        } else {
+          listResults.push({ listId, ok: true, status: subRes.status });
+        }
       }
     }
 
