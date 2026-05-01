@@ -3,16 +3,19 @@
 import Image from "next/image";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
-  Search, MoreHorizontal, Mail,
-  CheckCircle, User, Download, Loader2
+  Search, Mail,
+  CheckCircle, User, Download, Loader2, Trash2
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Profile } from "@/lib/supabase/database.types";
 
 interface UserWithListings extends Profile {
   listings_count: number;
   status: 'active' | 'pending' | 'suspended';
 }
+
+type UserRole = 'BUYER' | 'SELLER' | 'DEALER' | 'ADMIN';
 
 export default function UsersManager() {
   const [users, setUsers] = useState<UserWithListings[]>([]);
@@ -22,8 +25,13 @@ export default function UsersManager() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(null);
+  const [bulkRole, setBulkRole] = useState<UserRole | "">("");
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   
   const supabase = useMemo(() => createClient(), []);
+  const { user: currentUser } = useAuth();
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -68,23 +76,26 @@ export default function UsersManager() {
     loadUsers();
   }, [loadUsers]);
 
-  const handleRoleChange = async (userId: string, newRole: 'BUYER' | 'SELLER' | 'DEALER' | 'ADMIN') => {
+  const updateUserRole = async (userId: string, newRole: UserRole) => {
+    const response = await fetch(`/api/admin/users/${userId}/role`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: newRole }),
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      throw new Error(payload?.error || "Failed to update user role");
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
     const previousUsers = users;
     try {
       setUpdatingRoleUserId(userId);
       setUsers(prev => prev.map(user => user.id === userId ? { ...user, role: newRole } : user));
 
-      const response = await fetch(`/api/admin/users/${userId}/role`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        throw new Error(payload?.error || "Failed to update user role");
-      }
-
+      await updateUserRole(userId, newRole);
       await loadUsers();
     } catch (error: any) {
       setUsers(previousUsers);
@@ -92,6 +103,91 @@ export default function UsersManager() {
       alert(error.message || "Failed to update user role");
     } finally {
       setUpdatingRoleUserId(null);
+    }
+  };
+
+  const handleBulkRoleChange = async () => {
+    if (!bulkRole || selectedUsers.length === 0) return;
+
+    const previousUsers = users;
+    try {
+      setIsBulkUpdating(true);
+      setUsers(prev => prev.map(user => selectedUsers.includes(user.id) ? { ...user, role: bulkRole } : user));
+
+      await Promise.all(selectedUsers.map(userId => updateUserRole(userId, bulkRole)));
+      setSelectedUsers([]);
+      setBulkRole("");
+      await loadUsers();
+    } catch (error: any) {
+      setUsers(previousUsers);
+      console.error("Error updating user roles:", error);
+      alert(error.message || "Failed to update selected user roles");
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const deleteUser = async (userId: string) => {
+    const response = await fetch(`/api/admin/users/${userId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      throw new Error(payload?.error || "Failed to delete user");
+    }
+  };
+
+  const handleDeleteUser = async (targetUser: UserWithListings) => {
+    if (targetUser.id === currentUser?.id) {
+      alert("You cannot delete your own admin account.");
+      return;
+    }
+
+    const displayName = `${targetUser.first_name || ""} ${targetUser.last_name || ""}`.trim() || targetUser.email;
+    if (!window.confirm(`Delete ${displayName}? This removes their account and related user-owned records.`)) return;
+
+    const previousUsers = users;
+    try {
+      setDeletingUserId(targetUser.id);
+      setUsers(prev => prev.filter(user => user.id !== targetUser.id));
+      setSelectedUsers(prev => prev.filter(id => id !== targetUser.id));
+      await deleteUser(targetUser.id);
+      await loadUsers();
+    } catch (error: any) {
+      setUsers(previousUsers);
+      console.error("Error deleting user:", error);
+      alert(error.message || "Failed to delete user");
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
+
+  const handleBulkDeleteUsers = async () => {
+    const deletableIds = selectedUsers.filter(id => id !== currentUser?.id);
+    if (deletableIds.length === 0) {
+      alert("You cannot delete your own admin account.");
+      return;
+    }
+
+    if (!window.confirm(`Delete ${deletableIds.length} selected user${deletableIds.length === 1 ? "" : "s"}? This removes their accounts and related user-owned records.`)) {
+      return;
+    }
+
+    const previousUsers = users;
+    try {
+      setIsBulkDeleting(true);
+      setUsers(prev => prev.filter(user => !deletableIds.includes(user.id)));
+      setSelectedUsers([]);
+      setBulkRole("");
+      await Promise.all(deletableIds.map(deleteUser));
+      await loadUsers();
+    } catch (error: any) {
+      setUsers(previousUsers);
+      console.error("Error deleting users:", error);
+      alert(error.message || "Failed to delete selected users");
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -246,10 +342,48 @@ export default function UsersManager() {
         </div>
 
         {selectedUsers.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">{selectedUsers.length} selected</span>
-            <button className="px-4 py-2 bg-[#002D72] text-white font-medium rounded-lg hover:bg-[#001D4A] transition-colors text-sm">
-              Bulk Actions
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-gray-500">{selectedUsers.length} selected</span>
+            <select
+              value={bulkRole}
+              onChange={(e) => setBulkRole(e.target.value as UserRole | "")}
+              disabled={isBulkUpdating || isBulkDeleting}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none text-sm bg-white disabled:opacity-60"
+            >
+              <option value="">Set role...</option>
+              <option value="BUYER">Buyer</option>
+              <option value="SELLER">Seller</option>
+              <option value="DEALER">Dealer</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+            <button
+              type="button"
+              onClick={handleBulkRoleChange}
+              disabled={!bulkRole || isBulkUpdating || isBulkDeleting}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#002D72] text-white font-medium rounded-lg hover:bg-[#001D4A] transition-colors text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isBulkUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {isBulkUpdating ? "Updating..." : "Apply"}
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkDeleteUsers}
+              disabled={isBulkUpdating || isBulkDeleting}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#E31837] text-white font-medium rounded-lg hover:bg-[#B3132B] transition-colors text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isBulkDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              {isBulkDeleting ? "Deleting..." : "Delete Selected"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedUsers([]);
+                setBulkRole("");
+              }}
+              disabled={isBulkUpdating || isBulkDeleting}
+              className="px-3 py-2 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors text-sm disabled:opacity-50"
+            >
+              Clear
             </button>
           </div>
         )}
@@ -313,8 +447,8 @@ export default function UsersManager() {
                 <td className="px-6 py-4">
                   <select
                     value={user.role}
-                    onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
-                    disabled={updatingRoleUserId === user.id}
+                    onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
+                    disabled={updatingRoleUserId === user.id || isBulkUpdating || isBulkDeleting}
                     className={`text-xs font-bold uppercase px-2.5 py-1 rounded-full border-0 cursor-pointer disabled:cursor-wait disabled:opacity-60 ${getRoleColor(user.role)}`}
                   >
                     <option value="BUYER">Buyer</option>
@@ -336,8 +470,15 @@ export default function UsersManager() {
                   <span className="text-sm text-gray-600">{formatDate(user.created_at)}</span>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button className="p-2 text-gray-400 hover:text-[#002D72] hover:bg-blue-50 rounded-lg transition-colors">
-                    <MoreHorizontal className="w-4 h-4" />
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteUser(user)}
+                    disabled={user.id === currentUser?.id || deletingUserId === user.id || isBulkDeleting}
+                    className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-[#E31837] hover:bg-red-50 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                    title={user.id === currentUser?.id ? "You cannot delete your own account" : "Delete user"}
+                    aria-label={`Delete ${user.email}`}
+                  >
+                    {deletingUserId === user.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   </button>
                 </td>
               </tr>
