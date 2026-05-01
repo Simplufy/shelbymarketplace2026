@@ -31,6 +31,13 @@ export const metadata: Metadata = {
   creator: "Shelby Exchange",
   publisher: "Shelby Exchange",
   metadataBase: new URL("https://shelbyexchange.com"),
+  icons: {
+    icon: [
+      { url: "/favicon.avif", type: "image/avif" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/favicon.ico",
+  },
   alternates: {
     canonical: "/",
   },

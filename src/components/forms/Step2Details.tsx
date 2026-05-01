@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { UploadCloud, Plus, Trash2, X, Loader2, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, UploadCloud, Plus, Trash2, X, Loader2, Star } from "lucide-react";
 import { useStorage } from "@/hooks/useStorage";
 
 const MAX_PARALLEL_UPLOADS = 3;
@@ -24,7 +24,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
-  const [primaryImageIndex, setPrimaryImageIndex] = useState(initialData?.primaryImageIndex || 0);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState<number>(initialData?.primaryImageIndex || 0);
   const [listingTags, setListingTags] = useState<{ type: string; number?: number }[]>(initialData?.listingTags || []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadListingImage } = useStorage();
@@ -148,6 +148,24 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
 
   const setPrimary = (index: number) => {
     setPrimaryImageIndex(index);
+  };
+
+  const moveImage = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= uploadedImages.length || fromIndex === toIndex) return;
+
+    setUploadedImages((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+
+    setPrimaryImageIndex((prev) => {
+      if (prev === fromIndex) return toIndex;
+      if (fromIndex < prev && toIndex >= prev) return prev - 1;
+      if (fromIndex > prev && toIndex <= prev) return prev + 1;
+      return prev;
+    });
   };
 
   const onSubmit = (data: any) => {
@@ -372,9 +390,38 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
                   type="button"
                   onClick={(e) => { e.stopPropagation(); removeImage(index); }}
                   className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label={`Remove photo ${index + 1}`}
                 >
                   <X className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 </button>
+                <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); moveImage(index, index - 1); }}
+                    disabled={index === 0}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[#002D72] shadow disabled:opacity-35 disabled:cursor-not-allowed"
+                    aria-label={`Move photo ${index + 1} earlier`}
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setPrimary(index); }}
+                    className="min-w-0 flex-1 rounded-full bg-black/70 px-2 py-1 text-[9px] font-bold uppercase text-white"
+                    aria-label={`Set photo ${index + 1} as primary`}
+                  >
+                    {index === primaryImageIndex ? "Primary" : "Make Primary"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); moveImage(index, index + 1); }}
+                    disabled={index === uploadedImages.length - 1}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[#002D72] shadow disabled:opacity-35 disabled:cursor-not-allowed"
+                    aria-label={`Move photo ${index + 1} later`}
+                  >
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -13,7 +14,9 @@ import {
   Save,
   Plus,
   Wrench,
-  Star
+  Star,
+  FileText,
+  ExternalLink
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -33,7 +36,7 @@ export default function AdminEditListing() {
   const router = useRouter();
   const params = useParams();
   const listingId = params.id as string;
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -66,14 +69,11 @@ export default function AdminEditListing() {
     status: "ACTIVE",
     is_featured: false,
     engine: "",
+    carfax_report_url: "",
     listing_tags: [] as { type: string; number?: number }[],
   });
 
-  useEffect(() => {
-    fetchListing();
-  }, []);
-
-  const fetchListing = async () => {
+  const fetchListing = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -114,6 +114,7 @@ export default function AdminEditListing() {
         status: listing.status || "ACTIVE",
         is_featured: listing.is_featured || false,
         engine: listing.engine || "",
+        carfax_report_url: listing.carfax_report_url || "",
         listing_tags: listing.listing_tags ? (typeof listing.listing_tags === 'string' ? JSON.parse(listing.listing_tags) : listing.listing_tags) : [],
       });
       setOriginalPrice(Number(listing.price || 0));
@@ -162,7 +163,11 @@ export default function AdminEditListing() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [listingId, router, supabase]);
+
+  useEffect(() => {
+    fetchListing();
+  }, [fetchListing]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -200,6 +205,13 @@ export default function AdminEditListing() {
     setIsUploading(false);
   };
 
+  const clearCarfaxReport = () => {
+    setFormData(prev => ({
+      ...prev,
+      carfax_report_url: "",
+    }));
+  };
+
   const removeImage = (index: number) => {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
@@ -223,6 +235,7 @@ export default function AdminEditListing() {
     const next = { ...payload };
     if (message.includes("'listing_tags'")) delete next.listing_tags;
     if (message.includes("'service_history'")) delete next.service_history;
+    if (message.includes("'carfax_report_url'")) delete next.carfax_report_url;
     return next;
   };
 
@@ -559,6 +572,49 @@ export default function AdminEditListing() {
           </div>
         </div>
 
+        {/* Vehicle History Report */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-[#002D72]" />
+            Vehicle History Report Link
+          </h2>
+
+          <p className="mb-4 text-sm text-gray-600">
+            Paste the paid report link here. If a link is saved, buyers will see the report image and a small "View Carfax Report" link on the listing page.
+          </p>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <input
+              type="url"
+              value={formData.carfax_report_url}
+              onChange={(e) => handleInputChange('carfax_report_url', e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+              placeholder="https://..."
+            />
+            <div className="flex flex-wrap gap-2 md:justify-end">
+              {formData.carfax_report_url ? (
+                <a
+                  href={formData.carfax_report_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#002D72] px-4 text-sm font-bold text-[#002D72] transition-colors hover:bg-blue-50"
+                >
+                  Test Link <ExternalLink className="w-4 h-4" />
+                </a>
+              ) : null}
+              {formData.carfax_report_url ? (
+                <button
+                  type="button"
+                  onClick={clearCarfaxReport}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <X className="w-4 h-4" /> Clear
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
         {/* Images */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
@@ -597,7 +653,7 @@ export default function AdminEditListing() {
             <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
               {uploadedImages.map((img, index) => (
                 <div key={index} className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer" onClick={() => setPrimaryImageIndex(index)}>
-                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                  <Image src={img.url} alt="" fill sizes="96px" unoptimized className="object-cover" />
                   {index === primaryImageIndex && (
                     <span className="absolute top-1 left-1 px-2 py-0.5 bg-[#002D72] text-white text-[10px] font-bold rounded">
                       Primary

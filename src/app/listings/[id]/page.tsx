@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronRight, Share2, Gauge, Zap, Palette, ShieldCheck, Copy, Check, MapPin, Phone, MessageSquare, Printer, Eye } from "lucide-react";
+import { ChevronRight, Share2, Gauge, Zap, Palette, ShieldCheck, Copy, Check, MapPin, Phone, MessageSquare, Printer, Eye, FileText, ExternalLink } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareModal } from "@/components/ShareModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +29,7 @@ interface ListingDetail {
   vin: string;
   status: string;
   is_featured: boolean;
+  carfax_report_url: string | null;
   created_at: string;
   seller_name: string;
   seller_email: string;
@@ -568,6 +569,36 @@ export default function VehicleDetailPage() {
                   </div>
                 </div>
               </div>
+
+              {car.carfax_report_url ? (
+                <a
+                  href={car.carfax_report_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block overflow-hidden rounded-lg border border-[#dee1e6] bg-white shadow-soft transition-all hover:-translate-y-0.5 hover:border-[#002D72]/40 hover:shadow-lg"
+                >
+                  <div className="relative aspect-[16/9] bg-[#f3f4f6]">
+                    <Image
+                      src="/images/carfax-report.png"
+                      alt="Vehicle history report"
+                      fill
+                      sizes="(min-width: 1024px) 33vw, 100vw"
+                      className="object-cover"
+                      priority={false}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-[#002D72]">
+                        <FileText className="h-4 w-4 shrink-0" />
+                        Vehicle History Report
+                      </div>
+                      <p className="mt-1 text-xs font-bold text-[#E31837]">View Carfax Report</p>
+                    </div>
+                    <ExternalLink className="h-5 w-5 shrink-0 text-[#E31837]" />
+                  </div>
+                </a>
+              ) : null}
 
               {relatedListings.length > 0 ? (
                 <div className="hidden lg:block bg-white rounded-lg shadow-soft border border-[#dee1e6] p-5">
