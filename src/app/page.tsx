@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { trackKlaviyoEvent } from "@/lib/klaviyo/server";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
+import { ShelbyWeeklySignup } from "@/components/ShelbyWeeklySignup";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 
 export const revalidate = 0;
@@ -614,7 +615,13 @@ export default async function Home() {
           </div>
           <div className="lg:col-span-5 flex flex-col gap-6 md:gap-8">
             {sideArticles.map((item: any) => (<Link key={item.id} href={`/blog/${item.slug || item.id}`} className="flex gap-4 md:gap-6 group cursor-pointer"><div className="w-24 h-24 md:w-32 md:h-32 rounded-xl md:rounded-2xl overflow-hidden shrink-0 shadow-sm"><img src={item.image_url || '/images/logo.png'} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt={item.title} /></div><div className="flex flex-col justify-center"><div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-2"><span className="text-[8px] md:text-[9px] font-black text-[#E31837] uppercase tracking-widest">{item.category}</span><span className="text-[8px] md:text-[9px] font-bold text-[#565d6d] uppercase tracking-widest">{new Date(item.published_at).toLocaleDateString()}</span></div><h4 className="font-outfit font-bold text-sm md:text-lg leading-snug group-hover:text-[#002D72] transition-colors">{item.title}</h4></div></Link>))}
-            <div className="mt-2 md:mt-4 p-6 md:p-8 bg-[#002D72]/5 rounded-2xl md:rounded-3xl border border-[#002D72]/10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6"><div><h4 className="font-outfit font-bold text-base md:text-lg mb-1">The Shelby Weekly</h4><p className="text-[10px] md:text-xs text-[#565d6d]">Auction alerts and performance reviews.</p></div><button className="px-6 md:px-8 py-2 md:py-2.5 bg-[#002D72] text-white text-xs md:text-sm font-bold rounded-md hover:bg-[#001D4A] transition-colors">Subscribe</button></div>
+            <div className="mt-2 md:mt-4 p-6 md:p-8 bg-[#002D72]/5 rounded-2xl md:rounded-3xl border border-[#002D72]/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+              <div>
+                <h4 className="font-outfit font-bold text-base md:text-lg mb-1">The Shelby Weekly</h4>
+                <p className="text-[10px] md:text-xs text-[#565d6d]">Auction alerts and performance reviews.</p>
+              </div>
+              <ShelbyWeeklySignup />
+            </div>
           </div>
         </div>
       </section>
