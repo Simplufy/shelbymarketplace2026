@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   Search, MoreHorizontal, Mail,
   CheckCircle, User, Download, Loader2
@@ -20,14 +21,11 @@ export default function UsersManager() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(null);
   
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
       // Get all profiles
@@ -64,20 +62,36 @@ export default function UsersManager() {
       console.error("Error loading users:", error);
     }
     setLoading(false);
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleRoleChange = async (userId: string, newRole: 'BUYER' | 'SELLER' | 'DEALER' | 'ADMIN') => {
+    const previousUsers = users;
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ role: newRole })
-        .eq("id", userId);
+      setUpdatingRoleUserId(userId);
+      setUsers(prev => prev.map(user => user.id === userId ? { ...user, role: newRole } : user));
 
-      if (error) throw error;
+      const response = await fetch(`/api/admin/users/${userId}/role`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || "Failed to update user role");
+      }
+
       await loadUsers();
-    } catch (error) {
+    } catch (error: any) {
+      setUsers(previousUsers);
       console.error("Error updating user role:", error);
-      alert("Failed to update user role");
+      alert(error.message || "Failed to update user role");
+    } finally {
+      setUpdatingRoleUserId(null);
     }
   };
 
@@ -277,7 +291,7 @@ export default function UsersManager() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
                       {user.avatar_url ? (
-                        <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                        <Image src={user.avatar_url} alt="" width={40} height={40} unoptimized className="w-full h-full object-cover" />
                       ) : (
                         <User className="w-5 h-5 text-gray-400" />
                       )}
@@ -300,7 +314,8 @@ export default function UsersManager() {
                   <select
                     value={user.role}
                     onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
-                    className={`text-xs font-bold uppercase px-2.5 py-1 rounded-full border-0 cursor-pointer ${getRoleColor(user.role)}`}
+                    disabled={updatingRoleUserId === user.id}
+                    className={`text-xs font-bold uppercase px-2.5 py-1 rounded-full border-0 cursor-pointer disabled:cursor-wait disabled:opacity-60 ${getRoleColor(user.role)}`}
                   >
                     <option value="BUYER">Buyer</option>
                     <option value="SELLER">Seller</option>
