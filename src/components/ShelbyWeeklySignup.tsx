@@ -41,12 +41,12 @@ export function ShelbyWeeklySignup() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="Email address"
-          className="min-w-0 flex-1 h-10 px-3 rounded-md border border-[#dee1e6] bg-white text-xs outline-none focus:border-[#002D72]"
+          className="min-w-0 flex-1 h-12 px-4 rounded-md border border-[#dee1e6] bg-white text-sm outline-none focus:border-[#002D72]"
         />
         <button
           type="submit"
           disabled={loading}
-          className="h-10 px-5 bg-[#002D72] text-white text-xs font-bold rounded-md hover:bg-[#001D4A] transition-colors disabled:opacity-50"
+          className="h-12 px-5 bg-[#002D72] text-white text-sm font-bold rounded-md hover:bg-[#001D4A] transition-colors disabled:opacity-50"
         >
           {loading ? "Submitting..." : "Subscribe"}
         </button>

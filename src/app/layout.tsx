@@ -33,10 +33,13 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://shelbyexchange.com"),
   icons: {
     icon: [
-      { url: "/favicon.avif", type: "image/avif" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon.png", type: "image/png", sizes: "512x512" },
       { url: "/favicon.ico" },
     ],
     shortcut: "/favicon.ico",
+    apple: "/icon-192.png",
   },
   alternates: {
     canonical: "/",

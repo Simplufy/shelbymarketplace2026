@@ -579,7 +579,7 @@ export default function VehicleDetailPage() {
                 >
                   <div className="relative aspect-[16/9] bg-[#f3f4f6]">
                     <Image
-                      src="/images/carfax-report.png"
+                      src="/images/carfax-report.avif"
                       alt="Vehicle history report"
                       fill
                       sizes="(min-width: 1024px) 33vw, 100vw"
