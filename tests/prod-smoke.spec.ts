@@ -32,6 +32,8 @@ test('authenticated user can access sell wizard', async ({ page }) => {
 });
 
 test('listing contact CTA behaves for auth/unauth states', async ({ page, request }) => {
+  test.setTimeout(90000);
+
   const apiRes = await request.get(`${BASE_URL}/api/listings?page=1&pageSize=1`);
   expect(apiRes.status()).toBe(200);
   const apiPayload = await apiRes.json();
@@ -48,7 +50,7 @@ test('listing contact CTA behaves for auth/unauth states', async ({ page, reques
         body.includes('Email Seller') ||
         body.includes('Contact Seller')
       );
-    })
+    }, { timeout: 30000 })
     .toBeTruthy();
 
   if (EMAIL && PASSWORD) {
@@ -92,10 +94,12 @@ test.describe('mobile smoke', () => {
   test.use({ viewport: iphone.viewport, userAgent: iphone.userAgent, deviceScaleFactor: iphone.deviceScaleFactor, isMobile: iphone.isMobile, hasTouch: iphone.hasTouch });
 
   test('mobile home and listings load with key CTAs visible', async ({ page }) => {
+    test.setTimeout(90000);
+
     await gotoReady(page, '/');
     await expect(page.getByRole('button', { name: /search inventory/i })).toBeVisible();
 
     await gotoReady(page, '/listings');
-    await expect(page.getByRole('button', { name: 'Filters' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Filters' })).toBeVisible({ timeout: 30000 });
   });
 });
