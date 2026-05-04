@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   Search, CheckCircle, XCircle, Eye, Edit2, Trash2,
   Car, MapPin, Calendar, Package,
@@ -28,19 +29,9 @@ export default function AdminListings() {
   const [packageFilter, setPackageFilter] = useState<string>("all");
   const [selectedListings, setSelectedListings] = useState<string[]>([]);
   
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
-  useEffect(() => {
-    loadListings();
-
-    const safety = setTimeout(() => {
-      setLoading(false);
-    }, 12000);
-
-    return () => clearTimeout(safety);
-  }, []);
-
-  const loadListings = async () => {
+  const loadListings = useCallback(async () => {
     setLoading(true);
     try {
       const timeoutPromise = new Promise((_, reject) =>
@@ -107,7 +98,17 @@ export default function AdminListings() {
       setListings([]);
     }
     setLoading(false);
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadListings();
+
+    const safety = setTimeout(() => {
+      setLoading(false);
+    }, 12000);
+
+    return () => clearTimeout(safety);
+  }, [loadListings]);
 
   const handleApprove = async (id: string) => {
     try {
@@ -168,17 +169,20 @@ export default function AdminListings() {
     if (!confirm("Are you sure you want to delete this listing?")) return;
 
     try {
-      const { error } = await supabase
-        .from("listings")
-        .delete()
-        .eq("id", id);
+      const response = await fetch(`/api/admin/listings/${id}`, {
+        method: "DELETE",
+      });
 
-      if (error) throw error;
-      await loadListings();
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || "Failed to delete listing");
+      }
+
+      setListings(prev => prev.filter(listing => listing.id !== id));
       setSelectedListings(prev => prev.filter(lid => lid !== id));
     } catch (error) {
       console.error("Error deleting listing:", error);
-      alert("Failed to delete listing");
+      alert(error instanceof Error ? error.message : "Failed to delete listing");
     }
   };
 
@@ -262,18 +266,26 @@ export default function AdminListings() {
     if (!confirm(`Delete ${selectedListings.length} listings? This action cannot be undone.`)) return;
     
     try {
-      const { error } = await supabase
-        .from("listings")
-        .delete()
-        .in("id", selectedListings);
+      const idsToDelete = [...selectedListings];
+      const results = await Promise.all(
+        idsToDelete.map(async (id) => {
+          const response = await fetch(`/api/admin/listings/${id}`, {
+            method: "DELETE",
+          });
 
-      if (error) throw error;
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.error || `Failed to delete listing ${id}`);
+          }
+        })
+      );
       
-      await loadListings();
+      void results;
+      setListings(prev => prev.filter(listing => !idsToDelete.includes(listing.id)));
       setSelectedListings([]);
     } catch (error) {
       console.error("Error bulk deleting listings:", error);
-      alert("Failed to delete listings");
+      alert(error instanceof Error ? error.message : "Failed to delete listings");
     }
   };
 
@@ -472,9 +484,12 @@ export default function AdminListings() {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                      <img 
+                      <Image
                         src={listing.primary_image_url || "/images/logo.png"} 
                         alt="" 
+                        width={64}
+                        height={48}
+                        unoptimized
                         className="w-full h-full object-cover" 
                       />
                     </div>
