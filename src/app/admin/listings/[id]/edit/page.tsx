@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { 
@@ -21,7 +21,6 @@ import {
   Video
 } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { trackClientEvent } from "@/lib/klaviyo/client";
 
 const TRANSMISSIONS = ["Manual", "Automatic"];
@@ -40,7 +39,6 @@ export default function AdminEditListing() {
   const router = useRouter();
   const params = useParams();
   const listingId = params.id as string;
-  const supabase = useMemo(() => createClient(), []);
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -80,24 +78,18 @@ export default function AdminEditListing() {
   const fetchListing = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // Fetch listing
-      const { data: listing, error: listingError } = await supabase
-        .from('listings')
-        .select('*')
-        .eq('id', listingId)
-        .single();
 
-      if (listingError) throw listingError;
+      const response = await fetch(`/api/admin/listings/${listingId}`);
+      const payload = await response.json().catch(() => null);
 
-      // Fetch images
-      const { data: images, error: imagesError } = await supabase
-        .from('listing_images')
-        .select('*')
-        .eq('listing_id', listingId)
-        .order('order_index', { ascending: true });
+      if (!response.ok) {
+        throw new Error(payload?.error || "Failed to find listing");
+      }
 
-      if (imagesError) throw imagesError;
+      const listing = payload?.data?.listing;
+      const images = payload?.data?.images || [];
+
+      if (!listing) throw new Error("Failed to find listing");
 
       // Set form data
       setFormData({
@@ -124,19 +116,11 @@ export default function AdminEditListing() {
       });
       setOriginalPrice(Number(listing.price || 0));
       setListingUserId(listing.user_id || "");
-
-      if (listing.user_id) {
-        const { data: sellerProfile } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('id', listing.user_id)
-          .single();
-        setListingUserEmail(sellerProfile?.email || "");
-      }
+      setListingUserEmail(payload?.data?.seller?.email || "");
 
       // Set images
       if (images) {
-        const mappedImages = images.map(img => ({
+        const mappedImages = images.map((img: any) => ({
           id: img.id,
           url: img.url,
           storagePath: img.storage_path,
@@ -168,7 +152,7 @@ export default function AdminEditListing() {
     } finally {
       setLoading(false);
     }
-  }, [listingId, router, supabase]);
+  }, [listingId, router]);
 
   useEffect(() => {
     fetchListing();
@@ -265,16 +249,6 @@ export default function AdminEditListing() {
     setServiceRecords(updated);
   };
 
-  const stripUnsupportedListingColumns = (payload: Record<string, any>, message?: string) => {
-    if (!message) return payload;
-    const next = { ...payload };
-    if (message.includes("'listing_tags'")) delete next.listing_tags;
-    if (message.includes("'service_history'")) delete next.service_history;
-    if (message.includes("'carfax_report_url'")) delete next.carfax_report_url;
-    if (message.includes("'video_url'")) delete next.video_url;
-    return next;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -292,22 +266,16 @@ export default function AdminEditListing() {
         updated_at: new Date().toISOString(),
       };
 
-      let { error: listingError } = await supabase
-        .from('listings')
-        .update(updatePayload)
-        .eq('id', listingId);
+      const listingResponse = await fetch(`/api/admin/listings/${listingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing: updatePayload }),
+      });
 
-      if (listingError?.message?.includes("Could not find the '")) {
-        const sanitized = stripUnsupportedListingColumns(updatePayload, listingError.message);
-        if (JSON.stringify(sanitized) !== JSON.stringify(updatePayload)) {
-          ({ error: listingError } = await supabase
-            .from('listings')
-            .update(sanitized)
-            .eq('id', listingId));
-        }
+      if (!listingResponse.ok) {
+        const payload = await listingResponse.json().catch(() => null);
+        throw new Error(payload?.error || "Failed to update listing");
       }
-
-      if (listingError) throw listingError;
 
       if (originalPrice > 0 && newPrice < originalPrice) {
         await trackClientEvent({

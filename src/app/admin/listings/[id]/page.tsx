@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { 
   ArrowLeft, CheckCircle, XCircle, Calendar, MapPin, User, 
   Car, FileText, Image as ImageIcon,
-  Loader2, Package, Phone, Mail, Check, Wrench, Tag, Edit2, Save, X
+  Loader2, Package, Phone, Mail, Check, Wrench, Tag, Save, X
 } from 'lucide-react';
 
 interface ListingDetail {
@@ -50,7 +50,6 @@ export default function AdminListingDetail() {
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
-  const [editingTag, setEditingTag] = useState(false);
   const [tagForm, setTagForm] = useState({ type: "", number: "" });
   const [savingTag, setSavingTag] = useState(false);
 
@@ -67,73 +66,32 @@ export default function AdminListingDetail() {
       : Array.isArray(listing?.service_history)
       ? listing.service_history
       : [];
-  const supabase = createClient();
   const listingId = params.id as string;
 
-  useEffect(() => {
-    loadListing();
-  }, [listingId]);
-
-  const loadListing = async () => {
+  const loadListing = useCallback(async () => {
     setLoading(true);
     try {
-      // Get listing
-      const { data: listingData, error: listingError } = await supabase
-        .from('listings')
-        .select('*')
-        .eq('id', listingId)
-        .single();
+      const response = await fetch(`/api/admin/listings/${listingId}`);
+      const payload = await response.json().catch(() => null);
 
-      if (listingError) throw listingError;
-
-      // Get images
-      const { data: imagesData, error: imagesError } = await supabase
-        .from('listing_images')
-        .select('url, is_primary')
-        .eq('listing_id', listingId)
-        .order('order_index', { ascending: true });
-
-      if (imagesError) throw imagesError;
-
-      // Get features
-      const { data: featuresData, error: featuresError } = await supabase
-        .from('listing_features')
-        .select('feature')
-        .eq('listing_id', listingId);
-
-      if (featuresError) throw featuresError;
-
-      // Get seller info
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, email, phone, location, role')
-        .eq('id', listingData.user_id)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') throw profileError;
-
-      // Get dealer info if applicable
-      let dealershipName = null;
-      if (profileData?.role === 'DEALER') {
-        const { data: dealerData } = await supabase
-          .from('dealer_profiles')
-          .select('dealership_name')
-          .eq('user_id', listingData.user_id)
-          .single();
-        dealershipName = dealerData?.dealership_name;
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to load listing details');
       }
+
+      const listingData = payload?.data?.listing;
+      if (!listingData) throw new Error('Listing not found');
+
+      const seller = payload?.data?.seller || {};
 
       setListing({
         ...listingData,
-        seller_name: profileData 
-          ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Unknown'
-          : 'Unknown',
-        seller_email: profileData?.email || 'N/A',
-        seller_phone: profileData?.phone,
-        seller_type: profileData?.role === 'DEALER' ? 'dealer' : 'private',
-        dealership_name: dealershipName,
-        images: imagesData || [],
-        features: featuresData?.map(f => f.feature) || []
+        seller_name: seller.name || 'Unknown',
+        seller_email: seller.email || 'N/A',
+        seller_phone: seller.phone,
+        seller_type: seller.role === 'DEALER' ? 'dealer' : 'private',
+        dealership_name: seller.dealership_name,
+        images: payload?.data?.images || [],
+        features: payload?.data?.features || []
       });
       setTagForm({ type: "", number: "" });
     } catch (error) {
@@ -141,21 +99,26 @@ export default function AdminListingDetail() {
       alert('Failed to load listing details');
     }
     setLoading(false);
-  };
+  }, [listingId]);
+
+  useEffect(() => {
+    loadListing();
+  }, [loadListing]);
 
   const handleApprove = async () => {
     if (!listing) return;
     setApproving(true);
     try {
-      const { error } = await supabase
-        .from('listings')
-        .update({ 
-          status: 'ACTIVE',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', listingId);
+      const response = await fetch(`/api/admin/listings/${listingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing: { status: 'ACTIVE' } }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || 'Failed to approve listing');
+      }
       
       // Reload to show updated status
       await loadListing();
@@ -173,15 +136,16 @@ export default function AdminListingDetail() {
     
     setRejecting(true);
     try {
-      const { error } = await supabase
-        .from('listings')
-        .update({ 
-          status: 'REJECTED',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', listingId);
+      const response = await fetch(`/api/admin/listings/${listingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing: { status: 'REJECTED' } }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || 'Failed to reject listing');
+      }
       
       await loadListing();
       alert('Listing rejected.');
@@ -203,14 +167,15 @@ export default function AdminListingDetail() {
         newTag.number = parseInt(tagForm.number);
       }
       const updatedTags = [...currentTags, newTag];
-      const { error } = await supabase
-        .from('listings')
-        .update({
-          listing_tags: updatedTags,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', listingId);
-      if (error) throw error;
+      const response = await fetch(`/api/admin/listings/${listingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing: { listing_tags: updatedTags } }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || 'Failed to save listing tag');
+      }
       await loadListing();
       setTagForm({ type: "", number: "" });
     } catch (error) {
@@ -230,14 +195,15 @@ export default function AdminListingDetail() {
     const currentTags = listing.listing_tags ? (typeof listing.listing_tags === 'string' ? JSON.parse(listing.listing_tags) : listing.listing_tags) : [];
     const updatedTags = currentTags.filter((_: any, i: number) => i !== idx);
     try {
-      const { error } = await supabase
-        .from('listings')
-        .update({
-          listing_tags: updatedTags.length > 0 ? updatedTags : null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', listingId);
-      if (error) throw error;
+      const response = await fetch(`/api/admin/listings/${listingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing: { listing_tags: updatedTags.length > 0 ? updatedTags : null } }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || 'Failed to remove listing tag');
+      }
       await loadListing();
     } catch (error) {
       console.error('Error removing tag:', error);
@@ -392,10 +358,13 @@ export default function AdminListingDetail() {
                       img.is_primary ? 'border-[#002D72]' : 'border-gray-200'
                     }`}
                   >
-                    <img 
-                      src={img.url} 
+                    <Image
+                      src={img.url}
                       alt={`Photo ${idx + 1}`}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="(max-width: 640px) 50vw, 220px"
+                      unoptimized
+                      className="object-cover"
                     />
                     {img.is_primary && (
                       <span className="absolute top-2 left-2 px-2 py-1 bg-[#002D72] text-white text-xs font-bold rounded">

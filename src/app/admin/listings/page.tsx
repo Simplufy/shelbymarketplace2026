@@ -112,15 +112,16 @@ export default function AdminListings() {
 
   const handleApprove = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("listings")
-        .update({ 
-          status: "ACTIVE",
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", id);
+      const response = await fetch(`/api/admin/listings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing: { status: "ACTIVE" } }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || "Failed to approve listing");
+      }
       const listing = listings.find((l) => l.id === id);
       if (listing) {
         void trackClientEvent({
@@ -149,15 +150,16 @@ export default function AdminListings() {
 
   const handleReject = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("listings")
-        .update({ 
-          status: "REJECTED",
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", id);
+      const response = await fetch(`/api/admin/listings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing: { status: "REJECTED" } }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || "Failed to reject listing");
+      }
       await loadListings();
     } catch (error) {
       console.error("Error rejecting listing:", error);
@@ -204,15 +206,20 @@ export default function AdminListings() {
     if (!confirm(`Approve ${selectedListings.length} listings?`)) return;
     
     try {
-      const { error } = await supabase
-        .from("listings")
-        .update({ 
-          status: "ACTIVE",
-          updated_at: new Date().toISOString()
-        })
-        .in("id", selectedListings);
+      await Promise.all(
+        selectedListings.map(async (id) => {
+          const response = await fetch(`/api/admin/listings/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ listing: { status: "ACTIVE" } }),
+          });
 
-      if (error) throw error;
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.error || `Failed to approve listing ${id}`);
+          }
+        })
+      );
       for (const listing of listings.filter((l) => selectedListings.includes(l.id))) {
         void trackClientEvent({
           event: "Listing approved",
@@ -244,15 +251,20 @@ export default function AdminListings() {
     if (!confirm(`Reject ${selectedListings.length} listings?`)) return;
     
     try {
-      const { error } = await supabase
-        .from("listings")
-        .update({ 
-          status: "REJECTED",
-          updated_at: new Date().toISOString()
-        })
-        .in("id", selectedListings);
+      await Promise.all(
+        selectedListings.map(async (id) => {
+          const response = await fetch(`/api/admin/listings/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ listing: { status: "REJECTED" } }),
+          });
 
-      if (error) throw error;
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.error || `Failed to reject listing ${id}`);
+          }
+        })
+      );
       
       await loadListings();
       setSelectedListings([]);
