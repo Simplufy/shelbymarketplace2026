@@ -1,19 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, 
-  Car, 
-  DollarSign, 
-  MapPin, 
-  UploadCloud, 
-  X, 
+  ArrowLeft,
+  ArrowRight,
+  Car,
+  DollarSign,
+  ExternalLink,
+  FileText,
   Loader2,
-  Save,
+  MapPin,
   Plus,
+  Save,
+  Star,
+  UploadCloud,
+  UserRound,
+  Video,
   Wrench,
-  Star
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -26,17 +32,29 @@ const PACKAGES = [
   { id: "HOMEPAGE", name: "Homepage Featured", price: 0 },
   { id: "HOMEPAGE_PLUS_ADS", name: "Premium Exposure Package", price: 0 },
 ];
+const MAX_LISTING_IMAGES = 35;
 
 type ServiceRecord = { date: string; type: string; description: string; mileage: string };
+type AdminListingImage = { url: string; storagePath: string };
+type SellerOption = {
+  id: string;
+  email: string;
+  label: string;
+  secondary: string;
+  role: string;
+};
 
 export default function AdminCreateListing() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string }[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<AdminListingImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [sellerOptions, setSellerOptions] = useState<SellerOption[]>([]);
+  const [selectedSellerId, setSelectedSellerId] = useState("");
+  const [loadingSellers, setLoadingSellers] = useState(true);
   const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>([
-    { date: "", type: "", description: "", mileage: "" }
+    { date: "", type: "", description: "", mileage: "" },
   ]);
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
@@ -55,14 +73,80 @@ export default function AdminCreateListing() {
     location: "",
     description: "",
     package_tier: "STANDARD",
-    status: "ACTIVE", // Admin can set status directly
+    status: "ACTIVE",
     is_featured: false,
     engine: "",
+    carfax_report_url: "",
+    video_url: "",
     listing_tags: [] as { type: string; number?: number }[],
   });
 
+  const selectedSeller = sellerOptions.find((seller) => seller.id === selectedSellerId);
+
+  useEffect(() => {
+    const loadSellers = async () => {
+      setLoadingSellers(true);
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        const { data: profiles, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id,email,first_name,last_name,role")
+          .order("email", { ascending: true });
+
+        if (profilesError) throw profilesError;
+
+        const { data: dealerProfiles, error: dealerError } = await supabase
+          .from("dealer_profiles")
+          .select("user_id,dealership_name");
+
+        if (dealerError) {
+          console.warn("Unable to load dealer names for listing owner selector:", dealerError.message);
+        }
+
+        const dealerNames = new Map(
+          (dealerProfiles || []).map((dealer) => [dealer.user_id, dealer.dealership_name])
+        );
+
+        const options = (profiles || []).map((profile) => {
+          const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim();
+          const dealershipName = dealerNames.get(profile.id);
+          const label = dealershipName || fullName || profile.email;
+          const secondaryParts = [
+            profile.email,
+            profile.role === "DEALER" || dealershipName ? "Dealer account" : `${profile.role} account`,
+          ];
+
+          return {
+            id: profile.id,
+            email: profile.email,
+            label,
+            secondary: secondaryParts.join(" - "),
+            role: profile.role,
+          };
+        });
+
+        setSellerOptions(options);
+        setSelectedSellerId((current) => {
+          if (current && options.some((option) => option.id === current)) return current;
+          if (user?.id && options.some((option) => option.id === user.id)) return user.id;
+          return options[0]?.id || "";
+        });
+      } catch (error) {
+        console.error("Error loading listing owners:", error);
+        alert("Failed to load account list for listing owner selection");
+      } finally {
+        setLoadingSellers(false);
+      }
+    };
+
+    loadSellers();
+  }, [supabase]);
+
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,34 +154,62 @@ export default function AdminCreateListing() {
     if (!files) return;
 
     setIsUploading(true);
-    
-    for (let i = 0; i < Math.min(files.length, 20 - uploadedImages.length); i++) {
-      const file = files[i];
-      
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("pathname", `admin-listings/${Date.now()}-${file.name}`);
 
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
+    try {
+      const availableSlots = MAX_LISTING_IMAGES - uploadedImages.length;
+      for (let i = 0; i < Math.min(files.length, availableSlots); i++) {
+        const file = files[i];
 
-        if (!response.ok) continue;
+        try {
+          const uploadFormData = new FormData();
+          uploadFormData.append("file", file);
+          uploadFormData.append("pathname", `admin-listings/${Date.now()}-${i}-${file.name}`);
 
-        const data = await response.json();
-        setUploadedImages(prev => [...prev, { url: data.url, storagePath: data.pathname }]);
-      } catch (error) {
-        console.error('Upload error:', error);
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: uploadFormData,
+          });
+
+          if (!response.ok) throw new Error("Upload failed");
+
+          const data = await response.json();
+          setUploadedImages((prev) => [...prev, { url: data.url, storagePath: data.pathname }]);
+        } catch (error) {
+          console.error("Upload error:", error);
+          alert(`Failed to upload ${file.name}`);
+        }
       }
+    } finally {
+      setIsUploading(false);
+      e.target.value = "";
     }
-    
-    setIsUploading(false);
   };
 
   const removeImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    setPrimaryImageIndex((prev) => {
+      if (prev === index) return 0;
+      if (prev > index) return prev - 1;
+      return prev;
+    });
+  };
+
+  const moveImage = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= uploadedImages.length || fromIndex === toIndex) return;
+
+    setUploadedImages((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+
+    setPrimaryImageIndex((prev) => {
+      if (prev === fromIndex) return toIndex;
+      if (fromIndex < prev && toIndex >= prev) return prev - 1;
+      if (fromIndex > prev && toIndex <= prev) return prev + 1;
+      return prev;
+    });
   };
 
   const addServiceRecord = () => {
@@ -114,112 +226,65 @@ export default function AdminCreateListing() {
     setServiceRecords(updated);
   };
 
-  const stripUnsupportedListingColumns = (payload: Record<string, any>, message?: string) => {
-    if (!message) return payload;
-    const next = { ...payload };
-    if (message.includes("'listing_tags'")) delete next.listing_tags;
-    if (message.includes("'service_history'")) delete next.service_history;
-    return next;
+  const clearCarfaxReport = () => {
+    setFormData((prev) => ({
+      ...prev,
+      carfax_report_url: "",
+    }));
+  };
+
+  const clearVideoUrl = () => {
+    setFormData((prev) => ({
+      ...prev,
+      video_url: "",
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedSellerId) {
+      alert("Please choose the account this listing should be posted under.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        alert("You must be logged in");
-        return;
+      const serviceHistory = serviceRecords.filter((record) => record.date || record.type || record.description);
+      const response = await fetch("/api/admin/listings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          seller_user_id: selectedSellerId,
+          listing: {
+            ...formData,
+            price: Number(formData.price),
+            mileage: Number(formData.mileage),
+            year: Number(formData.year),
+            listing_tags: formData.listing_tags.length > 0 ? formData.listing_tags : null,
+            service_history: serviceHistory,
+          },
+          images: uploadedImages.map(({ url, storagePath }) => ({ url, storagePath })),
+          primaryImageIndex,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || "Failed to create listing");
       }
 
-      const insertData = {
-        user_id: user.id,
-        vin: formData.vin,
-        year: Number(formData.year),
-        make: formData.make,
-        model: formData.model,
-        trim: formData.trim || "",
-        price: Number(formData.price),
-        mileage: Number(formData.mileage),
-        transmission: formData.transmission,
-        drivetrain: formData.drivetrain,
-        exterior_color: formData.exterior_color || "",
-        interior_color: formData.interior_color || "",
-        location: formData.location,
-        description: formData.description,
-        package_tier: formData.package_tier,
-        status: "ACTIVE",
-        is_featured: formData.is_featured || false,
-        engine: formData.engine || "",
-        listing_tags: formData.listing_tags.length > 0 ? formData.listing_tags : null,
-        service_history: serviceRecords.filter(r => r.date || r.type || r.description),
-      };
-      
-      console.log('Inserting listing:', insertData);
-      
-      const insertPayload = { ...insertData };
-      let { data: listing, error: listingError } = await supabase
-        .from('listings')
-        .insert(insertPayload)
-        .select()
-        .single();
-
-      if (listingError?.message?.includes("Could not find the '")) {
-        const sanitized = stripUnsupportedListingColumns(insertPayload, listingError.message);
-        if (JSON.stringify(sanitized) !== JSON.stringify(insertPayload)) {
-          ({ data: listing, error: listingError } = await supabase
-            .from('listings')
-            .insert(sanitized)
-            .select()
-            .single());
-        }
-      }
-
-      console.log('Insert result:', { listing, listingError });
-
-      if (listingError) {
-        console.error('Listing error:', listingError);
-        alert("Error: " + listingError.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!listing) {
-        alert("Failed to create listing");
-        setLoading(false);
-        return;
-      }
-
-      console.log('Listing created:', listing);
-
-      // Add images
-      if (uploadedImages.length > 0) {
-        const imageRecords = uploadedImages.map((img, index) => ({
-          listing_id: listing.id,
-          url: img.url,
-          storage_path: img.storagePath,
-          is_primary: index === primaryImageIndex,
-          order_index: index,
-        }));
-
-        const { error: imageError } = await supabase
-          .from('listing_images')
-          .insert(imageRecords);
-
-        console.log('Image insert result:', { imageError });
-        
-        if (imageError) {
-          console.error('Image error:', imageError);
-        }
+      const listing = payload?.data;
+      if (!listing?.id) {
+        throw new Error("Listing was created, but no listing id was returned");
       }
 
       void trackClientEvent({
         event: "New listing created",
         profile: {
-          external_id: user.id,
-          email: user.email,
+          external_id: selectedSellerId,
+          email: selectedSeller?.email,
         },
         properties: {
           listing_id: listing.id,
@@ -232,44 +297,95 @@ export default function AdminCreateListing() {
           image: uploadedImages[0]?.url || null,
           url: `${window.location.origin}/listings/${listing.id}`,
           location: formData.location,
-          listing_status: "ACTIVE",
+          listing_status: formData.status,
           created_by: "admin",
+          posted_for_user_id: selectedSellerId,
         },
       });
 
-      alert('Listing created successfully!');
-      router.push('/admin/listings');
+      alert("Listing created successfully!");
+      router.push("/admin/listings");
     } catch (error: any) {
-      console.error('Error:', error);
-      alert(error.message || 'Failed to create listing');
+      console.error("Error:", error);
+      alert(error.message || "Failed to create listing");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link 
-          href="/admin/listings" 
+        <Link
+          href="/admin/listings"
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
           <h1 className="text-3xl font-outfit font-black text-gray-900">Create Listing</h1>
-          <p className="text-gray-500">Add a new vehicle listing (Admin - No payment required)</p>
+          <p className="text-gray-500">Add a new vehicle listing under any account (Admin - No payment required)</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Listing Owner */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+            <UserRound className="w-5 h-5 text-[#002D72]" />
+            Listing Owner
+          </h2>
+
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)]">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Post this listing under *
+              </label>
+              <select
+                required
+                value={selectedSellerId}
+                onChange={(e) => setSelectedSellerId(e.target.value)}
+                disabled={loadingSellers || sellerOptions.length === 0}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none disabled:bg-gray-100 disabled:text-gray-500"
+              >
+                {loadingSellers ? (
+                  <option value="">Loading accounts...</option>
+                ) : sellerOptions.length > 0 ? (
+                  sellerOptions.map((seller) => (
+                    <option key={seller.id} value={seller.id}>
+                      {seller.label} - {seller.email}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">No accounts found</option>
+                )}
+              </select>
+              <p className="mt-2 text-xs text-gray-500">
+                The public listing will use this account as the seller for contact/profile details.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm">
+              {selectedSeller ? (
+                <>
+                  <p className="font-bold text-[#002D72]">{selectedSeller.label}</p>
+                  <p className="mt-1 text-gray-600">{selectedSeller.secondary}</p>
+                </>
+              ) : (
+                <p className="text-gray-600">Choose the account your client is posting for.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Basic Info */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
             <Car className="w-5 h-5 text-[#002D72]" />
             Vehicle Information
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">VIN *</label>
@@ -277,7 +393,7 @@ export default function AdminCreateListing() {
                 type="text"
                 required
                 value={formData.vin}
-                onChange={(e) => handleInputChange('vin', e.target.value)}
+                onChange={(e) => handleInputChange("vin", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                 placeholder="1FA6P8CF1L5100001"
               />
@@ -289,7 +405,7 @@ export default function AdminCreateListing() {
                 type="number"
                 required
                 value={formData.year}
-                onChange={(e) => handleInputChange('year', e.target.value)}
+                onChange={(e) => handleInputChange("year", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
               />
             </div>
@@ -300,7 +416,7 @@ export default function AdminCreateListing() {
                 type="text"
                 required
                 value={formData.make}
-                onChange={(e) => handleInputChange('make', e.target.value)}
+                onChange={(e) => handleInputChange("make", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
               />
             </div>
@@ -311,7 +427,7 @@ export default function AdminCreateListing() {
                 type="text"
                 required
                 value={formData.model}
-                onChange={(e) => handleInputChange('model', e.target.value)}
+                onChange={(e) => handleInputChange("model", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                 placeholder="GT500"
               />
@@ -322,7 +438,7 @@ export default function AdminCreateListing() {
               <input
                 type="text"
                 value={formData.trim}
-                onChange={(e) => handleInputChange('trim', e.target.value)}
+                onChange={(e) => handleInputChange("trim", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                 placeholder="Heritage Edition"
               />
@@ -333,7 +449,7 @@ export default function AdminCreateListing() {
               <input
                 type="text"
                 value={formData.engine}
-                onChange={(e) => handleInputChange('engine', e.target.value)}
+                onChange={(e) => handleInputChange("engine", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                 placeholder="5.2L Supercharged V8"
               />
@@ -347,7 +463,7 @@ export default function AdminCreateListing() {
             <DollarSign className="w-5 h-5 text-[#002D72]" />
             Specifications & Pricing
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Price *</label>
@@ -357,7 +473,7 @@ export default function AdminCreateListing() {
                   type="number"
                   required
                   value={formData.price}
-                  onChange={(e) => handleInputChange('price', e.target.value)}
+                  onChange={(e) => handleInputChange("price", e.target.value)}
                   className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                   placeholder="105000"
                 />
@@ -370,7 +486,7 @@ export default function AdminCreateListing() {
                 type="number"
                 required
                 value={formData.mileage}
-                onChange={(e) => handleInputChange('mileage', e.target.value)}
+                onChange={(e) => handleInputChange("mileage", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                 placeholder="2500"
               />
@@ -381,10 +497,14 @@ export default function AdminCreateListing() {
               <select
                 required
                 value={formData.transmission}
-                onChange={(e) => handleInputChange('transmission', e.target.value)}
+                onChange={(e) => handleInputChange("transmission", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
               >
-                {TRANSMISSIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                {TRANSMISSIONS.map((transmission) => (
+                  <option key={transmission} value={transmission}>
+                    {transmission}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -393,10 +513,14 @@ export default function AdminCreateListing() {
               <select
                 required
                 value={formData.drivetrain}
-                onChange={(e) => handleInputChange('drivetrain', e.target.value)}
+                onChange={(e) => handleInputChange("drivetrain", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
               >
-                {DRIVETRAINS.map(d => <option key={d} value={d}>{d}</option>)}
+                {DRIVETRAINS.map((drivetrain) => (
+                  <option key={drivetrain} value={drivetrain}>
+                    {drivetrain}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -405,7 +529,7 @@ export default function AdminCreateListing() {
               <input
                 type="text"
                 value={formData.exterior_color}
-                onChange={(e) => handleInputChange('exterior_color', e.target.value)}
+                onChange={(e) => handleInputChange("exterior_color", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                 placeholder="Shadow Black"
               />
@@ -416,7 +540,7 @@ export default function AdminCreateListing() {
               <input
                 type="text"
                 value={formData.interior_color}
-                onChange={(e) => handleInputChange('interior_color', e.target.value)}
+                onChange={(e) => handleInputChange("interior_color", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                 placeholder="Recaro Black"
               />
@@ -430,7 +554,7 @@ export default function AdminCreateListing() {
                   type="text"
                   required
                   value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  onChange={(e) => handleInputChange("location", e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
                   placeholder="Las Vegas, NV"
                 />
@@ -444,10 +568,96 @@ export default function AdminCreateListing() {
               required
               rows={4}
               value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              onChange={(e) => handleInputChange("description", e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none resize-none"
               placeholder="Describe the vehicle condition, history, modifications..."
             />
+          </div>
+        </div>
+
+        {/* Vehicle History Report */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-[#002D72]" />
+            Vehicle History Report Link
+          </h2>
+
+          <p className="mb-4 text-sm text-gray-600">
+            Paste the paid report link here. If a link is saved, buyers will see the report image and a small "View Carfax Report" link on the listing page.
+          </p>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <input
+              type="url"
+              value={formData.carfax_report_url}
+              onChange={(e) => handleInputChange("carfax_report_url", e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+              placeholder="https://..."
+            />
+            <div className="flex flex-wrap gap-2 md:justify-end">
+              {formData.carfax_report_url ? (
+                <a
+                  href={formData.carfax_report_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#002D72] px-4 text-sm font-bold text-[#002D72] transition-colors hover:bg-blue-50"
+                >
+                  Test Link <ExternalLink className="w-4 h-4" />
+                </a>
+              ) : null}
+              {formData.carfax_report_url ? (
+                <button
+                  type="button"
+                  onClick={clearCarfaxReport}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <X className="w-4 h-4" /> Clear
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {/* Video */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+            <Video className="w-5 h-5 text-[#002D72]" />
+            Listing Video Link
+          </h2>
+
+          <p className="mb-4 text-sm text-gray-600">
+            Paste a YouTube, Vimeo, or direct video URL. If saved, the video will display on the public listing page.
+          </p>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <input
+              type="url"
+              value={formData.video_url}
+              onChange={(e) => handleInputChange("video_url", e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+              placeholder="https://youtube.com/watch?v=..."
+            />
+            <div className="flex flex-wrap gap-2 md:justify-end">
+              {formData.video_url ? (
+                <a
+                  href={formData.video_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#002D72] px-4 text-sm font-bold text-[#002D72] transition-colors hover:bg-blue-50"
+                >
+                  Test Link <ExternalLink className="w-4 h-4" />
+                </a>
+              ) : null}
+              {formData.video_url ? (
+                <button
+                  type="button"
+                  onClick={clearVideoUrl}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <X className="w-4 h-4" /> Clear
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -455,7 +665,7 @@ export default function AdminCreateListing() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
             <UploadCloud className="w-5 h-5 text-[#002D72]" />
-            Images ({uploadedImages.length}/20)
+            Images ({uploadedImages.length}/{MAX_LISTING_IMAGES})
           </h2>
 
           <div className="mb-4">
@@ -464,14 +674,14 @@ export default function AdminCreateListing() {
               accept="image/*,.heic,.heif"
               multiple
               onChange={handleImageUpload}
-              disabled={isUploading || uploadedImages.length >= 20}
+              disabled={isUploading || uploadedImages.length >= MAX_LISTING_IMAGES}
               className="hidden"
               id="image-upload"
             />
             <label
               htmlFor="image-upload"
               className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-[#002D72] transition-colors ${
-                isUploading ? 'opacity-50' : ''
+                isUploading ? "opacity-50" : ""
               }`}
             >
               {isUploading ? (
@@ -488,8 +698,12 @@ export default function AdminCreateListing() {
           {uploadedImages.length > 0 && (
             <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
               {uploadedImages.map((img, index) => (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer" onClick={() => setPrimaryImageIndex(index)}>
-                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                <div
+                  key={`${img.storagePath}-${index}`}
+                  className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer"
+                  onClick={() => setPrimaryImageIndex(index)}
+                >
+                  <Image src={img.url} alt="" fill sizes="96px" unoptimized className="object-cover" />
                   {index === primaryImageIndex && (
                     <span className="absolute top-1 left-1 px-2 py-0.5 bg-[#002D72] text-white text-[10px] font-bold rounded">
                       Primary
@@ -497,21 +711,64 @@ export default function AdminCreateListing() {
                   )}
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={(event) => {
+                      event.stopPropagation();
                       setPrimaryImageIndex(index);
                     }}
-                    className={`absolute top-1 right-1 p-1 rounded-full transition-colors ${index === primaryImageIndex ? 'bg-yellow-400 text-[#002D72]' : 'bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-black/70'}`}
+                    className={`absolute top-1 right-1 p-1 rounded-full transition-colors ${
+                      index === primaryImageIndex
+                        ? "bg-yellow-400 text-[#002D72]"
+                        : "bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-black/70"
+                    }`}
+                    aria-label={`Set photo ${index + 1} as primary`}
                   >
                     <Star className="w-3 h-3" fill={index === primaryImageIndex ? "currentColor" : "none"} />
                   </button>
+                  <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        moveImage(index, index - 1);
+                      }}
+                      disabled={index === 0}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[#002D72] shadow disabled:opacity-35 disabled:cursor-not-allowed"
+                      aria-label={`Move photo ${index + 1} earlier`}
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setPrimaryImageIndex(index);
+                      }}
+                      className="min-w-0 flex-1 rounded-full bg-black/70 px-2 py-1 text-[9px] font-bold uppercase text-white"
+                      aria-label={`Set photo ${index + 1} as primary`}
+                    >
+                      {index === primaryImageIndex ? "Primary" : "Make Primary"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        moveImage(index, index + 1);
+                      }}
+                      disabled={index === uploadedImages.length - 1}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[#002D72] shadow disabled:opacity-35 disabled:cursor-not-allowed"
+                      aria-label={`Move photo ${index + 1} later`}
+                    >
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={(event) => {
+                      event.stopPropagation();
                       removeImage(index);
                     }}
-                    className="absolute bottom-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-8 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                    aria-label={`Remove photo ${index + 1}`}
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -534,43 +791,80 @@ export default function AdminCreateListing() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
-                    <input type="date" value={record.date} onChange={(e) => updateServiceRecord(index, "date", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                    <input
+                      type="date"
+                      value={record.date}
+                      onChange={(e) => updateServiceRecord(index, "date", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">Service Type</label>
-                    <input type="text" value={record.type} onChange={(e) => updateServiceRecord(index, "type", e.target.value)} placeholder="Oil change, brake service..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                    <input
+                      type="text"
+                      value={record.type}
+                      onChange={(e) => updateServiceRecord(index, "type", e.target.value)}
+                      placeholder="Oil change, brake service..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">Mileage</label>
-                    <input type="number" value={record.mileage} onChange={(e) => updateServiceRecord(index, "mileage", e.target.value)} placeholder="25000" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                    <input
+                      type="number"
+                      value={record.mileage}
+                      onChange={(e) => updateServiceRecord(index, "mileage", e.target.value)}
+                      placeholder="25000"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+                    />
                   </div>
                   <div className="flex items-end gap-2">
-                    <input type="text" value={record.description} onChange={(e) => updateServiceRecord(index, "description", e.target.value)} placeholder="Notes..." className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none" />
+                    <input
+                      type="text"
+                      value={record.description}
+                      onChange={(e) => updateServiceRecord(index, "description", e.target.value)}
+                      placeholder="Notes..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+                    />
                     {serviceRecords.length > 1 && (
-                      <button type="button" onClick={() => removeServiceRecord(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><X className="w-4 h-4" /></button>
+                      <button
+                        type="button"
+                        onClick={() => removeServiceRecord(index)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
                 </div>
               </div>
             ))}
-            <button type="button" onClick={addServiceRecord} className="flex items-center gap-2 text-sm font-medium text-[#002D72] hover:text-[#001D4A]"><Plus className="w-4 h-4" /> Add Service Record</button>
+            <button
+              type="button"
+              onClick={addServiceRecord}
+              className="flex items-center gap-2 text-sm font-medium text-[#002D72] hover:text-[#001D4A]"
+            >
+              <Plus className="w-4 h-4" /> Add Service Record
+            </button>
           </div>
         </div>
 
         {/* Admin Settings */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-bold mb-6">Admin Settings</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Package Tier</label>
               <select
                 value={formData.package_tier}
-                onChange={(e) => handleInputChange('package_tier', e.target.value)}
+                onChange={(e) => handleInputChange("package_tier", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
               >
-                {PACKAGES.map(pkg => (
-                  <option key={pkg.id} value={pkg.id}>{pkg.name}</option>
+                {PACKAGES.map((pkg) => (
+                  <option key={pkg.id} value={pkg.id}>
+                    {pkg.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -579,12 +873,13 @@ export default function AdminCreateListing() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
               <select
                 value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
+                onChange={(e) => handleInputChange("status", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
               >
                 <option value="ACTIVE">Active (Live)</option>
                 <option value="PENDING">Pending (Review)</option>
                 <option value="SOLD">Sold</option>
+                <option value="REJECTED">Rejected</option>
               </select>
             </div>
 
@@ -593,7 +888,7 @@ export default function AdminCreateListing() {
                 <input
                   type="checkbox"
                   checked={formData.is_featured}
-                  onChange={(e) => handleInputChange('is_featured', e.target.checked)}
+                  onChange={(e) => handleInputChange("is_featured", e.target.checked)}
                   className="w-5 h-5 text-[#002D72] rounded focus:ring-[#002D72]"
                 />
                 <span className="text-sm font-medium text-gray-700">Featured Listing</span>
@@ -604,9 +899,29 @@ export default function AdminCreateListing() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Listing Tags</label>
               <div className="flex flex-wrap gap-2 mb-3">
                 {formData.listing_tags.map((tag: any, idx: number) => (
-                  <span key={idx} className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full ${tag.type === 'Just Listed' ? 'bg-[#002D72] text-white' : tag.type === 'Rare Spec' ? 'bg-purple-600 text-white' : 'bg-[#E31837] text-white'}`}>
-                    {tag.type === '1 of #__' && tag.number ? `1 of ${tag.number}` : tag.type}
-                    <button type="button" onClick={() => handleInputChange('listing_tags', formData.listing_tags.filter((_: any, i: number) => i !== idx))} className="ml-1 hover:opacity-70"><X className="w-3 h-3" /></button>
+                  <span
+                    key={idx}
+                    className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full ${
+                      tag.type === "Just Listed"
+                        ? "bg-[#002D72] text-white"
+                        : tag.type === "Rare Spec"
+                          ? "bg-purple-600 text-white"
+                          : "bg-[#E31837] text-white"
+                    }`}
+                  >
+                    {tag.type === "1 of #__" && tag.number ? `1 of ${tag.number}` : tag.type}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleInputChange(
+                          "listing_tags",
+                          formData.listing_tags.filter((_: any, i: number) => i !== idx)
+                        )
+                      }
+                      className="ml-1 hover:opacity-70"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 ))}
               </div>
@@ -630,16 +945,16 @@ export default function AdminCreateListing() {
                 <button
                   type="button"
                   onClick={() => {
-                    const typeEl = document.getElementById('new-tag-type') as HTMLSelectElement;
-                    const numEl = document.getElementById('new-tag-number') as HTMLInputElement;
+                    const typeEl = document.getElementById("new-tag-type") as HTMLSelectElement;
+                    const numEl = document.getElementById("new-tag-number") as HTMLInputElement;
                     if (!typeEl || !typeEl.value) return;
                     const newTag: { type: string; number?: number } = { type: typeEl.value };
-                    if (typeEl.value === '1 of #__' && numEl.value) {
+                    if (typeEl.value === "1 of #__" && numEl.value) {
                       newTag.number = parseInt(numEl.value);
                     }
-                    handleInputChange('listing_tags', [...formData.listing_tags, newTag]);
-                    typeEl.value = '';
-                    numEl.value = '';
+                    handleInputChange("listing_tags", [...formData.listing_tags, newTag]);
+                    typeEl.value = "";
+                    numEl.value = "";
                   }}
                   className="px-4 py-2 bg-[#002D72] text-white text-sm font-bold rounded-lg hover:bg-[#001D4A] transition-colors"
                 >
@@ -660,7 +975,7 @@ export default function AdminCreateListing() {
           </Link>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || loadingSellers || !selectedSellerId}
             className="px-6 py-3 bg-[#002D72] text-white font-medium rounded-lg hover:bg-[#001D4A] transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             {loading ? (
