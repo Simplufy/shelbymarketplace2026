@@ -76,6 +76,7 @@ export interface Database {
           previous_owners: number | null
           accidents: string | null
           carfax_report_url: string | null
+          video_url: string | null
           listing_tags: Json | null
           service_history: Json | null
           created_at: string
@@ -106,6 +107,7 @@ export interface Database {
           previous_owners?: number | null
           accidents?: string | null
           carfax_report_url?: string | null
+          video_url?: string | null
           listing_tags?: Json | null
           service_history?: Json | null
           created_at?: string
@@ -136,6 +138,7 @@ export interface Database {
           previous_owners?: number | null
           accidents?: string | null
           carfax_report_url?: string | null
+          video_url?: string | null
           listing_tags?: Json | null
           service_history?: Json | null
           created_at?: string

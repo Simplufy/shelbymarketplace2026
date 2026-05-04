@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, UploadCloud, Plus, Trash2, X, Loader2, Star } fr
 import { useStorage } from "@/hooks/useStorage";
 
 const MAX_PARALLEL_UPLOADS = 3;
+const MAX_LISTING_IMAGES = 35;
 
 type UploadItem = {
   id: string;
@@ -48,7 +49,7 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
 
     setIsUploading(true);
     setUploadError(null);
-    const remainingSlots = 20 - uploadedImages.length;
+    const remainingSlots = MAX_LISTING_IMAGES - uploadedImages.length;
     const selectedFiles = files.slice(0, remainingSlots);
     const failedUploads: string[] = [];
 
@@ -298,11 +299,11 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
       {/* Image Upload Section */}
       <div>
         <label className="block text-[10px] md:text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 md:mb-1.5">
-          Photos ({uploadedImages.length}/20)
+          Photos ({uploadedImages.length}/{MAX_LISTING_IMAGES})
         </label>
         
         {/* Upload Area */}
-        {uploadedImages.length < 20 && (
+        {uploadedImages.length < MAX_LISTING_IMAGES && (
           <>
             <input
               ref={fileInputRef}

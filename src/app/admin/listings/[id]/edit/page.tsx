@@ -16,7 +16,9 @@ import {
   Wrench,
   Star,
   FileText,
-  ExternalLink
+  ExternalLink,
+  ArrowRight,
+  Video
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -29,8 +31,10 @@ const PACKAGES = [
   { id: "HOMEPAGE", name: "Homepage Featured" },
   { id: "HOMEPAGE_PLUS_ADS", name: "Premium Exposure Package" },
 ];
+const MAX_LISTING_IMAGES = 35;
 
 type ServiceRecord = { date: string; type: string; description: string; mileage: string };
+type AdminListingImage = { id?: string; url: string; storagePath: string; isNew?: boolean };
 
 export default function AdminEditListing() {
   const router = useRouter();
@@ -40,9 +44,8 @@ export default function AdminEditListing() {
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<{ url: string; storagePath: string; isNew?: boolean }[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<AdminListingImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [originalImages, setOriginalImages] = useState<any[]>([]);
   const [originalPrice, setOriginalPrice] = useState<number>(0);
   const [listingUserId, setListingUserId] = useState<string>("");
   const [listingUserEmail, setListingUserEmail] = useState<string>("");
@@ -70,6 +73,7 @@ export default function AdminEditListing() {
     is_featured: false,
     engine: "",
     carfax_report_url: "",
+    video_url: "",
     listing_tags: [] as { type: string; number?: number }[],
   });
 
@@ -115,6 +119,7 @@ export default function AdminEditListing() {
         is_featured: listing.is_featured || false,
         engine: listing.engine || "",
         carfax_report_url: listing.carfax_report_url || "",
+        video_url: listing.video_url || "",
         listing_tags: listing.listing_tags ? (typeof listing.listing_tags === 'string' ? JSON.parse(listing.listing_tags) : listing.listing_tags) : [],
       });
       setOriginalPrice(Number(listing.price || 0));
@@ -132,12 +137,12 @@ export default function AdminEditListing() {
       // Set images
       if (images) {
         const mappedImages = images.map(img => ({
+          id: img.id,
           url: img.url,
           storagePath: img.storage_path,
           isNew: false,
         }));
         setUploadedImages(mappedImages);
-        setOriginalImages(images);
         const primaryIdx = images.findIndex((img: any) => img.is_primary);
         setPrimaryImageIndex(primaryIdx >= 0 ? primaryIdx : 0);
       }
@@ -179,7 +184,7 @@ export default function AdminEditListing() {
 
     setIsUploading(true);
     
-    for (let i = 0; i < Math.min(files.length, 20 - uploadedImages.length); i++) {
+    for (let i = 0; i < Math.min(files.length, MAX_LISTING_IMAGES - uploadedImages.length); i++) {
       const file = files[i];
       
       try {
@@ -212,8 +217,38 @@ export default function AdminEditListing() {
     }));
   };
 
+  const clearVideoUrl = () => {
+    setFormData(prev => ({
+      ...prev,
+      video_url: "",
+    }));
+  };
+
   const removeImage = (index: number) => {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setPrimaryImageIndex(prev => {
+      if (prev === index) return 0;
+      if (prev > index) return prev - 1;
+      return prev;
+    });
+  };
+
+  const moveImage = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= uploadedImages.length || fromIndex === toIndex) return;
+
+    setUploadedImages(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+
+    setPrimaryImageIndex(prev => {
+      if (prev === fromIndex) return toIndex;
+      if (fromIndex < prev && toIndex >= prev) return prev - 1;
+      if (fromIndex > prev && toIndex <= prev) return prev + 1;
+      return prev;
+    });
   };
 
   const addServiceRecord = () => {
@@ -236,6 +271,7 @@ export default function AdminEditListing() {
     if (message.includes("'listing_tags'")) delete next.listing_tags;
     if (message.includes("'service_history'")) delete next.service_history;
     if (message.includes("'carfax_report_url'")) delete next.carfax_report_url;
+    if (message.includes("'video_url'")) delete next.video_url;
     return next;
   };
 
@@ -273,19 +309,6 @@ export default function AdminEditListing() {
 
       if (listingError) throw listingError;
 
-      // Delete removed images from database
-      const currentPaths = uploadedImages.map(img => img.storagePath);
-      const imagesToDelete = originalImages.filter(img => !currentPaths.includes(img.storage_path));
-      
-      if (imagesToDelete.length > 0) {
-        const { error: deleteError } = await supabase
-          .from('listing_images')
-          .delete()
-          .in('id', imagesToDelete.map(img => img.id));
-
-        if (deleteError) throw deleteError;
-      }
-
       if (originalPrice > 0 && newPrice < originalPrice) {
         await trackClientEvent({
           event: "Price drop",
@@ -310,43 +333,18 @@ export default function AdminEditListing() {
         });
       }
 
-      // Add new images
-      const newImages = uploadedImages.filter(img => img.isNew);
-      if (newImages.length > 0) {
-        const imageRecords = newImages.map((img) => ({
-          listing_id: listingId,
-          url: img.url,
-          storage_path: img.storagePath,
-          is_primary: uploadedImages.findIndex(i => i.storagePath === img.storagePath) === primaryImageIndex,
-          order_index: uploadedImages.findIndex(i => i.storagePath === img.storagePath),
-        }));
+      const imageResponse = await fetch(`/api/admin/listings/${listingId}/images`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: uploadedImages.map(({ url, storagePath }) => ({ url, storagePath })),
+          primaryImageIndex,
+        }),
+      });
 
-        const { error: imageError } = await supabase
-          .from('listing_images')
-          .insert(imageRecords);
-
-        if (imageError) throw imageError;
-      }
-
-      // Update existing images order if changed
-      const existingImages = uploadedImages.filter(img => !img.isNew);
-      for (let i = 0; i < existingImages.length; i++) {
-        const img = existingImages[i];
-        const original = originalImages.find(o => o.storage_path === img.storagePath);
-        if (original) {
-          const newOrderIndex = uploadedImages.findIndex(u => u.storagePath === img.storagePath);
-          const isPrimary = newOrderIndex === primaryImageIndex;
-          
-          if (original.order_index !== newOrderIndex || original.is_primary !== isPrimary) {
-            await supabase
-              .from('listing_images')
-              .update({ 
-                order_index: newOrderIndex,
-                is_primary: isPrimary
-              })
-              .eq('id', original.id);
-          }
-        }
+      if (!imageResponse.ok) {
+        const payload = await imageResponse.json().catch(() => null);
+        throw new Error(payload?.error || "Failed to update listing images");
       }
 
       alert('Listing updated successfully!');
@@ -615,11 +613,54 @@ export default function AdminEditListing() {
           </div>
         </div>
 
+        {/* Video */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+            <Video className="w-5 h-5 text-[#002D72]" />
+            Listing Video Link
+          </h2>
+
+          <p className="mb-4 text-sm text-gray-600">
+            Paste a YouTube, Vimeo, or direct video URL. If saved, the video will display on the public listing page.
+          </p>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <input
+              type="url"
+              value={formData.video_url}
+              onChange={(e) => handleInputChange('video_url', e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none"
+              placeholder="https://youtube.com/watch?v=..."
+            />
+            <div className="flex flex-wrap gap-2 md:justify-end">
+              {formData.video_url ? (
+                <a
+                  href={formData.video_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#002D72] px-4 text-sm font-bold text-[#002D72] transition-colors hover:bg-blue-50"
+                >
+                  Test Link <ExternalLink className="w-4 h-4" />
+                </a>
+              ) : null}
+              {formData.video_url ? (
+                <button
+                  type="button"
+                  onClick={clearVideoUrl}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <X className="w-4 h-4" /> Clear
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
         {/* Images */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
             <UploadCloud className="w-5 h-5 text-[#002D72]" />
-            Images ({uploadedImages.length}/20)
+            Images ({uploadedImages.length}/{MAX_LISTING_IMAGES})
           </h2>
 
           <div className="mb-4">
@@ -628,7 +669,7 @@ export default function AdminEditListing() {
               accept="image/*,.heic,.heif"
               multiple
               onChange={handleImageUpload}
-              disabled={isUploading || uploadedImages.length >= 20}
+              disabled={isUploading || uploadedImages.length >= MAX_LISTING_IMAGES}
               className="hidden"
               id="image-upload"
             />
@@ -669,13 +710,51 @@ export default function AdminEditListing() {
                   >
                     <Star className="w-3 h-3" fill={index === primaryImageIndex ? "currentColor" : "none"} />
                   </button>
+                  <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImage(index, index - 1);
+                      }}
+                      disabled={index === 0}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[#002D72] shadow disabled:opacity-35 disabled:cursor-not-allowed"
+                      aria-label={`Move photo ${index + 1} earlier`}
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPrimaryImageIndex(index);
+                      }}
+                      className="min-w-0 flex-1 rounded-full bg-black/70 px-2 py-1 text-[9px] font-bold uppercase text-white"
+                      aria-label={`Set photo ${index + 1} as primary`}
+                    >
+                      {index === primaryImageIndex ? "Primary" : "Make Primary"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImage(index, index + 1);
+                      }}
+                      disabled={index === uploadedImages.length - 1}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[#002D72] shadow disabled:opacity-35 disabled:cursor-not-allowed"
+                      aria-label={`Move photo ${index + 1} later`}
+                    >
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       removeImage(index);
                     }}
-                    className="absolute bottom-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-8 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                    aria-label={`Remove photo ${index + 1}`}
                   >
                     <X className="w-3 h-3" />
                   </button>

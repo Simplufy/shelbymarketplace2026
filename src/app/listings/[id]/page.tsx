@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronRight, Share2, Gauge, Zap, Palette, ShieldCheck, Copy, Check, MapPin, Phone, MessageSquare, Printer, Eye, FileText, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, Share2, Gauge, Zap, Palette, ShieldCheck, Copy, Check, MapPin, Phone, MessageSquare, Printer, Eye, FileText, ExternalLink, PlayCircle } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareModal } from "@/components/ShareModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +30,7 @@ interface ListingDetail {
   status: string;
   is_featured: boolean;
   carfax_report_url: string | null;
+  video_url: string | null;
   created_at: string;
   seller_name: string;
   seller_email: string;
@@ -53,6 +54,39 @@ type RelatedListing = {
   mileage: number;
   primary_image_url: string | null;
 };
+
+function getVideoEmbedUrl(videoUrl: string | null) {
+  if (!videoUrl) return null;
+  try {
+    const url = new URL(videoUrl);
+    const host = url.hostname.replace(/^www\./, "");
+
+    if (host === "youtu.be") {
+      const id = url.pathname.split("/").filter(Boolean)[0];
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+
+    if (host.endsWith("youtube.com")) {
+      const id =
+        url.searchParams.get("v") ||
+        url.pathname.match(/\/(?:embed|shorts)\/([^/?#]+)/)?.[1];
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+
+    if (host.endsWith("vimeo.com")) {
+      const id = url.pathname.split("/").filter(Boolean).find((part) => /^\d+$/.test(part));
+      return id ? `https://player.vimeo.com/video/${id}` : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function isDirectVideoUrl(videoUrl: string | null) {
+  return /\.(mp4|webm|ogg)(\?.*)?$/i.test(videoUrl || "");
+}
 
 export default function VehicleDetailPage() {
   const params = useParams();
@@ -233,9 +267,52 @@ export default function VehicleDetailPage() {
   }
 
   const car = listing;
-  const primaryImage = car.images.find(img => img.is_primary)?.url || car.images[0]?.url || '/images/logo.png';
-  const otherImages = car.images.filter(img => !img.is_primary).map(img => img.url);
-  const allImages = [primaryImage, ...otherImages].filter(Boolean);
+  const primaryImageIndex = car.images.findIndex(img => img.is_primary);
+  const orderedImages =
+    primaryImageIndex >= 0
+      ? [car.images[primaryImageIndex], ...car.images.filter((_, index) => index !== primaryImageIndex)]
+      : car.images;
+  const allImages = (orderedImages.length > 0 ? orderedImages.map(img => img.url) : ['/images/logo.png']).filter(Boolean);
+  const videoEmbedUrl = getVideoEmbedUrl(car.video_url);
+  const hasDirectVideo = isDirectVideoUrl(car.video_url);
+  const goToPreviousImage = () => setActiveThumb((current) => (current === 0 ? allImages.length - 1 : current - 1));
+  const goToNextImage = () => setActiveThumb((current) => (current === allImages.length - 1 ? 0 : current + 1));
+  const emailSubject = `${car.year} ${car.make} ${car.model} inquiry`;
+  const emailBody = `Hi, I am interested in your ${car.year} ${car.make} ${car.model}${car.trim ? ` ${car.trim}` : ""} listed on Shelby Exchange.\n\n${typeof window !== "undefined" ? window.location.href : ""}`;
+
+  const handleEmailSeller = () => {
+    void trackClientEvent({
+      event: "Contact seller",
+      profile: {
+        email: user?.email,
+        external_id: user?.id,
+      },
+      properties: {
+        listing_id: car.id,
+        vehicle_name: `${car.year} ${car.make} ${car.model}`,
+        year: car.year,
+        make: car.make,
+        model: car.model,
+        trim: car.trim,
+        price: car.price,
+        image: car.images?.[0]?.url || null,
+        url: typeof window !== "undefined" ? window.location.href : null,
+        location: car.location,
+      },
+    });
+
+    if (leadWallEnabled && !user) {
+      router.push(`/login?redirect=/listings/${listingId}`);
+      return;
+    }
+
+    if (car.seller_email) {
+      window.location.href = `mailto:${car.seller_email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+      return;
+    }
+
+    setShowContactModal(true);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -383,6 +460,29 @@ export default function VehicleDetailPage() {
                   className="object-cover"
                   onError={(e) => { (e.target as HTMLImageElement).src = '/images/logo.png'; }}
                 />
+                {allImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={goToPreviousImage}
+                      className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#002D72] shadow-lg transition-colors hover:bg-white"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={goToNextImage}
+                      className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#002D72] shadow-lg transition-colors hover:bg-white"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </button>
+                    <div className="absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white">
+                      {activeThumb + 1} / {allImages.length}
+                    </div>
+                  </>
+                )}
               </div>
               {allImages.length > 1 && (
                 <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
@@ -398,6 +498,37 @@ export default function VehicleDetailPage() {
                 </div>
               )}
             </div>
+
+            {car.video_url ? (
+              <section>
+                <h2 className="text-2xl font-outfit font-bold mb-4 flex items-center gap-2">
+                  <PlayCircle className="h-6 w-6 text-[#002D72]" />
+                  Listing Video
+                </h2>
+                <div className="overflow-hidden rounded-lg border border-[#dee1e6] bg-black">
+                  {videoEmbedUrl ? (
+                    <iframe
+                      src={videoEmbedUrl}
+                      title={`${car.year} ${car.make} ${car.model} video`}
+                      className="aspect-video w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  ) : hasDirectVideo ? (
+                    <video src={car.video_url} controls className="aspect-video w-full bg-black" />
+                  ) : (
+                    <a
+                      href={car.video_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex aspect-video w-full items-center justify-center gap-2 bg-[#f3f4f6] text-sm font-bold text-[#002D72]"
+                    >
+                      Watch Listing Video <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+              </section>
+            ) : null}
 
             {/* Quick Specs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -503,33 +634,7 @@ export default function VehicleDetailPage() {
                 </div>
                 <div className="space-y-3 mb-8">
                   <button 
-                    onClick={() => {
-                      void trackClientEvent({
-                        event: "Contact seller",
-                        profile: {
-                          email: user?.email,
-                          external_id: user?.id,
-                        },
-                        properties: {
-                          listing_id: car.id,
-                          vehicle_name: `${car.year} ${car.make} ${car.model}`,
-                          year: car.year,
-                          make: car.make,
-                          model: car.model,
-                          trim: car.trim,
-                          price: car.price,
-                          image: car.images?.[0]?.url || null,
-                          url: typeof window !== "undefined" ? window.location.href : null,
-                          location: car.location,
-                        },
-                      });
-
-                      if (leadWallEnabled && !user) {
-                        router.push(`/login?redirect=/listings/${listingId}`);
-                        return;
-                      }
-                      setShowContactModal(true);
-                    }}
+                    onClick={handleEmailSeller}
                     className="w-full h-12 bg-[#002D72] text-white font-bold rounded-md flex items-center justify-center gap-3 hover:bg-[#001D4A] transition-colors"
                   >
                     <MessageSquare className="w-5 h-5" /> {leadWallEnabled && !user ? "Create Account to Contact Seller" : "Email Seller"}
