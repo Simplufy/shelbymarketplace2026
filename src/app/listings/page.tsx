@@ -25,7 +25,8 @@ interface Listing {
   vin: string;
 }
 
-const MODELS = ['GT500', 'GT350', 'GT350R', 'Super Snake', 'Cobra Jet', 'Classic Shelby'];
+const MODELS = ['GT500', 'GT350', 'GT350R', 'Super Snake', 'Cobra Jet', 'Classic Shelby', 'Performance Trucks'];
+const PERFORMANCE_TRUCK_TERMS = ['truck', 'f-150', 'f150', 'f-250', 'f250', 'raptor', 'super baja', 'super snake sport'];
 const YEAR_RANGES = ['2020-2024', '2015-2019', '2010-2014', 'Classic (Pre-2000)'];
 const DRIVETRAINS = ['RWD', 'AWD', 'FWD'];
 const MILEAGE_RANGES = [
@@ -35,6 +36,21 @@ const MILEAGE_RANGES = [
   { label: '30,000 - 50,000', min: 30000, max: 50000 },
   { label: '50,000+', min: 50000, max: 999999 },
 ];
+
+const vehicleText = (car: Listing) =>
+  `${car.make || ''} ${car.model || ''} ${car.trim || ''}`.toLowerCase();
+
+const matchesModelFilter = (car: Listing, model: string) => {
+  const normalized = model.toLowerCase();
+  const text = vehicleText(car);
+
+  if (model === 'Classic Shelby') return car.year < 2000;
+  if (model === 'Performance Trucks') {
+    return PERFORMANCE_TRUCK_TERMS.some((term) => text.includes(term));
+  }
+
+  return text.includes(normalized);
+};
 
 function ListingsContent() {
   const searchParams = useSearchParams();
@@ -146,10 +162,7 @@ function ListingsContent() {
       }
       
       if (selectedModels.length) {
-        const matchesModel = selectedModels.some((m) => {
-          if (m === 'Classic Shelby') return car.year < 2000;
-          return car.model.toLowerCase().includes(m.toLowerCase());
-        });
+        const matchesModel = selectedModels.some((m) => matchesModelFilter(car, m));
         if (!matchesModel) return false;
       }
       if (selectedTrans.length && !selectedTrans.includes(car.transmission)) return false;
@@ -196,15 +209,16 @@ function ListingsContent() {
     setPriceMax(500000); 
   };
 
-  const getModelFromTitle = (make: string, model: string, year: number) => {
-    const fullModel = `${make} ${model}`;
-    if (year < 2000) return 'Classic Shelby';
-    if (fullModel.includes('GT350R')) return 'GT350R';
-    if (fullModel.includes('GT500')) return 'GT500';
-    if (fullModel.includes('GT350')) return 'GT350';
-    if (fullModel.includes('Super Snake')) return 'Super Snake';
-    if (fullModel.includes('Cobra')) return 'Cobra Jet';
-    return model;
+  const getModelFromTitle = (car: Listing) => {
+    const fullModel = `${car.make} ${car.model} ${car.trim || ''}`.toLowerCase();
+    if (matchesModelFilter(car, 'Performance Trucks')) return 'Performance Trucks';
+    if (car.year < 2000) return 'Classic Shelby';
+    if (fullModel.includes('gt350r')) return 'GT350R';
+    if (fullModel.includes('gt500')) return 'GT500';
+    if (fullModel.includes('gt350')) return 'GT350';
+    if (fullModel.includes('super snake')) return 'Super Snake';
+    if (fullModel.includes('cobra')) return 'Cobra Jet';
+    return car.model;
   };
 
   const FilterPanel = () => (
@@ -220,7 +234,7 @@ function ListingsContent() {
                 <span className="text-xs font-medium">{model}</span>
               </div>
               <span className="px-1.5 py-0.5 bg-[#f3f4f6] rounded text-[10px] font-bold">
-                {listings.filter(c => getModelFromTitle(c.make, c.model, c.year) === model).length}
+                {listings.filter(c => getModelFromTitle(c) === model).length}
               </span>
             </label>
           ))}

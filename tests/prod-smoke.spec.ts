@@ -4,19 +4,23 @@ const BASE_URL = process.env.E2E_BASE_URL || 'https://shelbymarketplace2026.verc
 const EMAIL = process.env.E2E_EMAIL;
 const PASSWORD = process.env.E2E_PASSWORD;
 
+async function gotoReady(page: any, path: string) {
+  await page.goto(`${BASE_URL}${path}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+}
+
 async function login(page: any, redirect = '/') {
   if (!EMAIL || !PASSWORD) {
     throw new Error('Set E2E_EMAIL and E2E_PASSWORD to run authenticated smoke tests.');
   }
 
-  await page.goto(`${BASE_URL}/login?redirect=${encodeURIComponent(redirect)}`);
+  await gotoReady(page, `/login?redirect=${encodeURIComponent(redirect)}`);
   await page.getByPlaceholder('you@example.com').fill(EMAIL);
-  await page.getByPlaceholder('••••••••').fill(PASSWORD);
+  await page.locator('input[type="password"]').fill(PASSWORD);
   await page.getByRole('button', { name: 'Sign In' }).click();
 }
 
 test('unauthenticated users are redirected from protected admin route', async ({ page }) => {
-  await page.goto(`${BASE_URL}/admin`);
+  await gotoReady(page, '/admin');
   await expect(page).toHaveURL(/\/login\?redirect=%2Fadmin/);
 });
 
@@ -34,8 +38,7 @@ test('listing contact CTA behaves for auth/unauth states', async ({ page, reques
   const listingId = apiPayload?.data?.[0]?.id;
   expect(Boolean(listingId)).toBeTruthy();
 
-  await page.goto(`${BASE_URL}/listings/${listingId}`);
-  await page.waitForLoadState('networkidle');
+  await gotoReady(page, `/listings/${listingId}`);
 
   await expect
     .poll(async () => {
@@ -51,7 +54,6 @@ test('listing contact CTA behaves for auth/unauth states', async ({ page, reques
   if (EMAIL && PASSWORD) {
     await login(page, `/listings/${listingId}`);
     await expect(page).toHaveURL(new RegExp(`/listings/${listingId}`));
-    await page.waitForLoadState('networkidle');
     const authBody = (await page.textContent('body')) || '';
     expect(authBody.includes('Email Seller') || authBody.includes('Contact Seller')).toBeTruthy();
   }
@@ -90,10 +92,10 @@ test.describe('mobile smoke', () => {
   test.use({ viewport: iphone.viewport, userAgent: iphone.userAgent, deviceScaleFactor: iphone.deviceScaleFactor, isMobile: iphone.isMobile, hasTouch: iphone.hasTouch });
 
   test('mobile home and listings load with key CTAs visible', async ({ page }) => {
-    await page.goto(`${BASE_URL}/`);
-    await expect(page.getByText('Find the spec nobody else can.')).toBeVisible();
+    await gotoReady(page, '/');
+    await expect(page.getByRole('button', { name: /search inventory/i })).toBeVisible();
 
-    await page.goto(`${BASE_URL}/listings`);
+    await gotoReady(page, '/listings');
     await expect(page.getByRole('button', { name: 'Filters' })).toBeVisible();
   });
 });

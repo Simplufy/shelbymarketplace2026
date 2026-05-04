@@ -1,12 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Search, Mail,
   CheckCircle, User, Download, Loader2, Trash2
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Profile } from "@/lib/supabase/database.types";
 
@@ -29,48 +28,24 @@ export default function UsersManager() {
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
-  
-  const supabase = useMemo(() => createClient(), []);
   const { user: currentUser } = useAuth();
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
-      // Get all profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const response = await fetch("/api/admin/users", { cache: "no-store" });
+      const payload = await response.json().catch(() => null);
 
-      if (profilesError) throw profilesError;
+      if (!response.ok) {
+        throw new Error(payload?.error || "Failed to load users");
+      }
 
-      // Get listing counts for each user
-      const { data: listings, error: listingsError } = await supabase
-        .from("listings")
-        .select("user_id, id");
-
-      if (listingsError) throw listingsError;
-
-      // Count listings per user
-      const listingCounts: Record<string, number> = {};
-      listings?.forEach(listing => {
-        listingCounts[listing.user_id] = (listingCounts[listing.user_id] || 0) + 1;
-      });
-
-      // Combine data
-      const usersWithCounts = (profiles || []).map(profile => ({
-        ...profile,
-        listings_count: listingCounts[profile.id] || 0,
-        // Mock status for now - can add status field to profiles later
-        status: "active" as const
-      }));
-
-      setUsers(usersWithCounts);
+      setUsers(Array.isArray(payload?.data) ? payload.data : []);
     } catch (error) {
       console.error("Error loading users:", error);
     }
     setLoading(false);
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     loadUsers();

@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/admin/', '/api/', '/profile/'],
       },
     ],
-    sitemap: 'https://shelbyexchange.com/sitemap.xml',
+    sitemap: 'https://www.fordshelbyforsale.com/sitemap.xml',
   };
 }

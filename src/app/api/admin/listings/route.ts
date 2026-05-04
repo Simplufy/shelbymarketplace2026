@@ -51,6 +51,77 @@ function stripUnsupportedListingColumns(payload: Record<string, unknown>, messag
   return next;
 }
 
+export async function GET() {
+  try {
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
+
+    const admin = createServiceRoleClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Admin listing reads are not configured" }, { status: 500 });
+    }
+
+    const { data: listings, error } = await admin
+      .from("listings")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    if (!listings || listings.length === 0) {
+      return NextResponse.json({ data: [] });
+    }
+
+    const listingIds = listings.map((listing: any) => listing.id);
+    const userIds = [...new Set(listings.map((listing: any) => listing.user_id).filter(Boolean))];
+
+    const [{ data: primaryImages }, { data: profiles }, { data: dealers }] = await Promise.all([
+      admin
+        .from("listing_images")
+        .select("listing_id, url")
+        .eq("is_primary", true)
+        .in("listing_id", listingIds),
+      userIds.length
+        ? admin
+            .from("profiles")
+            .select("id, first_name, last_name, email")
+            .in("id", userIds)
+        : Promise.resolve({ data: [] }),
+      userIds.length
+        ? admin
+            .from("dealer_profiles")
+            .select("user_id, dealership_name")
+            .in("user_id", userIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const imageByListing = new Map((primaryImages || []).map((image: any) => [image.listing_id, image.url]));
+    const profileByUser = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
+    const dealerByUser = new Map((dealers || []).map((dealer: any) => [dealer.user_id, dealer]));
+
+    const data = listings.map((listing: any) => {
+      const dealer = dealerByUser.get(listing.user_id);
+      const profile = profileByUser.get(listing.user_id);
+      const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim();
+
+      return {
+        ...listing,
+        seller_name: dealer?.dealership_name || fullName || "Private Seller",
+        seller_email: profile?.email || undefined,
+        seller_type: dealer ? "dealer" : "private",
+        dealership_name: dealer?.dealership_name || null,
+        primary_image_url: imageByListing.get(listing.id) || null,
+      };
+    });
+
+    return NextResponse.json({ data });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || "Failed to load listings" }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireAdmin();

@@ -157,6 +157,14 @@ const defaultPricingTiers = [
 ];
 
 const iconMap: Record<string, typeof Upload> = { Upload, Megaphone, HandCoins };
+const quickDiscoveryLinks = [
+  { label: "GT500", href: "/listings?model=GT500" },
+  { label: "GT350 & GT350R", href: "/listings?search=GT350" },
+  { label: "Super Snake", href: "/listings?model=Super%20Snake" },
+  { label: "Cobra Jet", href: "/listings?model=Cobra%20Jet" },
+  { label: "Classic Shelby (1965-70)", href: "/listings?model=Classic%20Shelby" },
+  { label: "Performance Trucks", href: "/listings?model=Performance%20Trucks" },
+];
 
 export default async function Home() {
   const supabase = await createClient();
@@ -340,8 +348,8 @@ export default async function Home() {
           <div className="max-w-[1440px] mx-auto px-5 md:px-12 flex flex-col md:flex-row items-center gap-4 md:gap-8">
             <span className="text-[10px] font-black uppercase tracking-[2px] text-[#565d6d] whitespace-nowrap">Quick Discovery</span>
             <div className="flex gap-2 md:gap-3 overflow-x-auto hide-scrollbar w-full pb-2 md:pb-0">
-              {['GT500', 'GT350 & GT350R', 'Super Snake', 'Cobra Jet', 'Classic Shelby (1965-70)', 'Performance Trucks'].map((tag) => (
-                <Link key={tag} href="/listings" className="px-4 md:px-6 py-1.5 md:py-2 bg-white border border-[#dee1e6] rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap hover:border-[#002D72] hover:text-[#002D72] transition-colors">{tag}</Link>
+              {quickDiscoveryLinks.map((tag) => (
+                <Link key={tag.label} href={tag.href} className="px-4 md:px-6 py-1.5 md:py-2 bg-white border border-[#dee1e6] rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap hover:border-[#002D72] hover:text-[#002D72] transition-colors">{tag.label}</Link>
               ))}
             </div>
           </div>

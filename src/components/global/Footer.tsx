@@ -79,13 +79,13 @@ export default function Footer() {
               <Globe className="w-4 h-4 text-[#171a1f]" />
             </a>
             <a 
-              href="mailto:contact@shelbyexchange.com"
+              href="mailto:fordshelbyforsale@gmail.com"
               className="w-10 h-10 bg-[#f3f4f6]/50 rounded-full flex items-center justify-center hover:bg-[#002D72]/10 transition-colors"
             >
               <Mail className="w-4 h-4 text-[#171a1f]" />
             </a>
             <a 
-              href="https://shelbyexchange.com" 
+              href="https://www.fordshelbyforsale.com"
               target="_blank" 
               rel="noopener noreferrer"
               className="w-10 h-10 bg-[#f3f4f6]/50 rounded-full flex items-center justify-center hover:bg-[#002D72]/10 transition-colors"
@@ -98,11 +98,12 @@ export default function Footer() {
         <div className="lg:col-span-2">
           <h5 className="font-heading font-bold text-xs uppercase tracking-widest mb-6">Inventory</h5>
           <ul className="space-y-4 text-sm text-[#565d6d]">
-            <li><Link href="/listings" className="hover:text-[#002D72]">GT500 Models</Link></li>
-            <li><Link href="/listings" className="hover:text-[#002D72]">GT350 &amp; GT350R</Link></li>
-            <li><Link href="/listings" className="hover:text-[#002D72]">Super Snake</Link></li>
-            <li><Link href="/listings" className="hover:text-[#002D72]">Cobra Jet</Link></li>
-            <li><Link href="/listings" className="hover:text-[#002D72]">Classic Shelby</Link></li>
+            <li><Link href="/listings?model=GT500" className="hover:text-[#002D72]">GT500 Models</Link></li>
+            <li><Link href="/listings?search=GT350" className="hover:text-[#002D72]">GT350 &amp; GT350R</Link></li>
+            <li><Link href="/listings?model=Super%20Snake" className="hover:text-[#002D72]">Super Snake</Link></li>
+            <li><Link href="/listings?model=Cobra%20Jet" className="hover:text-[#002D72]">Cobra Jet</Link></li>
+            <li><Link href="/listings?model=Classic%20Shelby" className="hover:text-[#002D72]">Classic Shelby</Link></li>
+            <li><Link href="/listings?model=Performance%20Trucks" className="hover:text-[#002D72]">Performance Trucks</Link></li>
           </ul>
         </div>
 

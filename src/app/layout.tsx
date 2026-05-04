@@ -22,6 +22,7 @@ const outfit = Outfit({
 });
 
 const googleAnalyticsId = "G-JTQ0SM9NJG";
+const siteUrl = "https://www.fordshelbyforsale.com";
 
 export const metadata: Metadata = {
   title: "Shelby Exchange | Premium Ford Shelby Marketplace",
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Shelby Exchange" }],
   creator: "Shelby Exchange",
   publisher: "Shelby Exchange",
-  metadataBase: new URL("https://shelbyexchange.com"),
+  metadataBase: new URL(siteUrl),
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://shelbyexchange.com",
+    url: siteUrl,
     siteName: "Shelby Exchange",
     title: "Shelby Exchange | Premium Ford Shelby Marketplace",
     description: "Buy and sell authentic Ford Shelby vehicles on the world's premier marketplace.",

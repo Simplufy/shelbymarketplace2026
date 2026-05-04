@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Search, CheckCircle, XCircle, Eye, Edit2, Trash2,
   Car, MapPin, Calendar, Package,
   Loader2
 } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import type { Listing } from "@/lib/supabase/database.types";
 import { trackClientEvent } from "@/lib/klaviyo/client";
 
@@ -28,77 +27,30 @@ export default function AdminListings() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [packageFilter, setPackageFilter] = useState<string>("all");
   const [selectedListings, setSelectedListings] = useState<string[]>([]);
-  
-  const supabase = useMemo(() => createClient(), []);
 
   const loadListings = useCallback(async () => {
     setLoading(true);
     try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Listings request timeout")), 8000)
-      );
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      const response = await fetch("/api/admin/listings", {
+        signal: controller.signal,
+        cache: "no-store",
+      });
+      clearTimeout(timeout);
 
-      const queryPromise = supabase
-        .from("listings")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
-
-      if (error) throw error;
-
-      if (data) {
-        if (data.length === 0) {
-          setListings([]);
-          setLoading(false);
-          return;
-        }
-
-        const listingIds = data.map((l: any) => l.id);
-        const userIds = [...new Set(data.map((l: any) => l.user_id))];
-
-        const [{ data: primaryImages }, { data: profiles }, { data: dealers }] = await Promise.all([
-          supabase
-            .from("listing_images")
-            .select("listing_id, url")
-            .eq("is_primary", true)
-            .in("listing_id", listingIds),
-          supabase
-            .from("profiles")
-            .select("id, first_name, last_name, email")
-            .in("id", userIds),
-          supabase
-            .from("dealer_profiles")
-            .select("user_id, dealership_name")
-            .in("user_id", userIds),
-        ]);
-
-        const imageByListing = new Map((primaryImages || []).map((img: any) => [img.listing_id, img.url]));
-        const profileByUser = new Map((profiles || []).map((p: any) => [p.id, p]));
-        const dealerByUser = new Map((dealers || []).map((d: any) => [d.user_id, d]));
-
-        const listingsWithDetails: ListingWithDetails[] = data.map((listing: any) => {
-          const dealer = dealerByUser.get(listing.user_id);
-          const profile = profileByUser.get(listing.user_id);
-          const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim();
-
-          return {
-            ...listing,
-            seller_name: dealer?.dealership_name || fullName || "Private Seller",
-            seller_email: profile?.email || undefined,
-            seller_type: dealer ? "dealer" : "private",
-            dealership_name: dealer?.dealership_name || null,
-            primary_image_url: imageByListing.get(listing.id) || null,
-          };
-        });
-        setListings(listingsWithDetails);
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || "Failed to load listings");
       }
+
+      setListings(Array.isArray(payload?.data) ? payload.data : []);
     } catch (error) {
       console.error("Error loading listings:", error);
       setListings([]);
     }
     setLoading(false);
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     loadListings();

@@ -12,13 +12,14 @@ export async function requireAdmin() {
     return { ok: false as const, response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 
+  const allowlisted = isAllowlistedAdminEmail(user.email);
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (error || (profile?.role !== "ADMIN" && !isAllowlistedAdminEmail(user.email))) {
+  if ((error && !allowlisted) || (profile?.role !== "ADMIN" && !allowlisted)) {
     return { ok: false as const, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
 
