@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS listings (
   title_status TEXT,
   previous_owners INTEGER,
   accidents TEXT,
+  carfax_report_url TEXT,
+  video_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
