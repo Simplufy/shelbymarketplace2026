@@ -9,6 +9,12 @@ const RELATED_LISTING_TABLES = [
   "listing_inquiries",
   "listing_page_views",
 ];
+const OPTIONAL_LISTING_COLUMNS = [
+  "listing_tags",
+  "service_history",
+  "carfax_report_url",
+  "video_url",
+] as const;
 
 function createServiceRoleClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,13 +37,26 @@ function isMissingRelationError(error: any) {
   );
 }
 
-function stripUnsupportedListingColumns(payload: Record<string, unknown>, message?: string) {
-  if (!message) return payload;
+function errorText(error: any) {
+  return [error?.code, error?.message, error?.details, error?.hint]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function stripUnsupportedListingColumns(payload: Record<string, unknown>, error: any) {
+  const text = errorText(error);
+  if (!text) return payload;
+
   const next = { ...payload };
-  if (message.includes("'listing_tags'")) delete next.listing_tags;
-  if (message.includes("'service_history'")) delete next.service_history;
-  if (message.includes("'carfax_report_url'")) delete next.carfax_report_url;
-  if (message.includes("'video_url'")) delete next.video_url;
+  const isSchemaCacheError = text.includes("schema cache") || text.includes("pgrst204");
+
+  for (const column of OPTIONAL_LISTING_COLUMNS) {
+    if (text.includes(column) || (isSchemaCacheError && Object.prototype.hasOwnProperty.call(next, column))) {
+      delete next[column];
+    }
+  }
+
   return next;
 }
 
@@ -144,7 +163,7 @@ export async function PATCH(
     const body = await req.json();
     const listingInput = body?.listing && typeof body.listing === "object" ? body.listing : body;
     const forbiddenColumns = new Set(["id", "user_id", "created_at"]);
-    const updatePayload = Object.fromEntries(
+    const updatePayload: Record<string, unknown> = Object.fromEntries(
       Object.entries(listingInput || {}).filter(([key]) => !forbiddenColumns.has(key))
     );
 
@@ -159,23 +178,29 @@ export async function PATCH(
       return NextResponse.json({ error: "Admin listing updates are not configured" }, { status: 500 });
     }
 
-    let { data, error } = await admin
-      .from("listings")
-      .update(updatePayload)
-      .eq("id", id)
-      .select()
-      .maybeSingle();
+    let data: any = null;
+    let error: any = null;
+    let updateAttempt = updatePayload;
 
-    if (error?.message?.includes("Could not find the '")) {
-      const sanitized = stripUnsupportedListingColumns(updatePayload, error.message);
-      if (JSON.stringify(sanitized) !== JSON.stringify(updatePayload)) {
-        ({ data, error } = await admin
-          .from("listings")
-          .update(sanitized)
-          .eq("id", id)
-          .select()
-          .maybeSingle());
-      }
+    for (let attempt = 0; attempt <= OPTIONAL_LISTING_COLUMNS.length; attempt++) {
+      ({ data, error } = await admin
+        .from("listings")
+        .update(updateAttempt)
+        .eq("id", id)
+        .select()
+        .maybeSingle());
+
+      if (!error) break;
+
+      const sanitized = stripUnsupportedListingColumns(updateAttempt, error);
+      if (JSON.stringify(sanitized) === JSON.stringify(updateAttempt)) break;
+
+      console.warn("Retrying admin listing update without unsupported columns", {
+        listing_id: id,
+        removed: Object.keys(updateAttempt).filter((key) => !(key in sanitized)),
+        error: error.message,
+      });
+      updateAttempt = sanitized;
     }
 
     if (error) {

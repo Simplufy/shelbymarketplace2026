@@ -7,6 +7,12 @@ const VALID_TRANSMISSIONS = new Set(["Manual", "Automatic"]);
 const VALID_DRIVETRAINS = new Set(["RWD", "AWD", "4WD"]);
 const VALID_STATUSES = new Set(["PENDING", "ACTIVE", "SOLD", "REJECTED"]);
 const VALID_PACKAGES = new Set(["STANDARD", "HOMEPAGE", "HOMEPAGE_PLUS_ADS"]);
+const OPTIONAL_LISTING_COLUMNS = [
+  "listing_tags",
+  "service_history",
+  "carfax_report_url",
+  "video_url",
+] as const;
 
 type ListingImageInput = {
   url?: string;
@@ -41,13 +47,26 @@ function numberValue(value: unknown) {
   return Number.NaN;
 }
 
-function stripUnsupportedListingColumns(payload: Record<string, unknown>, message?: string) {
-  if (!message) return payload;
+function errorText(error: any) {
+  return [error?.code, error?.message, error?.details, error?.hint]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function stripUnsupportedListingColumns(payload: Record<string, unknown>, error: any) {
+  const text = errorText(error);
+  if (!text) return payload;
+
   const next = { ...payload };
-  if (message.includes("'listing_tags'")) delete next.listing_tags;
-  if (message.includes("'service_history'")) delete next.service_history;
-  if (message.includes("'carfax_report_url'")) delete next.carfax_report_url;
-  if (message.includes("'video_url'")) delete next.video_url;
+  const isSchemaCacheError = text.includes("schema cache") || text.includes("pgrst204");
+
+  for (const column of OPTIONAL_LISTING_COLUMNS) {
+    if (text.includes(column) || (isSchemaCacheError && Object.prototype.hasOwnProperty.call(next, column))) {
+      delete next[column];
+    }
+  }
+
   return next;
 }
 
@@ -239,21 +258,27 @@ export async function POST(req: NextRequest) {
       service_history: Array.isArray(rawListing.service_history) ? rawListing.service_history : [],
     };
 
-    let { data: listing, error: listingError } = await admin
-      .from("listings")
-      .insert(insertPayload)
-      .select()
-      .single();
+    let listing: any = null;
+    let listingError: any = null;
+    let insertAttempt = insertPayload;
 
-    if (listingError?.message?.includes("Could not find the '")) {
-      const sanitized = stripUnsupportedListingColumns(insertPayload, listingError.message);
-      if (JSON.stringify(sanitized) !== JSON.stringify(insertPayload)) {
-        ({ data: listing, error: listingError } = await admin
-          .from("listings")
-          .insert(sanitized)
-          .select()
-          .single());
-      }
+    for (let attempt = 0; attempt <= OPTIONAL_LISTING_COLUMNS.length; attempt++) {
+      ({ data: listing, error: listingError } = await admin
+        .from("listings")
+        .insert(insertAttempt)
+        .select()
+        .single());
+
+      if (!listingError) break;
+
+      const sanitized = stripUnsupportedListingColumns(insertAttempt, listingError);
+      if (JSON.stringify(sanitized) === JSON.stringify(insertAttempt)) break;
+
+      console.warn("Retrying admin listing create without unsupported columns", {
+        removed: Object.keys(insertAttempt).filter((key) => !(key in sanitized)),
+        error: listingError.message,
+      });
+      insertAttempt = sanitized as typeof insertPayload;
     }
 
     if (listingError) {
