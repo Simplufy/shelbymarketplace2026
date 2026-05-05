@@ -102,6 +102,19 @@ export async function POST(req: NextRequest) {
       "Seller";
     const vehicleLabel = vehicleLabelFor(listing);
 
+    await subscribeKlaviyoEmail({
+      email: seller.email,
+      firstName: seller.first_name || undefined,
+      lastName: seller.last_name || undefined,
+      source: "seller_inquiry_recipient",
+      properties: {
+        receives_listing_inquiries: true,
+        seller_activity: true,
+        listing_id,
+        vehicle: vehicleLabel,
+      },
+    });
+
     const notificationResult = await trackKlaviyoEvent({
       metricName: "Contact seller",
       profile: {
@@ -137,7 +150,7 @@ export async function POST(req: NextRequest) {
     }
 
     await trackKlaviyoEvent({
-      metricName: "Contact seller",
+      metricName: "Buyer contacted seller",
       profile: {
         email,
         first_name: name.split(" ")[0],
@@ -148,6 +161,10 @@ export async function POST(req: NextRequest) {
         listing_url: listingUrl,
         vehicle_name: vehicleLabel,
         high_intent: true,
+        buyer_name: name,
+        buyer_email: email,
+        buyer_phone: phone || null,
+        message,
         recipient_type: "buyer",
         event_type: "buyer_contact_submitted",
         source: "listing_contact_form",

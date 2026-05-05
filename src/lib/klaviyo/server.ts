@@ -77,6 +77,7 @@ async function resolveListIds(
     contact_form: [emailList],
     listing_view: [emailList, buyersList],
     high_intent_contact: [emailList, buyersList, highIntentList],
+    seller_inquiry_recipient: [emailList, sellersList],
     seller_listing_submit: [emailList, sellersList],
     listing_published: [emailList, sellersList],
   };
