@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { trackClientEvent } from "@/lib/klaviyo/client";
+import { compressImageForUpload } from "@/lib/images/client-compression";
 
 const TRANSMISSIONS = ["Manual", "Automatic"];
 const DRIVETRAINS = ["RWD", "AWD", "4WD"];
@@ -48,6 +49,7 @@ export default function AdminEditListing() {
   const [listingUserId, setListingUserId] = useState<string>("");
   const [listingUserEmail, setListingUserEmail] = useState<string>("");
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>([
     { date: "", type: "", description: "", mileage: "" }
   ]);
@@ -167,31 +169,35 @@ export default function AdminEditListing() {
     if (!files) return;
 
     setIsUploading(true);
-    
-    for (let i = 0; i < Math.min(files.length, MAX_LISTING_IMAGES - uploadedImages.length); i++) {
-      const file = files[i];
-      
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("pathname", `admin-listings/${Date.now()}-${i}-${file.name}`);
 
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
+    try {
+      for (let i = 0; i < Math.min(files.length, MAX_LISTING_IMAGES - uploadedImages.length); i++) {
+        const file = files[i];
 
-        if (!response.ok) throw new Error("Upload failed");
+        try {
+          const uploadFile = await compressImageForUpload(file);
+          const formData = new FormData();
+          formData.append("file", uploadFile);
+          formData.append("pathname", `admin-listings/${Date.now()}-${i}-${uploadFile.name}`);
 
-        const data = await response.json();
-        setUploadedImages(prev => [...prev, { url: data.url, storagePath: data.pathname, isNew: true }]);
-      } catch (error) {
-        console.error('Upload error:', error);
-        alert(`Failed to upload ${file.name}`);
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) throw new Error("Upload failed");
+
+          const data = await response.json();
+          setUploadedImages(prev => [...prev, { url: data.url, storagePath: data.pathname, isNew: true }]);
+        } catch (error) {
+          console.error('Upload error:', error);
+          alert(`Failed to upload ${file.name}`);
+        }
       }
+    } finally {
+      setIsUploading(false);
+      e.target.value = "";
     }
-    
-    setIsUploading(false);
   };
 
   const clearCarfaxReport = () => {
@@ -233,6 +239,18 @@ export default function AdminEditListing() {
       if (fromIndex > prev && toIndex <= prev) return prev + 1;
       return prev;
     });
+  };
+
+  const handleImageDrop = (event: React.DragEvent<HTMLDivElement>, toIndex: number) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const droppedIndex = draggedImageIndex ?? Number(event.dataTransfer.getData("text/plain"));
+    if (Number.isInteger(droppedIndex)) {
+      moveImage(droppedIndex, toIndex);
+    }
+
+    setDraggedImageIndex(null);
   };
 
   const addServiceRecord = () => {
@@ -661,13 +679,34 @@ export default function AdminEditListing() {
           {uploadedImages.length > 0 && (
             <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
               {uploadedImages.map((img, index) => (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer" onClick={() => setPrimaryImageIndex(index)}>
+                <div
+                  key={`${img.storagePath}-${index}`}
+                  draggable
+                  onDragStart={(event) => {
+                    setDraggedImageIndex(index);
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", String(index));
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={(event) => handleImageDrop(event, index)}
+                  onDragEnd={() => setDraggedImageIndex(null)}
+                  className={`relative aspect-square rounded-lg overflow-hidden group cursor-move border border-transparent transition-all ${
+                    draggedImageIndex === index ? "opacity-60 ring-2 ring-[#002D72]" : "hover:border-[#002D72]/40"
+                  }`}
+                  onClick={() => setPrimaryImageIndex(index)}
+                >
                   <Image src={img.url} alt="" fill sizes="96px" unoptimized className="object-cover" />
                   {index === primaryImageIndex && (
                     <span className="absolute top-1 left-1 px-2 py-0.5 bg-[#002D72] text-white text-[10px] font-bold rounded">
                       Primary
                     </span>
                   )}
+                  <span className="absolute left-1 bottom-10 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-bold text-[#002D72] shadow">
+                    #{index + 1}
+                  </span>
                   <button
                     type="button"
                     onClick={(e) => {

@@ -267,12 +267,7 @@ export default function VehicleDetailPage() {
   }
 
   const car = listing;
-  const primaryImageIndex = car.images.findIndex(img => img.is_primary);
-  const orderedImages =
-    primaryImageIndex >= 0
-      ? [car.images[primaryImageIndex], ...car.images.filter((_, index) => index !== primaryImageIndex)]
-      : car.images;
-  const allImages = (orderedImages.length > 0 ? orderedImages.map(img => img.url) : ['/images/logo.png']).filter(Boolean);
+  const allImages = (car.images.length > 0 ? car.images.map(img => img.url) : ['/images/logo.png']).filter(Boolean);
   const videoEmbedUrl = getVideoEmbedUrl(car.video_url);
   const hasDirectVideo = isDirectVideoUrl(car.video_url);
   const goToPreviousImage = () => setActiveThumb((current) => (current === 0 ? allImages.length - 1 : current - 1));

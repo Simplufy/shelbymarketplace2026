@@ -24,6 +24,7 @@ import {
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { trackClientEvent } from "@/lib/klaviyo/client";
+import { compressImageForUpload } from "@/lib/images/client-compression";
 
 const TRANSMISSIONS = ["Manual", "Automatic"];
 const DRIVETRAINS = ["RWD", "AWD", "4WD"];
@@ -57,6 +58,7 @@ export default function AdminCreateListing() {
     { date: "", type: "", description: "", mileage: "" },
   ]);
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     vin: "",
@@ -161,9 +163,10 @@ export default function AdminCreateListing() {
         const file = files[i];
 
         try {
+          const uploadFile = await compressImageForUpload(file);
           const uploadFormData = new FormData();
-          uploadFormData.append("file", file);
-          uploadFormData.append("pathname", `admin-listings/${Date.now()}-${i}-${file.name}`);
+          uploadFormData.append("file", uploadFile);
+          uploadFormData.append("pathname", `admin-listings/${Date.now()}-${i}-${uploadFile.name}`);
 
           const response = await fetch("/api/upload", {
             method: "POST",
@@ -210,6 +213,18 @@ export default function AdminCreateListing() {
       if (fromIndex > prev && toIndex <= prev) return prev + 1;
       return prev;
     });
+  };
+
+  const handleImageDrop = (event: React.DragEvent<HTMLDivElement>, toIndex: number) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const droppedIndex = draggedImageIndex ?? Number(event.dataTransfer.getData("text/plain"));
+    if (Number.isInteger(droppedIndex)) {
+      moveImage(droppedIndex, toIndex);
+    }
+
+    setDraggedImageIndex(null);
   };
 
   const addServiceRecord = () => {
@@ -700,7 +715,21 @@ export default function AdminCreateListing() {
               {uploadedImages.map((img, index) => (
                 <div
                   key={`${img.storagePath}-${index}`}
-                  className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer"
+                  draggable
+                  onDragStart={(event) => {
+                    setDraggedImageIndex(index);
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", String(index));
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={(event) => handleImageDrop(event, index)}
+                  onDragEnd={() => setDraggedImageIndex(null)}
+                  className={`relative aspect-square rounded-lg overflow-hidden group cursor-move border border-transparent transition-all ${
+                    draggedImageIndex === index ? "opacity-60 ring-2 ring-[#002D72]" : "hover:border-[#002D72]/40"
+                  }`}
                   onClick={() => setPrimaryImageIndex(index)}
                 >
                   <Image src={img.url} alt="" fill sizes="96px" unoptimized className="object-cover" />
@@ -709,6 +738,9 @@ export default function AdminCreateListing() {
                       Primary
                     </span>
                   )}
+                  <span className="absolute left-1 bottom-10 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-bold text-[#002D72] shadow">
+                    #{index + 1}
+                  </span>
                   <button
                     type="button"
                     onClick={(event) => {
