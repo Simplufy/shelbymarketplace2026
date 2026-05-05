@@ -91,7 +91,7 @@ function isDirectVideoUrl(videoUrl: string | null) {
 export default function VehicleDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [activeThumb, setActiveThumb] = useState(0);
   const [copied, setCopied] = useState(false);
   const [listing, setListing] = useState<ListingDetail | null>(null);
@@ -272,10 +272,9 @@ export default function VehicleDetailPage() {
   const hasDirectVideo = isDirectVideoUrl(car.video_url);
   const goToPreviousImage = () => setActiveThumb((current) => (current === 0 ? allImages.length - 1 : current - 1));
   const goToNextImage = () => setActiveThumb((current) => (current === allImages.length - 1 ? 0 : current + 1));
-  const emailSubject = `${car.year} ${car.make} ${car.model} inquiry`;
-  const emailBody = `Hi, I am interested in your ${car.year} ${car.make} ${car.model}${car.trim ? ` ${car.trim}` : ""} listed on Shelby Exchange.\n\n${typeof window !== "undefined" ? window.location.href : ""}`;
+  const defaultMessage = `I'm interested in the ${car.year} ${car.make} ${car.model}${car.trim ? ` ${car.trim}` : ""}. Please contact me with more information.`;
 
-  const handleEmailSeller = () => {
+  const handleContactSeller = () => {
     void trackClientEvent({
       event: "Contact seller",
       profile: {
@@ -301,11 +300,15 @@ export default function VehicleDetailPage() {
       return;
     }
 
-    if (car.seller_email) {
-      window.location.href = `mailto:${car.seller_email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-      return;
-    }
-
+    setContactSent(false);
+    setContactForm((current) => ({
+      name:
+        current.name ||
+        [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim(),
+      email: current.email || user?.email || "",
+      phone: current.phone || profile?.phone || "",
+      message: current.message || defaultMessage,
+    }));
     setShowContactModal(true);
   };
 
@@ -373,7 +376,7 @@ export default function VehicleDetailPage() {
                     value={contactForm.message}
                     onChange={e => setContactForm({...contactForm, message: e.target.value})}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002D72] focus:border-[#002D72] outline-none resize-none"
-                    placeholder={`I'm interested in the ${car.year} ${car.make} ${car.model}. Please contact me with more information.`}
+                    placeholder={defaultMessage}
                   />
                 </div>
                 <button 
@@ -629,10 +632,10 @@ export default function VehicleDetailPage() {
                 </div>
                 <div className="space-y-3 mb-8">
                   <button 
-                    onClick={handleEmailSeller}
+                    onClick={handleContactSeller}
                     className="w-full h-12 bg-[#002D72] text-white font-bold rounded-md flex items-center justify-center gap-3 hover:bg-[#001D4A] transition-colors"
                   >
-                    <MessageSquare className="w-5 h-5" /> {leadWallEnabled && !user ? "Create Account to Contact Seller" : "Email Seller"}
+                    <MessageSquare className="w-5 h-5" /> {leadWallEnabled && !user ? "Create Account to Contact Seller" : "Contact Seller"}
                   </button>
                   {car.seller_phone && (
                     !leadWallEnabled || user ? (
