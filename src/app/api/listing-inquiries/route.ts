@@ -115,7 +115,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (!emailResult.ok) {
-      return NextResponse.json({ error: emailResult.error }, { status: 502 });
+      console.error("Seller inquiry email delivery failed:", {
+        listing_id,
+        seller_id: listing.user_id,
+        error: emailResult.error,
+      });
     }
 
     await subscribeKlaviyoEmail({
@@ -130,7 +134,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ ok: true, emailSent: true });
+    return NextResponse.json({
+      ok: true,
+      emailSent: emailResult.ok,
+      emailDeliveryError: emailResult.ok ? null : emailResult.error,
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to send inquiry" }, { status: 500 });
   }

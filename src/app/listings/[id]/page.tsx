@@ -226,9 +226,14 @@ export default function VehicleDetailPage() {
         }),
       });
 
+      const payload = await response.json().catch(() => null);
+
       if (!response.ok) {
-        const payload = await response.json().catch(() => null);
         throw new Error(payload?.error || 'Failed to send inquiry');
+      }
+
+      if (payload?.emailSent === false) {
+        console.warn('Seller email delivery was not completed:', payload.emailDeliveryError);
       }
 
       setContactSent(true);
@@ -239,9 +244,10 @@ export default function VehicleDetailPage() {
       }, 3000);
     } catch (err) {
       console.error('Error sending inquiry:', err);
-      alert('Failed to send message. Please try again.');
+      alert(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   };
 
   if (loading) {
