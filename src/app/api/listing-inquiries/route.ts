@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { subscribeKlaviyoEmail } from "@/lib/klaviyo/server";
-import { sendSellerInquiryEmail } from "@/lib/email/seller-inquiry";
+import { subscribeKlaviyoEmail, trackKlaviyoEvent } from "@/lib/klaviyo/server";
 
 function cleanString(value: unknown, maxLength: number) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
@@ -103,24 +102,53 @@ export async function POST(req: NextRequest) {
       "Seller";
     const vehicleLabel = vehicleLabelFor(listing);
 
-    const emailResult = await sendSellerInquiryEmail({
-      to: seller.email,
-      sellerName,
-      buyerName: name,
-      buyerEmail: email,
-      buyerPhone: phone || null,
-      message,
-      vehicleLabel,
-      listingUrl,
+    const notificationResult = await trackKlaviyoEvent({
+      metricName: "Seller inquiry received",
+      profile: {
+        email: seller.email,
+        first_name: seller.first_name || undefined,
+        last_name: seller.last_name || undefined,
+        external_id: listing.user_id,
+        properties: {
+          receives_listing_inquiries: true,
+        },
+      },
+      properties: {
+        listing_id,
+        listing_url: listingUrl,
+        vehicle_name: vehicleLabel,
+        seller_name: sellerName,
+        buyer_name: name,
+        buyer_email: email,
+        buyer_phone: phone || null,
+        message,
+        source: "listing_contact_form",
+      },
     });
 
-    if (!emailResult.ok) {
-      console.error("Seller inquiry email delivery failed:", {
+    if (!notificationResult.ok) {
+      console.error("Klaviyo seller inquiry notification failed:", {
         listing_id,
         seller_id: listing.user_id,
-        error: emailResult.error,
+        result: notificationResult,
       });
     }
+
+    await trackKlaviyoEvent({
+      metricName: "Contact seller",
+      profile: {
+        email,
+        first_name: name.split(" ")[0],
+        last_name: name.split(" ").slice(1).join(" ") || undefined,
+      },
+      properties: {
+        listing_id,
+        listing_url: listingUrl,
+        vehicle_name: vehicleLabel,
+        high_intent: true,
+        source: "listing_contact_form",
+      },
+    });
 
     await subscribeKlaviyoEmail({
       email,
@@ -136,8 +164,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      emailSent: emailResult.ok,
-      emailDeliveryError: emailResult.ok ? null : emailResult.error,
+      provider: "klaviyo",
+      notificationSent: notificationResult.ok,
+      emailSent: notificationResult.ok,
+      notificationDeliveryError: notificationResult.ok ? null : notificationResult,
+      emailDeliveryError: notificationResult.ok ? null : notificationResult,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to send inquiry" }, { status: 500 });
