@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -22,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { trackClientEvent } from "@/lib/klaviyo/client";
 import { compressImageForUpload } from "@/lib/images/client-compression";
 
@@ -47,7 +47,7 @@ type SellerOption = {
 
 export default function AdminCreateListing() {
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<AdminListingImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -89,46 +89,33 @@ export default function AdminCreateListing() {
     const loadSellers = async () => {
       setLoadingSellers(true);
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const response = await fetch("/api/admin/users", { cache: "no-store" });
+        const payload = await response.json().catch(() => null);
 
-        const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id,email,first_name,last_name,role")
-          .order("email", { ascending: true });
-
-        if (profilesError) throw profilesError;
-
-        const { data: dealerProfiles, error: dealerError } = await supabase
-          .from("dealer_profiles")
-          .select("user_id,dealership_name");
-
-        if (dealerError) {
-          console.warn("Unable to load dealer names for listing owner selector:", dealerError.message);
+        if (!response.ok) {
+          throw new Error(payload?.error || "Failed to load users");
         }
 
-        const dealerNames = new Map(
-          (dealerProfiles || []).map((dealer) => [dealer.user_id, dealer.dealership_name])
-        );
+        const options: SellerOption[] = (Array.isArray(payload?.data) ? payload.data : [])
+          .map((profile: any) => {
+            const email = profile.email || "";
+            const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim();
+            const dealershipName = profile.dealership_name;
+            const label = dealershipName || fullName || email || "Account";
+            const secondaryParts = [
+              email,
+              profile.role === "DEALER" || dealershipName ? "Dealer account" : `${profile.role} account`,
+            ].filter(Boolean);
 
-        const options = (profiles || []).map((profile) => {
-          const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim();
-          const dealershipName = dealerNames.get(profile.id);
-          const label = dealershipName || fullName || profile.email;
-          const secondaryParts = [
-            profile.email,
-            profile.role === "DEALER" || dealershipName ? "Dealer account" : `${profile.role} account`,
-          ];
-
-          return {
-            id: profile.id,
-            email: profile.email,
-            label,
-            secondary: secondaryParts.join(" - "),
-            role: profile.role,
-          };
-        });
+            return {
+              id: profile.id,
+              email,
+              label,
+              secondary: secondaryParts.join(" - "),
+              role: profile.role,
+            };
+          })
+          .sort((a: SellerOption, b: SellerOption) => a.email.localeCompare(b.email));
 
         setSellerOptions(options);
         setSelectedSellerId((current) => {
@@ -145,7 +132,7 @@ export default function AdminCreateListing() {
     };
 
     loadSellers();
-  }, [supabase]);
+  }, [user?.id]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
