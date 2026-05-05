@@ -282,7 +282,7 @@ export default function VehicleDetailPage() {
 
   const handleContactSeller = () => {
     void trackClientEvent({
-      event: "Contact seller",
+      event: "Opened contact seller form",
       profile: {
         email: user?.email,
         external_id: user?.id,
@@ -298,6 +298,7 @@ export default function VehicleDetailPage() {
         image: car.images?.[0]?.url || null,
         url: typeof window !== "undefined" ? window.location.href : null,
         location: car.location,
+        event_type: "contact_modal_opened",
       },
     });
 
