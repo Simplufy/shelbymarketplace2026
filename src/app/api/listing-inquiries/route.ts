@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Seller email is not available" }, { status: 500 });
     }
 
-    const { error } = await writer.from("listing_inquiries").insert({
+    const { data: inquiry, error } = await writer.from("listing_inquiries").insert({
       listing_id,
       seller_id: listing.user_id,
       buyer_name: name,
@@ -89,7 +89,8 @@ export async function POST(req: NextRequest) {
       message,
       status: "pending",
       created_at: new Date().toISOString(),
-    });
+    }).select("id")
+      .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -101,6 +102,7 @@ export async function POST(req: NextRequest) {
       [seller.first_name, seller.last_name].filter(Boolean).join(" ").trim() ||
       "Seller";
     const vehicleLabel = vehicleLabelFor(listing);
+    const inquiryId = inquiry?.id || `${listing_id}-${Date.now()}`;
 
     await subscribeKlaviyoEmail({
       email: seller.email,
@@ -121,14 +123,15 @@ export async function POST(req: NextRequest) {
         email: seller.email,
         first_name: seller.first_name || undefined,
         last_name: seller.last_name || undefined,
-        external_id: listing.user_id,
         properties: {
           receives_listing_inquiries: true,
         },
       },
       properties: {
+        inquiry_id: inquiryId,
         listing_id,
         listing_url: listingUrl,
+        seller_user_id: listing.user_id,
         vehicle_name: vehicleLabel,
         seller_name: sellerName,
         buyer_name: name,
@@ -139,6 +142,7 @@ export async function POST(req: NextRequest) {
         event_type: "seller_inquiry_received",
         source: "listing_contact_form",
       },
+      uniqueId: `seller-inquiry:${inquiryId}`,
     });
 
     if (!notificationResult.ok) {
@@ -157,6 +161,7 @@ export async function POST(req: NextRequest) {
         last_name: name.split(" ").slice(1).join(" ") || undefined,
       },
       properties: {
+        inquiry_id: inquiryId,
         listing_id,
         listing_url: listingUrl,
         vehicle_name: vehicleLabel,
@@ -169,6 +174,7 @@ export async function POST(req: NextRequest) {
         event_type: "buyer_contact_submitted",
         source: "listing_contact_form",
       },
+      uniqueId: `buyer-inquiry:${inquiryId}`,
     });
 
     await subscribeKlaviyoEmail({

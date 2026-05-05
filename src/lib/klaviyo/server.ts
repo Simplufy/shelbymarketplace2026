@@ -131,6 +131,7 @@ export async function trackKlaviyoEvent(params: {
   metricName: string;
   profile: KlaviyoProfile;
   properties?: Record<string, unknown>;
+  uniqueId?: string;
 }) {
   const headers = getHeaders();
   if (!headers) return { ok: false, skipped: true, reason: "missing_api_key" };
@@ -154,6 +155,7 @@ export async function trackKlaviyoEvent(params: {
           },
           properties: params.properties || {},
           time: new Date().toISOString(),
+          unique_id: params.uniqueId || crypto.randomUUID(),
         },
       },
     };
