@@ -27,7 +27,7 @@ export default function VDPImageGallery({ images }: { images: string[] }) {
   return (
     <div className="flex flex-col mb-8">
       {/* Main Image Viewport constraints for Edge-to-Edge look */}
-      <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] lg:aspect-[2.35/1] bg-gray-900 overflow-hidden mx-auto">
+      <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] lg:aspect-[2.35/1] listing-photo-frame overflow-hidden mx-auto">
         <div className="overflow-hidden h-full" ref={emblaRef}>
           <div className="flex h-full">
             {images.map((src, idx) => (
@@ -35,7 +35,7 @@ export default function VDPImageGallery({ images }: { images: string[] }) {
                 <img 
                   src={src} 
                   alt={`Vehicle Image ${idx + 1}`} 
-                  className="absolute block w-full h-full object-cover" 
+                  className="absolute inset-0 block listing-photo"
                 />
               </div>
             ))}
@@ -69,11 +69,11 @@ export default function VDPImageGallery({ images }: { images: string[] }) {
           <button 
             key={idx} 
             onClick={() => emblaApi && emblaApi.scrollTo(idx)}
-            className={`flex-shrink-0 relative w-24 h-16 rounded-md overflow-hidden border-2 transition-all ${
+            className={`flex-shrink-0 relative w-24 h-16 rounded-md overflow-hidden border-2 transition-all listing-photo-frame ${
               idx === selectedIndex ? "border-[var(--color-shelby-red)] opacity-100" : "border-transparent opacity-60 hover:opacity-100"
             }`}
           >
-            <img src={src} className="w-full h-full object-cover" alt="thumbnail" />
+            <img src={src} className="listing-photo" alt="thumbnail" />
           </button>
         ))}
       </div>

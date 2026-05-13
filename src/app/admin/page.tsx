@@ -318,11 +318,11 @@ export default function AdminDashboard() {
                   <tr key={listing.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden listing-photo-frame flex-shrink-0">
                           <img 
                             src={listing.primary_image_url || "/images/logo.png"} 
                             alt=""
-                            className="w-full h-full object-cover"
+                            className="listing-photo"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = '/images/logo.png';
                             }}

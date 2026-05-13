@@ -714,12 +714,12 @@ export default function AdminCreateListing() {
                   }}
                   onDrop={(event) => handleImageDrop(event, index)}
                   onDragEnd={() => setDraggedImageIndex(null)}
-                  className={`relative aspect-square rounded-lg overflow-hidden group cursor-move border border-transparent transition-all ${
+                  className={`relative aspect-square rounded-lg overflow-hidden group cursor-move border border-transparent transition-all listing-photo-frame ${
                     draggedImageIndex === index ? "opacity-60 ring-2 ring-[#002D72]" : "hover:border-[#002D72]/40"
                   }`}
                   onClick={() => setPrimaryImageIndex(index)}
                 >
-                  <Image src={img.url} alt="" fill sizes="96px" unoptimized className="object-cover" />
+                  <Image src={img.url} alt="" fill sizes="96px" unoptimized className="listing-photo" />
                   {index === primaryImageIndex && (
                     <span className="absolute top-1 left-1 px-2 py-0.5 bg-[#002D72] text-white text-[10px] font-bold rounded">
                       Primary

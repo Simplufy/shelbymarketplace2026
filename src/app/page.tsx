@@ -371,8 +371,8 @@ export default async function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {featuredListings.map((car) => (
               <Link key={car.id} href={`/listings/${car.id}`} className="card-shadow bg-white rounded-xl border border-[#dee1e6] overflow-hidden flex flex-col hover:shadow-lg transition-shadow">
-                <div className="relative h-44 md:h-48 overflow-hidden">
-                  <img src={car.primary_image_url || '/images/logo.png'} className="w-full h-full object-cover" alt={`${car.year} ${car.make} ${car.model}`} />
+                <div className="relative h-44 md:h-48 overflow-hidden listing-photo-frame">
+                  <img src={car.primary_image_url || '/images/logo.png'} className="listing-photo" alt={`${car.year} ${car.make} ${car.model}`} />
                   {car.is_featured && <div className="absolute top-3 left-3 px-2 md:px-3 py-0.5 md:py-1 bg-[#E31837] text-white text-[9px] md:text-[10px] font-bold rounded-full">FEATURED</div>}
                   {car.listing_tags && Array.isArray(car.listing_tags) && (
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
@@ -418,8 +418,8 @@ export default async function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             {soldListings.map((car) => (
               <div key={car.id} className="bg-white rounded-xl border border-[#dee1e6] overflow-hidden flex flex-col opacity-75">
-                <div className="relative h-40 md:h-44 overflow-hidden">
-                  <img src={car.primary_image_url || '/images/logo.png'} className="w-full h-full object-cover grayscale" alt={`${car.year} ${car.make} ${car.model}`} />
+                <div className="relative h-40 md:h-44 overflow-hidden listing-photo-frame">
+                  <img src={car.primary_image_url || '/images/logo.png'} className="listing-photo grayscale" alt={`${car.year} ${car.make} ${car.model}`} />
                   <div className="absolute top-2.5 left-2.5 md:top-3 md:left-3 px-2 md:px-3 py-0.5 md:py-1 bg-[#171a1f] text-white text-[9px] md:text-[10px] font-bold rounded-full">SOLD</div>
                 </div>
                 <div className="p-4 md:p-5 flex-1 flex flex-col">

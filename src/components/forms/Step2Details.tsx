@@ -371,14 +371,14 @@ export default function Step2Details({ initialData, onNext, onBack }: any) {
         {uploadedImages.length > 0 && (
           <div className="mt-3 md:mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
             {uploadedImages.map((image, index) => (
-              <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 group cursor-pointer" onClick={() => setPrimary(index)}>
+              <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 group cursor-pointer listing-photo-frame" onClick={() => setPrimary(index)}>
                 <Image
                   src={image.url} 
                   alt={`Upload ${index + 1}`} 
                   fill
                   sizes="(min-width: 768px) 20vw, 33vw"
                   unoptimized
-                  className="object-cover"
+                  className="listing-photo"
                 />
                 <div className="absolute top-1 left-1 flex gap-1">
                   {index === primaryImageIndex && (

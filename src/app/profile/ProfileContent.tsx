@@ -50,11 +50,11 @@ function ListingCard({ listing, onDelete }: { listing: any; onDelete?: () => voi
   
   return (
     <div className="bg-white rounded-xl border border-[#dee1e6] overflow-hidden card-shadow group">
-      <div className="relative aspect-[16/10] overflow-hidden">
+      <div className="relative aspect-[16/10] overflow-hidden listing-photo-frame">
         <img 
           src={primaryImage?.url || "https://placehold.co/600x400/1e293b/ffffff?text=No+Image"} 
           alt={listing.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="listing-photo"
         />
         <div className="absolute top-3 left-3 flex gap-2">
           {listing.status === 'PENDING' && (

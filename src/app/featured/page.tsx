@@ -61,8 +61,8 @@ export default function FeaturedListingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {sorted.map((car) => (
               <Link key={car.id} href={`/listings/${car.id}`} className="bg-white rounded-xl border border-[#dee1e6] overflow-hidden card-shadow hover:shadow-lg transition-shadow">
-                <div className="relative h-56">
-                  <img src={car.primary_image_url || "/images/logo.png"} alt={`${car.year} ${car.make} ${car.model}`} className="w-full h-full object-cover" />
+                <div className="relative h-56 listing-photo-frame">
+                  <img src={car.primary_image_url || "/images/logo.png"} alt={`${car.year} ${car.make} ${car.model}`} className="listing-photo" />
                   <div className="absolute top-3 left-3 px-2.5 py-1 bg-[#E31837] text-white text-[10px] font-bold rounded-full">FEATURED</div>
                   <FavoriteButton listingId={car.id} className="absolute top-3 right-3" />
                 </div>

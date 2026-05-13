@@ -447,14 +447,14 @@ export default function AdminListings() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                    <div className="w-16 h-12 rounded-lg overflow-hidden listing-photo-frame shrink-0">
                       <Image
                         src={listing.primary_image_url || "/images/logo.png"} 
                         alt="" 
                         width={64}
                         height={48}
                         unoptimized
-                        className="w-full h-full object-cover" 
+                        className="listing-photo"
                       />
                     </div>
                     <div>

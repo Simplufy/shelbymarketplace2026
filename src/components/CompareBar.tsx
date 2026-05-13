@@ -32,11 +32,13 @@ export function CompareBar() {
                   key={item.id}
                   className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2"
                 >
-                  <img
-                    src={item.primary_image_url || "/images/logo.png"}
-                    alt=""
-                    className="w-10 h-10 object-cover rounded"
-                  />
+                  <div className="w-10 h-10 rounded listing-photo-frame overflow-hidden flex-shrink-0">
+                    <img
+                      src={item.primary_image_url || "/images/logo.png"}
+                      alt=""
+                      className="listing-photo"
+                    />
+                  </div>
                   <div className="text-xs">
                     <p className="font-medium truncate max-w-[100px]">
                       {item.year} {item.make}

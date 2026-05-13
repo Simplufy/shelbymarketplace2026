@@ -109,11 +109,11 @@ export default function ComparePage() {
                 >
                   <X className="w-4 h-4" />
                 </button>
-                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-4">
+                <div className="aspect-video listing-photo-frame rounded-lg overflow-hidden mb-4">
                   <img
                     src={item.primary_image_url || "/images/logo.png"}
                     alt={`${item.year} ${item.make} ${item.model}`}
-                    className="w-full h-full object-cover"
+                    className="listing-photo"
                   />
                 </div>
                 <h3 className="font-bold text-lg mb-1">

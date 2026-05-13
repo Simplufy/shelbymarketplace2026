@@ -37,8 +37,8 @@ export default function FeaturedCarousel() {
               </div>
 
               {/* Image with zoom */}
-              <div className="relative h-72 overflow-hidden bg-gray-200">
-                <img src={car.img} alt={`${car.year} ${car.model}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+              <div className="relative h-72 overflow-hidden listing-photo-frame">
+                <img src={car.img} alt={`${car.year} ${car.model}`} className="listing-photo" />
               </div>
 
               {/* Content */}

@@ -18,8 +18,8 @@ export default function LatestGrid() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
           {MOCK_LATEST.map((car) => (
             <Link key={car.id} href={`/listings/${car.id}`} className="group block">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100 mb-4 shadow-sm group-hover:shadow-lg transition-all duration-300">
-                <img src={car.img} alt={`${car.year} ${car.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="relative aspect-[4/3] overflow-hidden rounded-xl listing-photo-frame mb-4 shadow-sm group-hover:shadow-lg transition-all duration-300">
+                <img src={car.img} alt={`${car.year} ${car.model}`} className="listing-photo" />
               </div>
               <h4 className="font-bold text-xl text-gray-900 group-hover:text-[var(--color-shelby-blue)] transition-colors truncate">
                 {car.year} {car.make} {car.model}

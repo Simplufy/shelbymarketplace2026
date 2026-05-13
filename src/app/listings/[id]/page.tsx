@@ -455,14 +455,14 @@ export default function VehicleDetailPage() {
           <div className="lg:col-span-8 space-y-10">
             {/* Gallery */}
             <div className="space-y-4">
-              <div className="relative aspect-[16/9] w-full bg-[#f3f4f6] rounded-lg overflow-hidden shadow-sm">
+              <div className="relative aspect-[16/9] w-full listing-photo-frame rounded-lg overflow-hidden shadow-sm">
                 <Image
                   src={allImages[activeThumb] || '/images/logo.png'} 
                   alt={`${car.year} ${car.make} ${car.model}`} 
                   fill
                   sizes="(min-width: 1024px) 66vw, 100vw"
                   unoptimized
-                  className="object-cover"
+                  className="listing-photo"
                   onError={(e) => { (e.target as HTMLImageElement).src = '/images/logo.png'; }}
                 />
                 {allImages.length > 1 && (
@@ -495,9 +495,9 @@ export default function VehicleDetailPage() {
                     <button 
                       key={idx} 
                       onClick={() => setActiveThumb(idx)} 
-                      className={`relative flex-shrink-0 w-32 h-20 rounded-md overflow-hidden border-2 transition-all cursor-pointer ${idx === activeThumb ? 'border-[#002D72]' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                      className={`relative flex-shrink-0 w-32 h-20 rounded-md overflow-hidden border-2 transition-all cursor-pointer listing-photo-frame ${idx === activeThumb ? 'border-[#002D72]' : 'border-transparent opacity-60 hover:opacity-100'}`}
                     >
-                      <Image src={img} alt={`Thumb ${idx}`} fill sizes="128px" unoptimized className="object-cover" />
+                      <Image src={img} alt={`Thumb ${idx}`} fill sizes="128px" unoptimized className="listing-photo" />
                     </button>
                   ))}
                 </div>
@@ -593,8 +593,8 @@ export default function VehicleDetailPage() {
                 <div className="space-y-3">
                   {relatedListings.map((item) => (
                     <Link key={item.id} href={`/listings/${item.id}`} className="flex gap-3 p-3 border border-[#dee1e6] rounded-xl hover:border-[#002D72]/30 transition-colors">
-                      <div className="relative w-24 h-20 rounded-lg overflow-hidden shrink-0">
-                        <Image src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} fill sizes="96px" unoptimized className="object-cover" />
+                      <div className="relative w-24 h-20 rounded-lg overflow-hidden shrink-0 listing-photo-frame">
+                        <Image src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} fill sizes="96px" unoptimized className="listing-photo" />
                       </div>
                       <div>
                         <p className="text-sm font-bold leading-tight">{item.year} {item.make} {item.model} {item.trim || ''}</p>
@@ -716,8 +716,8 @@ export default function VehicleDetailPage() {
                   <div className="space-y-3">
                     {relatedListings.map((item) => (
                       <Link key={item.id} href={`/listings/${item.id}`} className="flex gap-3 p-2 rounded-lg hover:bg-[#fafafb] transition-colors">
-                        <div className="relative w-20 h-16 rounded-md overflow-hidden shrink-0">
-                          <Image src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} fill sizes="80px" unoptimized className="object-cover" />
+                        <div className="relative w-20 h-16 rounded-md overflow-hidden shrink-0 listing-photo-frame">
+                          <Image src={item.primary_image_url || '/images/logo.png'} alt={`${item.year} ${item.make} ${item.model}`} fill sizes="80px" unoptimized className="listing-photo" />
                         </div>
                         <div>
                           <p className="text-sm font-bold leading-tight line-clamp-2">{item.year} {item.make} {item.model}</p>

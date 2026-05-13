@@ -354,7 +354,7 @@ export default function AdminListingDetail() {
                 {listing.images.map((img, idx) => (
                   <div 
                     key={idx} 
-                    className={`relative aspect-video rounded-lg overflow-hidden border-2 ${
+                    className={`relative aspect-video rounded-lg overflow-hidden border-2 listing-photo-frame ${
                       img.is_primary ? 'border-[#002D72]' : 'border-gray-200'
                     }`}
                   >
@@ -364,7 +364,7 @@ export default function AdminListingDetail() {
                       fill
                       sizes="(max-width: 640px) 50vw, 220px"
                       unoptimized
-                      className="object-cover"
+                      className="listing-photo"
                     />
                     {img.is_primary && (
                       <span className="absolute top-2 left-2 px-2 py-1 bg-[#002D72] text-white text-xs font-bold rounded">

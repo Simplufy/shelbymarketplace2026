@@ -622,8 +622,8 @@ export default function ContentManager() {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <div className="relative h-40">
-                        <img src={listing.image} alt={listing.title} className="w-full h-full object-cover" />
+                      <div className="relative h-40 listing-photo-frame">
+                        <img src={listing.image} alt={listing.title} className="listing-photo" />
                         {isSelected && (
                           <div className="absolute top-3 right-3 w-8 h-8 bg-[#002D72] rounded-full flex items-center justify-center">
                             <CheckCircle className="w-5 h-5 text-white" />
