@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -12,7 +12,6 @@ import {
   Bold,
   Italic,
   List,
-  Eye,
 } from 'lucide-react';
 
 export default function EditArticlePage() {
@@ -30,11 +29,7 @@ export default function EditArticlePage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadArticle();
-  }, [articleId]);
-
-  const loadArticle = async () => {
+  const loadArticle = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/articles?id=${articleId}`);
@@ -56,7 +51,11 @@ export default function EditArticlePage() {
       router.push('/admin/news');
     }
     setLoading(false);
-  };
+  }, [articleId, router]);
+
+  useEffect(() => {
+    loadArticle();
+  }, [loadArticle]);
 
   const wrapSelection = (before: string, after: string, placeholder: string) => {
     const textarea = contentRef.current;

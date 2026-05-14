@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -15,7 +15,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [validLink, setValidLink] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     // Check if we have a valid session from the reset link
@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
       }
     };
     checkSession();
-  }, []);
+  }, [supabase.auth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

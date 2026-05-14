@@ -60,10 +60,10 @@ function stripUnsupportedListingColumns(payload: Record<string, unknown>, error:
   if (!text) return payload;
 
   const next = { ...payload };
-  const isSchemaCacheError = text.includes("schema cache") || text.includes("pgrst204");
+  const unsupportedColumns = OPTIONAL_LISTING_COLUMNS.filter((column) => text.includes(column));
 
-  for (const column of OPTIONAL_LISTING_COLUMNS) {
-    if (text.includes(column) || (isSchemaCacheError && Object.prototype.hasOwnProperty.call(next, column))) {
+  for (const column of unsupportedColumns) {
+    if (Object.prototype.hasOwnProperty.call(next, column)) {
       delete next[column];
     }
   }

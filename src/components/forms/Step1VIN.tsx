@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { decodeVin } from "@/lib/nhtsa/api";
 import { Loader2 } from "lucide-react";
 
 export default function Step1VIN({ initialData, onNext }: any) {
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({ defaultValues: initialData });
+  const { control, register, handleSubmit, setValue, formState: { errors } } = useForm({ defaultValues: initialData });
 
-  const currentVin = watch("vin");
+  const currentVin = useWatch({ control, name: "vin" });
 
   const handleLookup = async () => {
     if (!currentVin || currentVin.length < 17) return alert("Enter valid 17-char VIN");

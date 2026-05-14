@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState, Suspense } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +13,6 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   
   const { signIn } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
 

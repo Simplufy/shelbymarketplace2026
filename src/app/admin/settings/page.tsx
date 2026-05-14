@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { 
   Globe, CreditCard, Shield, Palette,
   Save, CheckCircle, AlertCircle, Loader2, ExternalLink, RefreshCw
@@ -49,19 +49,14 @@ export default function SettingsPage() {
   const [saveMessage, setSaveMessage] = useState<{type: "success" | "error", text: string} | null>(null);
   const [user, setUser] = useState<{id: string} | null>(null);
   
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
-  useEffect(() => {
-    loadSettings();
-    getCurrentUser();
-  }, []);
-
-  const getCurrentUser = async () => {
+  const getCurrentUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
-  };
+  }, [supabase.auth]);
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -130,7 +125,12 @@ export default function SettingsPage() {
       }
     }
     setIsLoading(false);
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadSettings();
+    getCurrentUser();
+  }, [getCurrentUser, loadSettings]);
 
   const handleSave = async () => {
     if (!user) {

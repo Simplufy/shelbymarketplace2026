@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { 
   AlertTriangle,
   CheckCircle, Eye, Image as ImageIcon, Users, DollarSign,
@@ -28,6 +28,29 @@ const quickActions = [
   { label: "Site Settings", href: "/admin/settings", icon: Palette, desc: "Colors, branding, SEO" },
 ];
 
+function getTimeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  const intervals = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+    minute: 60
+  };
+
+  for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+    const interval = Math.floor(seconds / secondsInUnit);
+    if (interval >= 1) {
+      return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
+    }
+  }
+  return 'Just now';
+}
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [listings, setListings] = useState<ListingWithDetails[]>([]);
@@ -43,11 +66,7 @@ export default function AdminDashboard() {
   
   const supabase = createClient();
 
-  useEffect(() => {
-    loadListings();
-  }, []);
-
-  const loadListings = async () => {
+  const loadListings = useCallback(async () => {
     setLoading(true);
     try {
       const controller = new AbortController();
@@ -75,30 +94,11 @@ export default function AdminDashboard() {
       setStats({ total: 0, pending: 0, active: 0, featured: 0, userAccounts: 0, revenueMonthlyCents: null });
     }
     setLoading(false);
-  };
+  }, []);
 
-  const getTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    const intervals = {
-      year: 31536000,
-      month: 2592000,
-      week: 604800,
-      day: 86400,
-      hour: 3600,
-      minute: 60
-    };
-    
-    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
-      const interval = Math.floor(seconds / secondsInUnit);
-      if (interval >= 1) {
-        return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
-      }
-    }
-    return 'Just now';
-  };
+  useEffect(() => {
+    loadListings();
+  }, [loadListings]);
 
   const handleApprove = async (id: string) => {
     try {

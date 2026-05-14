@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Listing, ListingImage, Profile, Insertables } from '@/lib/supabase/database.types'
 
@@ -21,7 +21,7 @@ export function useListings(options: UseListingsOptions = {}) {
   const [listings, setListings] = useState<ListingWithDetails[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const fetchListings = useCallback(async () => {
     try {
@@ -71,7 +71,7 @@ export function useListings(options: UseListingsOptions = {}) {
     } finally {
       setIsLoading(false)
     }
-  }, [options.status, options.featured, options.limit, options.userId])
+  }, [options.status, options.featured, options.limit, options.userId, supabase])
 
   useEffect(() => {
     fetchListings()
@@ -84,7 +84,7 @@ export function useListing(id: string) {
   const [listing, setListing] = useState<ListingWithDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const fetchListing = useCallback(async () => {
     try {
@@ -118,7 +118,7 @@ export function useListing(id: string) {
     } finally {
       setIsLoading(false)
     }
-  }, [id])
+  }, [id, supabase])
 
   useEffect(() => {
     if (id) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Listing, ListingImage, Profile } from '@/lib/supabase/database.types'
 
@@ -13,7 +13,7 @@ export function useFavorites() {
   const [favorites, setFavorites] = useState<FavoriteListing[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const fetchFavorites = useCallback(async () => {
     try {
@@ -47,7 +47,7 @@ export function useFavorites() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [supabase.auth])
 
   const addFavorite = async (listingId: string) => {
     try {
@@ -170,7 +170,7 @@ export function useFavorites() {
 export function useProfile() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateError, setUpdateError] = useState<Error | null>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const withTimeout = async <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> => {
     return Promise.race([

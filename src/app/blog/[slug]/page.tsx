@@ -155,7 +155,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const contentLines = String(article.content || "").split("\n");
 
   const renderedContent: React.ReactNode[] = [];
-  let inList = false;
   let listItems: React.ReactNode[] = [];
   let listKey = 0;
 
@@ -167,7 +166,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </ul>
       );
       listItems = [];
-      inList = false;
     }
   };
 
@@ -179,7 +177,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     }
 
     if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-      inList = true;
       const text = trimmed.slice(2);
       listItems.push(
         <li key={`item-${idx}`} className="ml-2">

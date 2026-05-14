@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { Profile } from '@/lib/supabase/database.types'
@@ -17,20 +17,45 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+const withTimeout = async <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> => {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out`)), ms)
+    ),
+  ])
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
-  const withTimeout = async <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> => {
-    return Promise.race([
-      Promise.resolve(promise),
-      new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error(`${label} timed out`)), ms)
-      ),
-    ])
-  }
+  const fetchProfile = useCallback(async (userId: string) => {
+    try {
+      const result = (await withTimeout(
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single(),
+        10000,
+        'Profile refresh'
+      )) as any
+
+      const { data, error } = result
+
+      if (error) {
+        console.error('Error fetching profile:', error)
+        return
+      }
+
+      setProfile(data)
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+    }
+  }, [supabase])
 
   useEffect(() => {
     // Get initial session
@@ -64,32 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const result = (await withTimeout(
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single(),
-        10000,
-        'Profile refresh'
-      )) as any
-
-      const { data, error } = result
-
-      if (error) {
-        console.error('Error fetching profile:', error)
-        return
-      }
-
-      setProfile(data)
-    } catch (error) {
-      console.error('Error fetching profile:', error)
-    }
-  }
+  }, [fetchProfile, supabase.auth])
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
