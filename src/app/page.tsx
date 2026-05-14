@@ -8,6 +8,7 @@ import { trackKlaviyoEvent } from "@/lib/klaviyo/server";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
 import { ShelbyWeeklySignup } from "@/components/ShelbyWeeklySignup";
 import ScrollReveal from "@/components/animations/ScrollReveal";
+import { ListingPrice } from "@/components/ListingPrice";
 
 export const revalidate = 0;
 
@@ -31,6 +32,7 @@ type ActiveListing = {
   make: string;
   model: string;
   price: number;
+  msrp: number | null;
   mileage: number;
   transmission: string;
   primary_image_url: string | null;
@@ -312,8 +314,6 @@ export default async function Home() {
   const mainArticle = latestNews[0] || null;
   const sideArticles = latestNews.slice(1, 3);
 
-  const formatPrice = (price: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(price);
-
   return (
     <div className="flex flex-col font-inter text-[#171a1f] min-h-screen">
       {/* Hero Section */}
@@ -387,7 +387,13 @@ export default async function Home() {
                 </div>
                 <div className="p-4 md:p-6 flex-1 flex flex-col">
                   <h3 className="font-outfit text-base md:text-xl font-bold mb-1 md:mb-2 line-clamp-1">{car.year} {car.make} {car.model}</h3>
-                  <span className="text-[#E31837] font-outfit text-lg md:text-2xl font-black mb-4 md:mb-6">{formatPrice(car.price)}</span>
+                  <ListingPrice
+                    price={car.price}
+                    originalPrice={car.msrp}
+                    className="mb-4 md:mb-6"
+                    currentClassName="text-[#E31837] font-outfit text-lg md:text-2xl font-black"
+                    originalClassName="text-xs md:text-sm font-bold text-[#565d6d] line-through decoration-2"
+                  />
                   <div className="grid grid-cols-3 border-y border-[#f3f4f6] py-3 md:py-4 mb-4 md:mb-6">
                     <div className="text-center border-r border-[#f3f4f6]"><Calendar className="w-3 h-3 md:w-4 md:h-4 mx-auto mb-0.5 md:mb-1 text-[#565d6d]" /><span className="block text-[9px] md:text-[10px] font-bold text-[#565d6d] uppercase">Year</span><span className="text-[10px] md:text-xs font-semibold">{car.year}</span></div>
                     <div className="text-center border-r border-[#f3f4f6]"><Gauge className="w-3 h-3 md:w-4 md:h-4 mx-auto mb-0.5 md:mb-1 text-[#565d6d]" /><span className="block text-[9px] md:text-[10px] font-bold text-[#565d6d] uppercase">Miles</span><span className="text-[10px] md:text-xs font-semibold">{(car.mileage / 1000).toFixed(0)}k</span></div>
@@ -424,7 +430,13 @@ export default async function Home() {
                 </div>
                 <div className="p-4 md:p-5 flex-1 flex flex-col">
                   <h3 className="font-outfit text-sm md:text-base font-bold mb-1 line-clamp-1">{car.year} {car.make} {car.model}</h3>
-                  <span className="text-[#565d6d] font-outfit text-base md:text-lg font-black mb-2 md:mb-3">{formatPrice(car.price)}</span>
+                  <ListingPrice
+                    price={car.price}
+                    originalPrice={car.msrp}
+                    className="mb-2 md:mb-3"
+                    currentClassName="text-[#565d6d] font-outfit text-base md:text-lg font-black"
+                    originalClassName="text-xs font-bold text-[#9CA3AF] line-through decoration-2"
+                  />
                   <div className="flex gap-3 md:gap-4 text-[10px] md:text-xs text-[#565d6d]"><span>{car.mileage ? `${(car.mileage / 1000).toFixed(0)}k mi` : 'N/A'}</span><span>{car.transmission === 'Automatic' ? 'Auto' : 'Manual'}</span></div>
                 </div>
               </div>

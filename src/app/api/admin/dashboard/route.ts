@@ -50,14 +50,35 @@ export async function GET() {
 
     const supabase = await createClient();
 
-    const { data: listings, error } = await supabase
+    let { data: listings, error } = await supabase
       .from("listings")
-      .select("id, user_id, year, make, model, trim, price, status, is_featured, created_at, location, package_tier")
+      .select("id, user_id, year, make, model, trim, price, msrp, status, is_featured, created_at, location, package_tier")
       .order("created_at", { ascending: false })
       .limit(20);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      const missingMsrp = [error.message, error.details, error.hint]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes("msrp");
+
+      if (!missingMsrp) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      const fallback = await supabase
+        .from("listings")
+        .select("id, user_id, year, make, model, trim, price, status, is_featured, created_at, location, package_tier")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      listings = (fallback.data || []).map((listing: any) => ({ ...listing, msrp: null }));
+      error = fallback.error;
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
 
     const [{ count: totalListingsCount }, { count: totalUsersCount }, monthlyRevenueCents] = await Promise.all([

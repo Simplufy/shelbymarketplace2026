@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import type { Listing } from "@/lib/supabase/database.types";
 import { trackClientEvent } from "@/lib/klaviyo/client";
+import { ListingPrice } from "@/components/ListingPrice";
 
 interface ListingWithDetails extends Listing {
   seller_name: string;
@@ -283,14 +284,6 @@ export default function AdminListings() {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0
-    }).format(price);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -501,7 +494,12 @@ export default function AdminListings() {
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="text-sm font-bold text-gray-900">{formatPrice(listing.price)}</span>
+                  <ListingPrice
+                    price={listing.price}
+                    originalPrice={listing.msrp}
+                    currentClassName="text-sm font-bold text-gray-900"
+                    originalClassName="text-xs font-medium text-gray-400 line-through decoration-1"
+                  />
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-1">

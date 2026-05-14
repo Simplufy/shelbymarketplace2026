@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Calendar, Gauge, ShieldCheck, Zap } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { ListingPrice } from "@/components/ListingPrice";
 
 type Listing = {
   id: string;
@@ -12,6 +13,7 @@ type Listing = {
   model: string;
   trim: string | null;
   price: number;
+  msrp: number | null;
   mileage: number;
   transmission: string;
   location: string | null;
@@ -68,7 +70,13 @@ export default function FeaturedListingsPage() {
                 </div>
                 <div className="p-5">
                   <h3 className="text-xl font-bold mb-1 break-words">{car.year} {car.make} {car.model} {car.trim || ""}</h3>
-                  <p className="text-2xl font-black text-[#E31837] mb-4">${car.price.toLocaleString()}</p>
+                  <ListingPrice
+                    price={car.price}
+                    originalPrice={car.msrp}
+                    className="mb-4"
+                    currentClassName="text-2xl font-black text-[#E31837]"
+                    originalClassName="text-sm font-bold text-[#565d6d] line-through decoration-2"
+                  />
                   <div className="grid grid-cols-3 gap-2 text-xs text-[#565d6d]">
                     <div className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {car.year}</div>
                     <div className="flex items-center gap-1"><Gauge className="w-3 h-3" /> {car.mileage.toLocaleString()} mi</div>

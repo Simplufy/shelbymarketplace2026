@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import { trackClientEvent } from "@/lib/klaviyo/client";
 import { compressImageForUpload } from "@/lib/images/client-compression";
+import { formatListingPrice } from "@/components/ListingPrice";
 
 const TRANSMISSIONS = ["Manual", "Automatic"];
 const DRIVETRAINS = ["RWD", "AWD", "4WD"];
@@ -46,6 +47,7 @@ export default function AdminEditListing() {
   const [uploadedImages, setUploadedImages] = useState<AdminListingImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [originalPrice, setOriginalPrice] = useState<number>(0);
+  const [loadedPrice, setLoadedPrice] = useState<number>(0);
   const [listingUserId, setListingUserId] = useState<string>("");
   const [listingUserEmail, setListingUserEmail] = useState<string>("");
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
@@ -116,7 +118,9 @@ export default function AdminEditListing() {
         video_url: listing.video_url || "",
         listing_tags: listing.listing_tags ? (typeof listing.listing_tags === 'string' ? JSON.parse(listing.listing_tags) : listing.listing_tags) : [],
       });
-      setOriginalPrice(Number(listing.price || 0));
+      const savedPrice = Number(listing.price || 0);
+      setOriginalPrice(Number(listing.msrp || savedPrice || 0));
+      setLoadedPrice(savedPrice);
       setListingUserId(listing.user_id || "");
       setListingUserEmail(payload?.data?.seller?.email || "");
 
@@ -274,9 +278,11 @@ export default function AdminEditListing() {
     try {
       // Update listing
       const newPrice = Number(formData.price);
+      const preservedOriginalPrice = originalPrice || loadedPrice || newPrice;
       const updatePayload = {
         ...formData,
         price: newPrice,
+        msrp: preservedOriginalPrice,
         mileage: Number(formData.mileage),
         year: Number(formData.year),
         listing_tags: formData.listing_tags.length > 0 ? formData.listing_tags : null,
@@ -295,7 +301,7 @@ export default function AdminEditListing() {
         throw new Error(payload?.error || "Failed to update listing");
       }
 
-      if (originalPrice > 0 && newPrice < originalPrice) {
+      if (loadedPrice > 0 && newPrice < loadedPrice) {
         await trackClientEvent({
           event: "Price drop",
           profile: {
@@ -309,9 +315,10 @@ export default function AdminEditListing() {
             make: formData.make,
             model: formData.model,
             trim: formData.trim || null,
-            old_price: originalPrice,
+            old_price: loadedPrice,
             new_price: newPrice,
             price: newPrice,
+            original_price: preservedOriginalPrice,
             image: uploadedImages[0]?.url || null,
             url: `${window.location.origin}/listings/${listingId}`,
             location: formData.location,
@@ -467,6 +474,11 @@ export default function AdminEditListing() {
                   placeholder="105000"
                 />
               </div>
+              {originalPrice > Number(formData.price || 0) ? (
+                <p className="mt-2 text-xs font-medium text-gray-500">
+                  Original asking price {formatListingPrice(originalPrice)} will show struck through.
+                </p>
+              ) : null}
             </div>
 
             <div>

@@ -9,6 +9,7 @@ import {
   Car, FileText, Image as ImageIcon,
   Loader2, Package, Phone, Mail, Check, Wrench, Tag, Save, X
 } from 'lucide-react';
+import { ListingPrice } from "@/components/ListingPrice";
 
 interface ListingDetail {
   id: string;
@@ -18,6 +19,7 @@ interface ListingDetail {
   model: string;
   trim: string | null;
   price: number;
+  msrp: number | null;
   mileage: number;
   description: string;
   transmission: string;
@@ -214,14 +216,6 @@ export default function AdminListingDetail() {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(price);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'long',
@@ -413,7 +407,12 @@ export default function AdminListingDetail() {
           {/* Price Card */}
           <div className="bg-[#002D72] rounded-xl p-6 text-white">
             <p className="text-white/70 text-sm mb-1">Asking Price</p>
-            <p className="text-3xl font-black">{formatPrice(listing.price)}</p>
+            <ListingPrice
+              price={listing.price}
+              originalPrice={listing.msrp}
+              currentClassName="text-3xl font-black text-white"
+              originalClassName="text-sm font-bold text-white/60 line-through decoration-2"
+            />
             {listing.mileage > 0 && (
               <p className="text-white/70 text-sm mt-2">
                 {listing.mileage.toLocaleString()} miles

@@ -5,6 +5,7 @@ import { useCompare } from "@/contexts/CompareContext";
 import { X, ChevronRight, Scale, Check, ArrowRight } from "lucide-react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ListingPrice, formatListingPrice } from "@/components/ListingPrice";
 
 export default function ComparePage() {
   const { comparedItems, removeFromCompare, clearCompare } = useCompare();
@@ -20,13 +21,7 @@ export default function ComparePage() {
     return null;
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = formatListingPrice;
 
   const formatMileage = (mileage: number) => {
     return mileage.toLocaleString();
@@ -120,9 +115,13 @@ export default function ComparePage() {
                   {item.year} {item.make} {item.model}
                 </h3>
                 <p className="text-sm text-gray-500 mb-3">{item.trim || "Standard"}</p>
-                <p className="text-2xl font-black text-[#E31837] mb-4">
-                  {formatPrice(item.price)}
-                </p>
+                <ListingPrice
+                  price={item.price}
+                  originalPrice={item.msrp}
+                  className="mb-4"
+                  currentClassName="text-2xl font-black text-[#E31837]"
+                  originalClassName="text-sm font-bold text-gray-500 line-through decoration-2"
+                />
                 <Link
                   href={`/listings/${item.id}`}
                   className="w-full py-2.5 bg-[#002D72] text-white font-medium rounded-lg flex items-center justify-center gap-2 hover:bg-[#001D4A] transition-colors"

@@ -93,6 +93,7 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
   const stripUnsupportedListingColumns = (payload: Record<string, any>, message?: string) => {
     if (!message) return payload;
     const next = { ...payload };
+    if (message.includes("'msrp'")) delete next.msrp;
     if (message.includes("'listing_tags'")) delete next.listing_tags;
     if (message.includes("'service_history'")) delete next.service_history;
     return next;
@@ -106,6 +107,7 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
     model: vehicleData.model,
     trim: vehicleData.trim,
     price: vehicleData.price,
+    msrp: vehicleData.price,
     mileage: vehicleData.mileage,
     description: vehicleData.description,
     location: vehicleData.location,

@@ -3,6 +3,7 @@
 import { X, Scale, ChevronRight } from "lucide-react";
 import { useCompare } from "@/contexts/CompareContext";
 import Link from "next/link";
+import { ListingPrice } from "@/components/ListingPrice";
 
 export function CompareBar() {
   const { comparedItems, removeFromCompare, clearCompare } = useCompare();
@@ -43,7 +44,14 @@ export function CompareBar() {
                     <p className="font-medium truncate max-w-[100px]">
                       {item.year} {item.make}
                     </p>
-                    <p className="text-gray-500">${(item.price / 1000).toFixed(0)}k</p>
+                    <ListingPrice
+                      price={item.price}
+                      originalPrice={item.msrp}
+                      orientation="inline"
+                      formatPrice={(price) => `$${(Number(price || 0) / 1000).toFixed(0)}k`}
+                      currentClassName="text-gray-500"
+                      originalClassName="text-[10px] text-gray-400 line-through decoration-1"
+                    />
                   </div>
                   <button
                     onClick={() => removeFromCompare(item.id)}

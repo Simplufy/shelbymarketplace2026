@@ -10,6 +10,7 @@ const RELATED_LISTING_TABLES = [
   "listing_page_views",
 ];
 const OPTIONAL_LISTING_COLUMNS = [
+  "msrp",
   "listing_tags",
   "service_history",
   "carfax_report_url",

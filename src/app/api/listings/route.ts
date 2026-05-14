@@ -10,14 +10,36 @@ export async function GET(req: NextRequest) {
     const to = from + pageSize - 1;
 
     const supabase = await createClient();
-    const { data, error, count } = await supabase
+    let { data, error, count } = await supabase
       .from("active_listings")
-      .select("id, year, make, model, trim, price, mileage, transmission, drivetrain, location, status, is_featured, primary_image_url, dealership_name, vin", { count: "exact" })
+      .select("id, year, make, model, trim, price, msrp, mileage, transmission, drivetrain, location, status, is_featured, primary_image_url, dealership_name, vin", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(from, to);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      const missingMsrp = [error.message, error.details, error.hint]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes("msrp");
+
+      if (!missingMsrp) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      const fallback = await supabase
+        .from("active_listings")
+        .select("id, year, make, model, trim, price, mileage, transmission, drivetrain, location, status, is_featured, primary_image_url, dealership_name, vin", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      data = (fallback.data || []).map((listing: any) => ({ ...listing, msrp: null }));
+      error = fallback.error;
+      count = fallback.count;
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
 
     const total = count || 0;

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Listing } from "@/lib/supabase/database.types";
 import { trackClientEvent } from "@/lib/klaviyo/client";
+import { ListingPrice } from "@/components/ListingPrice";
 
 interface ListingWithDetails extends Listing {
   seller_name: string;
@@ -333,7 +334,12 @@ export default function AdminDashboard() {
                             {listing.year} {listing.make} {listing.model}
                           </div>
                           <div className="text-xs text-gray-500 font-mono">{listing.vin}</div>
-                          <div className="text-sm font-bold text-[#E31837]">{formatPrice(listing.price)}</div>
+                          <ListingPrice
+                            price={listing.price}
+                            originalPrice={listing.msrp}
+                            currentClassName="text-sm font-bold text-[#E31837]"
+                            originalClassName="text-xs font-medium text-gray-400 line-through decoration-1"
+                          />
                         </div>
                       </div>
                     </td>

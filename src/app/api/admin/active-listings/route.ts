@@ -9,15 +9,37 @@ export async function GET() {
 
     const supabase = await createClient();
 
-    const { data: listings, error } = await supabase
+    let { data: listings, error } = await supabase
       .from("listings")
-      .select("id, year, make, model, price")
+      .select("id, year, make, model, price, msrp")
       .eq("status", "ACTIVE")
       .order("created_at", { ascending: false })
       .limit(20);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      const missingMsrp = [error.message, error.details, error.hint]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes("msrp");
+
+      if (!missingMsrp) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      const fallback = await supabase
+        .from("listings")
+        .select("id, year, make, model, price")
+        .eq("status", "ACTIVE")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      listings = (fallback.data || []).map((listing: any) => ({ ...listing, msrp: null }));
+      error = fallback.error;
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
 
     const ids = (listings || []).map((l) => l.id);
@@ -36,6 +58,7 @@ export async function GET() {
       id: l.id,
       title: `${l.year} ${l.make} ${l.model}`,
       price: l.price,
+      msrp: l.msrp,
       image: imageByListing.get(l.id) || "/images/logo.png",
     }));
 

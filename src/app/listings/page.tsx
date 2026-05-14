@@ -6,6 +6,7 @@ import { Search, MapPin, ShieldCheck, X, SlidersHorizontal } from "lucide-react"
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { CompareButton } from "@/components/CompareButton";
 import LoadingAnimation from "@/components/global/LoadingAnimation";
+import { ListingPrice } from "@/components/ListingPrice";
 
 interface Listing {
   id: string;
@@ -14,6 +15,7 @@ interface Listing {
   model: string;
   trim: string | null;
   price: number;
+  msrp: number | null;
   mileage: number;
   transmission: string;
   drivetrain: string;
@@ -94,7 +96,7 @@ function ListingsContent() {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      const cacheKey = 'shelby_listings_cache_v1';
+      const cacheKey = 'shelby_listings_cache_v2';
       const cachedRaw = typeof window !== 'undefined' ? sessionStorage.getItem(cacheKey) : null;
       if (cachedRaw) {
         try {
@@ -409,9 +411,13 @@ function ListingsContent() {
                   <h3 className="text-lg font-bold tracking-tight break-words">
                     {car.year} {car.make} {car.model}
                   </h3>
-                  <span className="text-xl font-extrabold text-[#E31837] font-heading whitespace-nowrap shrink-0">
-                    ${car.price.toLocaleString()}
-                  </span>
+                  <ListingPrice
+                    price={car.price}
+                    originalPrice={car.msrp}
+                    className="sm:items-end whitespace-nowrap shrink-0"
+                    currentClassName="text-xl font-extrabold text-[#E31837] font-heading"
+                    originalClassName="text-xs font-bold text-[#565d6d] line-through decoration-2"
+                  />
                 </div>
                 <p className="text-sm font-medium text-[#565d6d] mb-4 break-words">
                   {car.trim || 'Standard Edition'}

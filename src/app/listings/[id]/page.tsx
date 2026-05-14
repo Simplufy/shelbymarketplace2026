@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { trackClientEvent } from "@/lib/klaviyo/client";
 import { KlaviyoInlineForm } from "@/components/KlaviyoInlineForm";
 import LoadingAnimation from "@/components/global/LoadingAnimation";
+import { ListingPrice } from "@/components/ListingPrice";
 
 interface ListingDetail {
   id: string;
@@ -18,6 +19,7 @@ interface ListingDetail {
   model: string;
   trim: string | null;
   price: number;
+  msrp: number | null;
   mileage: number;
   description: string;
   transmission: string;
@@ -51,6 +53,7 @@ type RelatedListing = {
   model: string;
   trim: string | null;
   price: number;
+  msrp: number | null;
   mileage: number;
   primary_image_url: string | null;
 };
@@ -152,6 +155,7 @@ export default function VehicleDetailPage() {
         model: listing.model,
         trim: listing.trim,
         price: listing.price,
+        original_price: listing.msrp,
         image: listing.images?.[0]?.url || null,
         url: typeof window !== "undefined" ? window.location.href : null,
         location: listing.location,
@@ -440,9 +444,13 @@ export default function VehicleDetailPage() {
             </div>
           </div>
           <div className="text-left lg:text-right">
-            <div className="text-3xl md:text-4xl font-outfit font-black text-[#E31837]">
-              ${car.price.toLocaleString()}
-            </div>
+            <ListingPrice
+              price={car.price}
+              originalPrice={car.msrp}
+              className="lg:items-end"
+              currentClassName="text-3xl md:text-4xl font-outfit font-black text-[#E31837]"
+              originalClassName="text-sm md:text-base font-bold text-[#565d6d] line-through decoration-2"
+            />
             <div className="text-sm text-[#565d6d] font-medium mt-1">
               {car.mileage.toLocaleString()} miles
             </div>
@@ -599,7 +607,13 @@ export default function VehicleDetailPage() {
                       <div>
                         <p className="text-sm font-bold leading-tight">{item.year} {item.make} {item.model} {item.trim || ''}</p>
                         <p className="text-xs text-[#565d6d] mt-1">{item.mileage.toLocaleString()} miles</p>
-                        <p className="text-sm font-black text-[#E31837] mt-1">${item.price.toLocaleString()}</p>
+                        <ListingPrice
+                          price={item.price}
+                          originalPrice={item.msrp}
+                          className="mt-1"
+                          currentClassName="text-sm font-black text-[#E31837]"
+                          originalClassName="text-[11px] font-bold text-[#565d6d] line-through decoration-2"
+                        />
                       </div>
                     </Link>
                   ))}
@@ -722,7 +736,13 @@ export default function VehicleDetailPage() {
                         <div>
                           <p className="text-sm font-bold leading-tight line-clamp-2">{item.year} {item.make} {item.model}</p>
                           <p className="text-xs text-[#565d6d] mt-0.5">{item.mileage.toLocaleString()} mi</p>
-                          <p className="text-sm font-black text-[#E31837] mt-0.5">${item.price.toLocaleString()}</p>
+                          <ListingPrice
+                            price={item.price}
+                            originalPrice={item.msrp}
+                            className="mt-0.5"
+                            currentClassName="text-sm font-black text-[#E31837]"
+                            originalClassName="text-[11px] font-bold text-[#565d6d] line-through decoration-2"
+                          />
                         </div>
                       </Link>
                     ))}

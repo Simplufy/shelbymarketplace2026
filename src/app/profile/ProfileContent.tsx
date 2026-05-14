@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useListings } from "@/hooks/useListings";
 import { useFavorites, useProfile } from "@/hooks/useFavorites";
+import { ListingPrice } from "@/components/ListingPrice";
 
 interface TabButtonProps {
   active: boolean;
@@ -83,9 +84,12 @@ function ListingCard({ listing, onDelete }: { listing: any; onDelete?: () => voi
         </h3>
         <p className="text-sm text-[#565d6d] mb-3">{listing.trim || ''}</p>
         <div className="flex items-center justify-between">
-          <span className="text-xl font-black text-[#E31837]">
-            ${listing.price.toLocaleString()}
-          </span>
+          <ListingPrice
+            price={listing.price}
+            originalPrice={listing.msrp}
+            currentClassName="text-xl font-black text-[#E31837]"
+            originalClassName="text-xs font-bold text-[#565d6d] line-through decoration-2"
+          />
           <Link 
             href={`/listings/${listing.id}`}
             className="flex items-center gap-1 text-sm font-bold text-[#002D72] hover:underline"

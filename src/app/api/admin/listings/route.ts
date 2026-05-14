@@ -8,6 +8,7 @@ const VALID_DRIVETRAINS = new Set(["RWD", "AWD", "4WD"]);
 const VALID_STATUSES = new Set(["PENDING", "ACTIVE", "SOLD", "REJECTED"]);
 const VALID_PACKAGES = new Set(["STANDARD", "HOMEPAGE", "HOMEPAGE_PLUS_ADS"]);
 const OPTIONAL_LISTING_COLUMNS = [
+  "msrp",
   "listing_tags",
   "service_history",
   "carfax_report_url",
@@ -241,6 +242,7 @@ export async function POST(req: NextRequest) {
       model: stringValue(rawListing.model),
       trim: nullableString(rawListing.trim),
       price,
+      msrp: price,
       mileage,
       transmission,
       drivetrain,

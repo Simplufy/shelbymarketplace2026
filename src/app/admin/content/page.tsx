@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { ListingPrice } from "@/components/ListingPrice";
 
 // Types for CMS content
 type HeroContent = {
@@ -153,7 +154,7 @@ export default function ContentManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [saveMessage, setSaveMessage] = useState<{type: "success" | "error", text: string} | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
-  const [listings, setListings] = useState<Array<{id: string; title: string; price: number; image: string}>>([]);
+  const [listings, setListings] = useState<Array<{id: string; title: string; price: number; msrp: number | null; image: string}>>([]);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingCta, setUploadingCta] = useState(false);
   
@@ -632,7 +633,12 @@ export default function ContentManager() {
                       </div>
                       <div className="p-4">
                         <h3 className="font-bold text-gray-900 text-sm mb-1 line-clamp-1">{listing.title}</h3>
-                        <p className="text-[#E31837] font-bold">${listing.price.toLocaleString()}</p>
+                        <ListingPrice
+                          price={listing.price}
+                          originalPrice={listing.msrp}
+                          currentClassName="text-[#E31837] font-bold"
+                          originalClassName="text-xs font-medium text-gray-400 line-through decoration-1"
+                        />
                       </div>
                     </div>
                   );

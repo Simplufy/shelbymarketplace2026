@@ -9,6 +9,7 @@ interface CompareItem {
   model: string;
   trim: string | null;
   price: number;
+  msrp?: number | null;
   mileage: number;
   transmission: string;
   drivetrain: string;
