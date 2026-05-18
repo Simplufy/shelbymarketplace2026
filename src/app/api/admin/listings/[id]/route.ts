@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/admin/requireAdmin";
+import {
+  extractCarfaxReportUrlFromFeatures,
+  isCarfaxReportFeature,
+  normalizeCarfaxReportUrl,
+} from "@/lib/listings/carfax";
+import { syncListingCarfaxFeature } from "@/lib/listings/carfax-server";
 
 const RELATED_LISTING_TABLES = [
   "listing_images",
@@ -126,11 +132,22 @@ export async function GET(
       dealershipName = dealer?.dealership_name || null;
     }
 
+    const featureRows = features || [];
+    const carfaxReportUrl =
+      normalizeCarfaxReportUrl(listing.carfax_report_url) ||
+      extractCarfaxReportUrlFromFeatures(featureRows);
+    const visibleFeatures = featureRows
+      .map((feature: any) => feature.feature)
+      .filter((feature: string) => !isCarfaxReportFeature(feature));
+
     return NextResponse.json({
       data: {
-        listing,
+        listing: {
+          ...listing,
+          carfax_report_url: carfaxReportUrl,
+        },
         images: images || [],
-        features: (features || []).map((feature: any) => feature.feature),
+        features: visibleFeatures,
         seller: {
           name:
             [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim() ||
@@ -167,6 +184,10 @@ export async function PATCH(
     const updatePayload: Record<string, unknown> = Object.fromEntries(
       Object.entries(listingInput || {}).filter(([key]) => !forbiddenColumns.has(key))
     );
+    const hasCarfaxReportUpdate = Object.prototype.hasOwnProperty.call(updatePayload, "carfax_report_url");
+    const nextCarfaxReportUrl = hasCarfaxReportUpdate
+      ? normalizeCarfaxReportUrl(updatePayload.carfax_report_url)
+      : undefined;
 
     if (Object.keys(updatePayload).length === 0) {
       return NextResponse.json({ error: "No listing updates provided" }, { status: 400 });
@@ -210,6 +231,12 @@ export async function PATCH(
 
     if (!data) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+    }
+
+    if (hasCarfaxReportUpdate) {
+      const carfaxReportUrl = nextCarfaxReportUrl ?? null;
+      await syncListingCarfaxFeature(admin, id, carfaxReportUrl);
+      data.carfax_report_url = carfaxReportUrl;
     }
 
     return NextResponse.json({ data });

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import {
+  extractCarfaxReportUrlFromFeatures,
+  isCarfaxReportFeature,
+  normalizeCarfaxReportUrl,
+} from "@/lib/listings/carfax";
 
 function minWeeklyViewsForListing(id: string) {
   let hash = 0;
@@ -78,9 +83,17 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     const publicListingData = Object.fromEntries(
       Object.entries(listingData).filter(([key]) => key !== "user_id")
     );
+    const featureRows = featuresData || [];
+    const carfaxReportUrl =
+      normalizeCarfaxReportUrl(listingData.carfax_report_url) ||
+      extractCarfaxReportUrlFromFeatures(featureRows);
+    const visibleFeatures = featureRows
+      .map((f: any) => f.feature)
+      .filter((feature: string) => !isCarfaxReportFeature(feature));
 
     const formattedData = {
       ...publicListingData,
+      carfax_report_url: carfaxReportUrl,
       seller_name: `${profileData?.first_name || ""} ${profileData?.last_name || ""}`.trim() || "Private Seller",
       seller_email: user ? profileData?.email || "" : "",
       seller_phone: user ? profileData?.phone || null : null,
@@ -90,10 +103,13 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       weekly_views: Math.max(weeklyViewCount || 0, minWeeklyViewsForListing(id)),
       dealership_name: dealershipName,
       images: imagesData || [],
-      features: (featuresData || []).map((f: any) => f.feature),
+      features: visibleFeatures,
     };
 
-    return NextResponse.json({ data: formattedData }, { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300" } });
+    return NextResponse.json(
+      { data: formattedData },
+      { headers: { "Cache-Control": "private, no-store, max-age=0" } }
+    );
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to load listing" }, { status: 500 });
   }

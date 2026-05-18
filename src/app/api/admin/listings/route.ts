@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { normalizeCarfaxReportUrl } from "@/lib/listings/carfax";
+import { syncListingCarfaxFeature } from "@/lib/listings/carfax-server";
 
 const MAX_LISTING_IMAGES = 35;
 const VALID_TRANSMISSIONS = new Set(["Manual", "Automatic"]);
@@ -234,6 +236,7 @@ export async function POST(req: NextRequest) {
     }
 
     const rawListing = listingInput as Record<string, unknown>;
+    const carfaxReportUrl = normalizeCarfaxReportUrl(rawListing.carfax_report_url);
     const insertPayload: Record<string, unknown> = {
       user_id: sellerUserId,
       vin: stringValue(rawListing.vin),
@@ -254,7 +257,7 @@ export async function POST(req: NextRequest) {
       status,
       is_featured: Boolean(rawListing.is_featured),
       engine: nullableString(rawListing.engine),
-      carfax_report_url: nullableString(rawListing.carfax_report_url),
+      carfax_report_url: carfaxReportUrl,
       video_url: nullableString(rawListing.video_url),
       listing_tags: Array.isArray(rawListing.listing_tags) && rawListing.listing_tags.length > 0 ? rawListing.listing_tags : null,
       service_history: Array.isArray(rawListing.service_history) ? rawListing.service_history : [],
@@ -290,6 +293,8 @@ export async function POST(req: NextRequest) {
     if (!listing) {
       return NextResponse.json({ error: "Failed to create listing" }, { status: 500 });
     }
+
+    await syncListingCarfaxFeature(admin, listing.id, carfaxReportUrl);
 
     if (images.length > 0) {
       const safePrimaryIndex =
